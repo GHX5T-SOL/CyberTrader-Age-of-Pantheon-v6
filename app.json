@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "CyberTrader",
+    "slug": "cybertrader-age-of-pantheon",
+    "scheme": "cybertrader",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050608",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#050608",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ai.cybertrader.app"
+    },
+    "android": {
+      "package": "ai.cybertrader.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#050608"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
