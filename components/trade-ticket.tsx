@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { FIRST_TRADE_HINT_TICKER, formatObol, type DemoHolding } from "@/engine/demo-market";
+import { FIRST_TRADE_HINT_TICKER, formatObol } from "@/engine/demo-market";
 import type { Commodity } from "@/engine/types";
 import { SectionCard } from "@/components/section-card";
 import { palette } from "@/theme/colors";
@@ -9,7 +9,11 @@ const monoFamily = process.env.EXPO_OS === "ios" ? "Menlo" : "monospace";
 interface TradeTicketProps {
   commodity?: Commodity;
   price?: number;
-  holding?: DemoHolding;
+  holding?: {
+    ticker: string;
+    quantity: number;
+    avgEntry: number;
+  };
   canSell: boolean;
   onBuy: () => void;
   onSell: () => void;

@@ -29,14 +29,17 @@ export default function IndexScreen() {
   const phase = useDemoStore((state) => state.phase);
   const activeView = useDemoStore((state) => state.activeView);
   const handle = useDemoStore((state) => state.handle);
+  const profile = useDemoStore((state) => state.profile);
   const tick = useDemoStore((state) => state.tick);
   const prices = useDemoStore((state) => state.prices);
   const changes = useDemoStore((state) => state.changes);
+  const balanceObol = useDemoStore((state) => state.balanceObol);
   const resources = useDemoStore((state) => state.resources);
-  const holdings = useDemoStore((state) => state.holdings);
+  const positions = useDemoStore((state) => state.positions);
   const selectedTicker = useDemoStore((state) => state.selectedTicker);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const systemMessage = useDemoStore((state) => state.systemMessage);
+  const isBusy = useDemoStore((state) => state.isBusy);
   const moveToHandle = useDemoStore((state) => state.moveToHandle);
   const submitHandle = useDemoStore((state) => state.submitHandle);
   const openMarket = useDemoStore((state) => state.openMarket);
@@ -59,7 +62,7 @@ export default function IndexScreen() {
     }
 
     const interval = setInterval(() => {
-      advanceMarket();
+      void advanceMarket();
     }, 2600);
 
     return () => clearInterval(interval);
@@ -68,7 +71,7 @@ export default function IndexScreen() {
   const selectedCommodity = DEMO_COMMODITIES.find(
     (commodity) => commodity.ticker === selectedTicker,
   );
-  const selectedHolding = holdings[selectedTicker];
+  const selectedHolding = positions[selectedTicker];
   const selectedPrice = prices[selectedTicker];
 
   return (
@@ -141,6 +144,7 @@ export default function IndexScreen() {
               label="unpack shard"
               tone="acid"
               onPress={moveToHandle}
+              disabled={isBusy}
             />
           </>
         ) : null}
@@ -183,8 +187,9 @@ export default function IndexScreen() {
               label="claim handle"
               tone="cyan"
               onPress={() => {
-                submitHandle(draftHandle);
+                void submitHandle(draftHandle);
               }}
+              disabled={isBusy}
             />
           </>
         ) : null}
@@ -235,7 +240,12 @@ export default function IndexScreen() {
               >
                 <ResourceChip
                   label="0BOL"
-                  value={formatObol(resources.balanceObol)}
+                  value={formatObol(balanceObol)}
+                  tone="cyan"
+                />
+                <ResourceChip
+                  label="OS"
+                  value={profile?.osTier ?? "PIRATE"}
                   tone="cyan"
                 />
                 <ResourceChip
@@ -262,12 +272,14 @@ export default function IndexScreen() {
                 tone={activeView === "home" ? "acid" : "cyan"}
                 onPress={goHome}
                 compact
+                disabled={isBusy}
               />
               <PrimaryAction
                 label="open market"
                 tone={activeView === "market" ? "acid" : "cyan"}
                 onPress={openMarket}
                 compact
+                disabled={isBusy}
               />
             </View>
 
@@ -320,7 +332,7 @@ export default function IndexScreen() {
                         commodity={commodity}
                         price={prices[commodity.ticker] ?? commodity.basePrice}
                         change={changes[commodity.ticker] ?? 0}
-                        ownedQuantity={holdings[commodity.ticker]?.quantity}
+                        ownedQuantity={positions[commodity.ticker]?.quantity}
                         selected={commodity.ticker === selectedTicker}
                         compact={compact}
                         onPress={() => {
@@ -335,9 +347,13 @@ export default function IndexScreen() {
                   commodity={selectedCommodity}
                   price={selectedPrice}
                   holding={selectedHolding}
-                  canSell={Boolean(selectedHolding)}
-                  onBuy={buySelected}
-                  onSell={sellSelected}
+                  canSell={Boolean(selectedHolding) && !isBusy}
+                  onBuy={() => {
+                    void buySelected();
+                  }}
+                  onSell={() => {
+                    void sellSelected();
+                  }}
                 />
               </>
             ) : null}
@@ -359,7 +375,12 @@ export default function IndexScreen() {
               </SectionCard>
             ) : null}
 
-            <PrimaryAction label="reset demo" tone="heat" onPress={resetDemo} />
+            <PrimaryAction
+              label="reset demo"
+              tone="heat"
+              onPress={resetDemo}
+              disabled={isBusy}
+            />
           </>
         ) : null}
       </View>
@@ -371,11 +392,13 @@ function PrimaryAction({
   label,
   tone,
   compact = false,
+  disabled = false,
   onPress,
 }: {
   label: string;
   tone: "cyan" | "acid" | "heat";
   compact?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const color =
@@ -387,15 +410,16 @@ function PrimaryAction({
 
   return (
     <Pressable
+      disabled={disabled}
       onPress={onPress}
       style={{
         flex: compact ? 1 : undefined,
         alignItems: "center",
         borderWidth: 1,
-        borderColor: `${color}55`,
+        borderColor: disabled ? `${palette.fg.muted}22` : `${color}55`,
         borderRadius: 18,
         borderCurve: "continuous",
-        backgroundColor: `${color}12`,
+        backgroundColor: disabled ? `${palette.fg.muted}08` : `${color}12`,
         paddingVertical: 14,
         paddingHorizontal: 16,
       }}
@@ -403,7 +427,7 @@ function PrimaryAction({
       <Text
         selectable
         style={{
-          color,
+          color: disabled ? palette.fg.muted : color,
           fontSize: 13,
           fontWeight: "700",
           textTransform: "uppercase",

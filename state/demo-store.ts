@@ -1,53 +1,57 @@
 import { create } from "zustand";
+import { getAuthority, resetAuthority } from "@/authority";
 import {
+  DEFAULT_TRADE_QUANTITY,
+  DEMO_STARTING_BALANCE,
   FIRST_TRADE_HINT_TICKER,
-  INITIAL_RESOURCES,
-  advancePrices,
-  applyAssistSignal,
-  buyCommodity,
   createInitialChanges,
   createInitialPrices,
   formatDelta,
   getCommodity,
-  sellCommodity,
+  roundCurrency,
   type ChangeMap,
-  type DemoHolding,
-  type DemoResources,
   type PriceMap,
 } from "@/engine/demo-market";
+import type { PlayerProfile, Position, Resources } from "@/engine/types";
 
 export type DemoPhase = "boot" | "handle" | "terminal";
 export type TerminalView = "home" | "market";
 
-interface AssistSignal {
-  ticker: string;
-  remaining: number;
-}
+const INITIAL_PLAYER_RESOURCES: Resources = {
+  energySeconds: 72 * 60 * 60,
+  heat: 6,
+  integrity: 82,
+  stealth: 64,
+  influence: 3,
+};
 
 interface DemoStoreState {
   phase: DemoPhase;
   activeView: TerminalView;
   handle: string;
+  profile: PlayerProfile | null;
+  playerId: string | null;
   tick: number;
   prices: PriceMap;
   changes: ChangeMap;
-  resources: DemoResources;
-  holdings: Record<string, DemoHolding>;
+  balanceObol: number;
+  resources: Resources;
+  positions: Record<string, Position>;
   selectedTicker: string;
   firstTradeComplete: boolean;
   systemMessage: string;
-  assistSignal: AssistSignal | null;
+  isBusy: boolean;
 }
 
 interface DemoStoreActions {
   moveToHandle: () => void;
-  submitHandle: (rawHandle: string) => boolean;
+  submitHandle: (rawHandle: string) => Promise<boolean>;
   openMarket: () => void;
   goHome: () => void;
   selectTicker: (ticker: string) => void;
-  advanceMarket: () => void;
-  buySelected: () => void;
-  sellSelected: () => void;
+  advanceMarket: () => Promise<void>;
+  buySelected: () => Promise<void>;
+  sellSelected: () => Promise<void>;
   resetDemo: () => void;
 }
 
@@ -58,20 +62,40 @@ function buildInitialState(): DemoStoreState {
     phase: "boot",
     activeView: "home",
     handle: "",
+    profile: null,
+    playerId: null,
     tick: 0,
     prices: createInitialPrices(),
     changes: createInitialChanges(),
-    resources: { ...INITIAL_RESOURCES },
-    holdings: {},
+    balanceObol: DEMO_STARTING_BALANCE,
+    resources: { ...INITIAL_PLAYER_RESOURCES },
+    positions: {},
     selectedTicker: FIRST_TRADE_HINT_TICKER,
     firstTradeComplete: false,
     systemMessage: "[sys] you are awake. the deck is not yours.",
-    assistSignal: null,
+    isBusy: false,
   };
 }
 
 function sanitizeHandle(rawHandle: string): string {
   return rawHandle.trim().replace(/\s+/g, "_").slice(0, 16);
+}
+
+function buildChangeMap(currentPrices: PriceMap, nextPrices: PriceMap): ChangeMap {
+  return Object.fromEntries(
+    Object.entries(nextPrices).map(([ticker, nextPrice]) => [
+      ticker,
+      roundCurrency(nextPrice - (currentPrices[ticker] ?? nextPrice)),
+    ]),
+  );
+}
+
+function toPositionMap(positions: Position[]): Record<string, Position> {
+  return Object.fromEntries(positions.map((position) => [position.ticker, position]));
+}
+
+function latestBalance(balanceObol: number, deltas: { balanceAfter: number }[]): number {
+  return deltas.at(-1)?.balanceAfter ?? balanceObol;
 }
 
 export const useDemoStore = create<DemoStore>((set, get) => ({
@@ -82,7 +106,7 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
       systemMessage: "[sys] claim a local handle. uplink optional.",
     });
   },
-  submitHandle: (rawHandle) => {
+  submitHandle: async (rawHandle) => {
     const handle = sanitizeHandle(rawHandle);
     if (!handle) {
       set({ systemMessage: "[sys] handle required." });
@@ -90,18 +114,63 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
     }
 
     set({
-      phase: "terminal",
-      handle,
-      activeView: "home",
-      systemMessage: "[sys] market open. start small. low heat.",
+      isBusy: true,
+      systemMessage: "[sys] provisioning local shard...",
     });
-    return true;
+
+    try {
+      const authority = getAuthority();
+      const profile = await authority.createProfile({
+        walletAddress: null,
+        devIdentity: handle.toLowerCase(),
+        eidolonHandle: handle,
+        osTier: "PIRATE",
+        rank: 1,
+        faction: null,
+      });
+
+      const [prices, resources, ledger, positions] = await Promise.all([
+        authority.getTickPrices(0),
+        authority.getResources(profile.id),
+        authority.getLedger(profile.id),
+        authority.getOpenPositions(profile.id),
+      ]);
+
+      set({
+        phase: "terminal",
+        handle: profile.eidolonHandle,
+        profile,
+        playerId: profile.id,
+        activeView: "home",
+        tick: 0,
+        prices,
+        changes: createInitialChanges(),
+        balanceObol: latestBalance(DEMO_STARTING_BALANCE, ledger),
+        resources,
+        positions: toPositionMap(positions),
+        isBusy: false,
+        systemMessage: "[sys] market open. start small. low heat.",
+      });
+
+      return true;
+    } catch (error) {
+      set({
+        isBusy: false,
+        systemMessage:
+          error instanceof Error
+            ? `[sys] ${error.message.toLowerCase()}`
+            : "[sys] shell provisioning failed.",
+      });
+      return false;
+    }
   },
   openMarket: () => set({ activeView: "market" }),
   goHome: () => set({ activeView: "home" }),
   selectTicker: (ticker) => {
     const commodity = getCommodity(ticker);
-    if (!commodity) return;
+    if (!commodity) {
+      return;
+    }
 
     set({
       activeView: "market",
@@ -109,103 +178,121 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
       systemMessage: `[scan] ${ticker} locked // ${commodity.name.toLowerCase()}`,
     });
   },
-  advanceMarket: () => {
+  advanceMarket: async () => {
     const state = get();
     if (state.phase !== "terminal") {
       return;
     }
 
     const nextTick = state.tick + 1;
-    let { prices, changes } = advancePrices(state.prices, nextTick);
-    let assistSignal = state.assistSignal;
-
-    if (assistSignal) {
-      const boosted = applyAssistSignal(prices, changes, assistSignal.ticker);
-      prices = boosted.prices;
-      changes = boosted.changes;
-      assistSignal =
-        assistSignal.remaining <= 1
-          ? null
-          : { ...assistSignal, remaining: assistSignal.remaining - 1 };
-    }
+    const prices = await getAuthority().getTickPrices(nextTick);
 
     set({
       tick: nextTick,
       prices,
-      changes,
-      assistSignal,
+      changes: buildChangeMap(state.prices, prices),
     });
   },
-  buySelected: () => {
+  buySelected: async () => {
     const state = get();
-    const selectedTicker = state.selectedTicker;
-    const price = state.prices[selectedTicker];
-    if (price === undefined) return;
+    if (!state.playerId || state.isBusy) {
+      return;
+    }
+
+    const price = state.prices[state.selectedTicker];
+    if (price === undefined) {
+      return;
+    }
+
+    set({ isBusy: true });
 
     try {
-      const result = buyCommodity({
-        ticker: selectedTicker,
-        quantity: 10,
-        price,
-        resources: state.resources,
-        holding: state.holdings[selectedTicker],
+      const authority = getAuthority();
+      const result = await authority.executeTrade({
+        playerId: state.playerId,
+        ticker: state.selectedTicker,
+        side: "BUY",
+        quantity: DEFAULT_TRADE_QUANTITY,
       });
 
-      const selectedCommodity = getCommodity(selectedTicker);
-      const shouldAssist =
-        !state.firstTradeComplete &&
-        (selectedTicker === FIRST_TRADE_HINT_TICKER ||
-          selectedCommodity?.heatRisk === "very_low" ||
-          selectedCommodity?.heatRisk === "low");
+      const [resources, positions, rank] = await Promise.all([
+        authority.getResources(state.playerId),
+        authority.getOpenPositions(state.playerId),
+        authority.getRank(state.playerId),
+      ]);
 
       set({
-        holdings: {
-          ...state.holdings,
-          [selectedTicker]: result.holding,
-        },
-        resources: result.resources,
+        positions: toPositionMap(positions),
+        resources,
+        balanceObol: latestBalance(state.balanceObol, result.ledger),
+        profile: state.profile ? { ...state.profile, rank: rank.rank } : null,
         activeView: "market",
-        assistSignal: shouldAssist ? { ticker: selectedTicker, remaining: 3 } : state.assistSignal,
-        systemMessage: `[trade] buy committed // ${selectedTicker} x10 @ ${price.toFixed(2)}`,
+        isBusy: false,
+        systemMessage: `[trade] buy committed // ${state.selectedTicker} x${DEFAULT_TRADE_QUANTITY} @ ${price.toFixed(2)}`,
       });
     } catch (error) {
       set({
+        isBusy: false,
         systemMessage:
-          error instanceof Error ? `[sys] ${error.message.toLowerCase()}` : "[sys] trade rejected.",
+          error instanceof Error
+            ? `[sys] ${error.message.toLowerCase()}`
+            : "[sys] trade rejected.",
       });
     }
   },
-  sellSelected: () => {
+  sellSelected: async () => {
     const state = get();
-    const selectedTicker = state.selectedTicker;
-    const price = state.prices[selectedTicker];
-    const holding = state.holdings[selectedTicker];
-    if (price === undefined || !holding) return;
+    if (!state.playerId || state.isBusy) {
+      return;
+    }
+
+    const price = state.prices[state.selectedTicker];
+    const position = state.positions[state.selectedTicker];
+    if (price === undefined || !position) {
+      return;
+    }
+
+    set({ isBusy: true });
 
     try {
-      const result = sellCommodity({
-        ticker: selectedTicker,
-        price,
-        resources: state.resources,
-        holding,
+      const authority = getAuthority();
+      const result = await authority.executeTrade({
+        playerId: state.playerId,
+        ticker: state.selectedTicker,
+        side: "SELL",
+        quantity: position.quantity,
       });
 
-      const nextHoldings = { ...state.holdings };
-      delete nextHoldings[selectedTicker];
+      const [resources, positions, rank] = await Promise.all([
+        authority.getResources(state.playerId),
+        authority.getOpenPositions(state.playerId),
+        authority.getRank(state.playerId),
+      ]);
 
       set({
-        holdings: nextHoldings,
-        resources: result.resources,
-        firstTradeComplete: state.firstTradeComplete || result.realizedPnl > 0,
+        positions: toPositionMap(positions),
+        resources,
+        balanceObol: latestBalance(state.balanceObol, result.ledger),
+        profile: state.profile ? { ...state.profile, rank: rank.rank } : null,
+        firstTradeComplete:
+          state.firstTradeComplete ||
+          (result.position.quantity === 0 && result.position.realizedPnl > 0),
         activeView: "home",
-        systemMessage: `[trade] sell executed // ${selectedTicker} ${formatDelta(result.realizedPnl)} 0BOL`,
+        isBusy: false,
+        systemMessage: `[trade] sell executed // ${state.selectedTicker} ${formatDelta(result.position.realizedPnl)} 0BOL`,
       });
     } catch (error) {
       set({
+        isBusy: false,
         systemMessage:
-          error instanceof Error ? `[sys] ${error.message.toLowerCase()}` : "[sys] sell failed.",
+          error instanceof Error
+            ? `[sys] ${error.message.toLowerCase()}`
+            : "[sys] sell failed.",
       });
     }
   },
-  resetDemo: () => set(buildInitialState()),
+  resetDemo: () => {
+    resetAuthority();
+    set(buildInitialState());
+  },
 }));

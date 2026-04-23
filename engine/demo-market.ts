@@ -32,6 +32,8 @@ const HEAT_FACTOR: Record<Commodity["heatRisk"], number> = {
   very_high: 8,
 };
 
+export const DEFAULT_TRADE_QUANTITY = 10;
+
 const DRIFT_BIAS: Record<string, number> = {
   VBLM: 0.0035,
   FDST: 0.0015,
@@ -66,7 +68,9 @@ export const INITIAL_RESOURCES: DemoResources = {
   heat: 6,
 };
 
-function roundCurrency(value: number): number {
+export const DEMO_STARTING_BALANCE = INITIAL_RESOURCES.balanceObol;
+
+export function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
@@ -80,6 +84,19 @@ export function createInitialChanges(): ChangeMap {
 
 export function getCommodity(ticker: string): Commodity | undefined {
   return DEMO_COMMODITIES.find((commodity) => commodity.ticker === ticker);
+}
+
+export function getHeatDelta(ticker: string, side: "BUY" | "SELL"): number {
+  const commodity = getCommodity(ticker);
+  if (!commodity) {
+    throw new Error(`Unknown ticker: ${ticker}`);
+  }
+
+  if (side === "BUY") {
+    return HEAT_FACTOR[commodity.heatRisk];
+  }
+
+  return Math.max(1, HEAT_FACTOR[commodity.heatRisk] - 3);
 }
 
 export function advancePrices(currentPrices: PriceMap, tick: number): { prices: PriceMap; changes: ChangeMap } {

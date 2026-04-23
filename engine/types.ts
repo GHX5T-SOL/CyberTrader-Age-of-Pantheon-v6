@@ -108,6 +108,8 @@ export interface Authority {
   // profile
   getProfile(playerId: string): Promise<PlayerProfile>;
   createProfile(input: Omit<PlayerProfile, 'id' | 'createdAt'>): Promise<PlayerProfile>;
+  getOpenPositions(playerId: string): Promise<Position[]>;
+  getLedger(playerId: string): Promise<LedgerEntry[]>;
 
   // market
   getMarket(): Promise<Commodity[]>;
