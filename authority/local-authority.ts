@@ -27,6 +27,7 @@ import type {
 interface LocalAuthorityOptions {
   seed?: string;
   startedAt?: string;
+  snapshot?: LocalAuthoritySnapshot;
 }
 
 interface LocalPlayerState {
@@ -36,6 +37,26 @@ interface LocalPlayerState {
   openPositions: Map<string, Position>;
   trades: Trade[];
   xp: number;
+}
+
+export interface LocalAuthorityPlayerSnapshot {
+  playerId: string;
+  resources: Resources;
+  cashBalance: number;
+  ledger: LedgerEntry[];
+  openPositions: Position[];
+  trades: Trade[];
+  xp: number;
+}
+
+export interface LocalAuthoritySnapshot {
+  seed: string;
+  startedAt: string;
+  currentTick: number;
+  sequence: number;
+  profiles: PlayerProfile[];
+  playerState: LocalAuthorityPlayerSnapshot[];
+  priceCache: Array<[number, PriceMap]>;
 }
 
 const INITIAL_PLAYER_RESOURCES: Resources = {
@@ -81,8 +102,70 @@ export class LocalAuthority implements Authority {
   private sequence = 0;
 
   constructor(options: LocalAuthorityOptions = {}) {
-    this.seed = options.seed ?? "phase1-local";
-    this.startedAtMs = Date.parse(options.startedAt ?? "2077-04-01T00:00:00.000Z");
+    const snapshot = options.snapshot;
+
+    this.seed = snapshot?.seed ?? options.seed ?? "phase1-local";
+    this.startedAtMs = Date.parse(
+      snapshot?.startedAt ?? options.startedAt ?? "2077-04-01T00:00:00.000Z",
+    );
+
+    if (snapshot) {
+      this.currentTick = snapshot.currentTick;
+      this.sequence = snapshot.sequence;
+      this.priceCache.clear();
+
+      for (const [tick, prices] of snapshot.priceCache) {
+        this.priceCache.set(tick, this.clonePrices(prices));
+      }
+
+      if (!this.priceCache.has(0)) {
+        this.priceCache.set(0, createInitialPrices());
+      }
+
+      for (const profile of snapshot.profiles) {
+        this.profiles.set(profile.id, { ...profile });
+      }
+
+      for (const player of snapshot.playerState) {
+        this.playerState.set(player.playerId, {
+          resources: { ...player.resources },
+          cashBalance: player.cashBalance,
+          ledger: player.ledger.map((entry) => ({ ...entry })),
+          openPositions: new Map(
+            player.openPositions.map((position) => [position.ticker, { ...position }]),
+          ),
+          trades: player.trades.map((trade) => ({ ...trade })),
+          xp: player.xp,
+        });
+      }
+    }
+  }
+
+  static fromSnapshot(snapshot: LocalAuthoritySnapshot): LocalAuthority {
+    return new LocalAuthority({ snapshot });
+  }
+
+  exportSnapshot(): LocalAuthoritySnapshot {
+    return {
+      seed: this.seed,
+      startedAt: new Date(this.startedAtMs).toISOString(),
+      currentTick: this.currentTick,
+      sequence: this.sequence,
+      profiles: [...this.profiles.values()].map((profile) => ({ ...profile })),
+      playerState: [...this.playerState.entries()].map(([playerId, state]) => ({
+        playerId,
+        resources: { ...state.resources },
+        cashBalance: state.cashBalance,
+        ledger: state.ledger.map((entry) => ({ ...entry })),
+        openPositions: [...state.openPositions.values()].map((position) => ({ ...position })),
+        trades: state.trades.map((trade) => ({ ...trade })),
+        xp: state.xp,
+      })),
+      priceCache: [...this.priceCache.entries()].map(([tick, prices]) => [
+        tick,
+        this.clonePrices(prices),
+      ]),
+    };
   }
 
   async getProfile(playerId: string): Promise<PlayerProfile> {

@@ -115,4 +115,40 @@ describe("LocalAuthority", () => {
       expect(firstRun).toEqual(secondRun);
     }
   });
+
+  it("restores from snapshot and keeps the loop intact", async () => {
+    const original = new LocalAuthority({ seed: "snapshot-loop", startedAt: STARTED_AT });
+    const profile = await original.createProfile({
+      walletAddress: null,
+      devIdentity: "snapshot_dev",
+      eidolonHandle: "SNAPSHOT",
+      osTier: "PIRATE",
+      rank: 1,
+      faction: null,
+    });
+
+    await original.getTickPrices(0);
+    await original.executeTrade({
+      playerId: profile.id,
+      ticker: "VBLM",
+      side: "BUY",
+      quantity: 10,
+    });
+    await original.getTickPrices(3);
+
+    const restored = LocalAuthority.fromSnapshot(original.exportSnapshot());
+
+    await expect(restored.getLedger(profile.id)).resolves.toEqual(
+      await original.getLedger(profile.id),
+    );
+    await expect(restored.getOpenPositions(profile.id)).resolves.toEqual(
+      await original.getOpenPositions(profile.id),
+    );
+    await expect(restored.getResources(profile.id)).resolves.toEqual(
+      await original.getResources(profile.id),
+    );
+    await expect(restored.getTickPrices(4)).resolves.toEqual(
+      await original.getTickPrices(4),
+    );
+  });
 });
