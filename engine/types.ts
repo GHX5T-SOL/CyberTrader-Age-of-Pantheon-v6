@@ -64,6 +64,21 @@ export interface MarketNews {
 
 export type Currency = '0BOL' | '$OBOL';
 
+export interface WalletSession {
+  mode: 'dev_identity' | 'solana_android_mwa' | 'manual_external_wallet';
+  walletAddress: string | null;
+  cluster: 'mainnet-beta' | 'devnet' | 'testnet' | 'custom';
+  canSignTransactions: boolean;
+}
+
+export interface TokenBalance {
+  symbol: '$OBOL';
+  mintAddress: string;
+  rawAmount: string;
+  uiAmount: string;
+  decimals: number;
+}
+
 export interface LedgerEntry {
   id: string;
   playerId: string;
@@ -115,4 +130,9 @@ export interface Authority {
 
   // rank
   getRank(playerId: string): Promise<{ rank: number; xp: number }>;
+
+  // wallet / token (feature-flagged)
+  connectWallet?(): Promise<WalletSession>;
+  disconnectWallet?(): Promise<void>;
+  getObolBalance?(playerId: string): Promise<TokenBalance | null>;
 }
