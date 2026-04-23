@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
+import { commodityArt } from "@/assets/commodity-art";
 import type { Commodity } from "@/engine/types";
 import { formatDelta } from "@/engine/demo-market";
 import { palette } from "@/theme/colors";
@@ -24,6 +25,7 @@ export function CommodityRow({
   compact = false,
   onPress,
 }: CommodityRowProps) {
+  const art = commodityArt[commodity.ticker];
   const changeTone =
     change > 0
       ? palette.accent.acidGreen
@@ -52,21 +54,45 @@ export function CommodityRow({
           gap: 8,
         }}
       >
-        <View style={{ gap: 4 }}>
-          <Text
-            selectable
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+          <View
             style={{
-              color: palette.accent.cyan,
-              fontSize: 17,
-              fontWeight: "700",
-              fontFamily: monoFamily,
+              width: 62,
+              height: 62,
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: 1,
+              borderColor: `${selected ? palette.accent.cyan : palette.fg.muted}33`,
+              borderRadius: 18,
+              borderCurve: "continuous",
+              backgroundColor: palette.bg.deepGreenBlack,
+              overflow: "hidden",
             }}
           >
-            {commodity.ticker}
-          </Text>
-          <Text selectable style={{ color: palette.fg.primary, fontSize: 15 }}>
-            {commodity.name}
-          </Text>
+            {art ? (
+              <Image
+                source={art}
+                resizeMode="contain"
+                style={{ width: 54, height: 54 }}
+              />
+            ) : null}
+          </View>
+          <View style={{ gap: 4, flex: 1 }}>
+            <Text
+              selectable
+              style={{
+                color: palette.accent.cyan,
+                fontSize: 17,
+                fontWeight: "700",
+                fontFamily: monoFamily,
+              }}
+            >
+              {commodity.ticker}
+            </Text>
+            <Text selectable style={{ color: palette.fg.primary, fontSize: 15 }}>
+              {commodity.name}
+            </Text>
+          </View>
         </View>
         <View style={{ alignItems: compact ? "flex-start" : "flex-end", gap: 4 }}>
           <Text

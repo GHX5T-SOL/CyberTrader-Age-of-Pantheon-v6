@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
+import { commodityArt } from "@/assets/commodity-art";
 import { FIRST_TRADE_HINT_TICKER, formatObol } from "@/engine/demo-market";
 import type { Commodity } from "@/engine/types";
 import { SectionCard } from "@/components/section-card";
@@ -37,16 +38,44 @@ export function TradeTicket({
     );
   }
 
+  const art = commodityArt[commodity.ticker];
   const totalBuy = price * 10;
   const estimatedSell = holding ? holding.quantity * price : 0;
   const projectedPnl = holding ? estimatedSell - holding.avgEntry * holding.quantity : 0;
 
   return (
     <SectionCard eyebrow="trade_ticket" title={`${commodity.ticker} // ${commodity.name}`} tone="acid">
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+        <View
+          style={{
+            width: 112,
+            height: 112,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1,
+            borderColor: `${palette.accent.acidGreen}35`,
+            borderRadius: 24,
+            borderCurve: "continuous",
+            backgroundColor: palette.bg.deepGreenBlack,
+            overflow: "hidden",
+          }}
+        >
+          {art ? (
+            <Image
+              source={art}
+              resizeMode="contain"
+              style={{ width: 98, height: 98 }}
+            />
+          ) : null}
+        </View>
+        <View style={{ flex: 1, gap: 8 }}>
+          <MetricRow label="price" value={`${price.toFixed(2)} 0BOL`} />
+          <MetricRow label="default lot" value={`10 units // ${formatObol(totalBuy)} 0BOL`} />
+          <MetricRow label="heat impact" value={commodity.heatRisk.replace("_", " ")} tone="heat" />
+        </View>
+      </View>
+
       <View style={{ gap: 10 }}>
-        <MetricRow label="price" value={`${price.toFixed(2)} 0BOL`} />
-        <MetricRow label="default lot" value={`10 units // ${formatObol(totalBuy)} 0BOL`} />
-        <MetricRow label="heat impact" value={commodity.heatRisk.replace("_", " ")} tone="heat" />
         {holding ? (
           <>
             <MetricRow label="held" value={`${holding.quantity} units`} />

@@ -1,26 +1,45 @@
-# /src — Mobile app (Expo + React Native)
+# /src - Mobile app (Expo + React Native)
 
-Phase 0 scaffold. Frontend/Mobile Agent fleshes this out in Phase 1.
+Phase 1 now has a real routed playable slice:
+- `boot`
+- `handle`
+- `terminal`
+- `market`
+
+The app is no longer a single-screen placeholder. It persists the local demo
+session, hydrates on reload, and runs the first trade loop through
+`LocalAuthority`.
 
 ## Structure
 
-```
+```text
 src/
-├── package.json       ← mobile-specific deps
-├── app.json           ← Expo config
-├── tsconfig.json      ← TS config with @/ and @brand/ path aliases
-├── app/               ← Expo Router screens
-│   ├── _layout.tsx    ← root layout + gesture handler
-│   └── index.tsx      ← boot screen (Phase 0 placeholder)
-├── components/        ← reusable UI components (empty, ready)
-├── state/             ← Zustand stores (empty, ready)
-├── engine/            ← pure TS game engine
-│   ├── prng.ts        ← Mulberry32 + xfnv1a seeded PRNG
-│   ├── types.ts       ← authoritative data model + Authority interface
-│   └── __tests__/
-│       └── prng.test.ts
-└── theme/
-    └── colors.ts      ← re-exports brand palette
+|-- app/                    <- Expo Router routes
+|   |-- _layout.tsx
+|   |-- index.tsx          <- hydration + redirect entry
+|   |-- boot.tsx
+|   |-- handle.tsx
+|   |-- terminal.tsx
+|   `-- market.tsx
+|-- assets/
+|   |-- commodity-art.ts   <- ticker-to-image mapping
+|   `-- commodities/       <- local PNG art used by the mobile market
+|-- authority/
+|   |-- index.ts
+|   |-- local-authority.ts
+|   |-- supabase-authority.ts
+|   `-- __tests__/
+|-- components/            <- reusable terminal UI pieces
+|-- engine/                <- deterministic market + shared types
+|-- hooks/                 <- bootstrap + market loop hooks
+|-- screens/
+|   `-- first-playable/    <- screen implementations used by routes
+|-- state/
+|   |-- demo-routes.ts
+|   |-- demo-storage.ts
+|   `-- demo-store.ts
+`-- theme/
+    `-- colors.ts
 ```
 
 ## Run
@@ -31,12 +50,25 @@ npm install
 npx expo start
 ```
 
+Web export from repo root:
+
+```bash
+npm run build:mobile:web
+```
+
+## Current slice
+
+The current working demo proves:
+- BIOS boot screen to terminal transition
+- local handle claim
+- deterministic ticking market
+- authority-backed buy/sell loop
+- local persistence across reload
+- commodity art rendering in the market
+
 ## Design rules
 
-- **No hex codes in components.** Import from `@/theme/colors` or `@brand/color/tokens`.
-- **No Redux/MobX/Recoil.** Zustand only.
-- **No charts requiring native linking.** SVG charts only in Phase 1.
-- **No placeholder main-nav screens in production.** Use feature flags.
-- **Engine is pure.** No `fetch`, no `Date.now()`, no `Math.random` in `src/engine/`.
-
-See [../agents/frontend-mobile.md](../agents/frontend-mobile.md) for more.
+- No hex codes in components. Import from `@/theme/colors`.
+- Engine code stays deterministic. No `Math.random` or `Date.now()` in `src/engine`.
+- Authority is the write boundary. UI should not mutate trade state directly.
+- Keep player-facing screens diegetic. This is a cyberdeck, not a dashboard.
