@@ -23,7 +23,8 @@ src/
 |   `-- market.tsx
 |-- assets/
 |   |-- commodity-art.ts   <- ticker-to-image mapping
-|   `-- commodities/       <- local PNG art used by the mobile market
+|   |-- commodities/       <- local PNG art used by the mobile market
+|   `-- ui/                <- shard core + other player-facing visual anchors
 |-- authority/
 |   |-- index.ts
 |   |-- local-authority.ts
@@ -34,6 +35,7 @@ src/
 |-- hooks/                 <- bootstrap + market loop hooks
 |-- screens/
 |   `-- first-playable/    <- screen implementations used by routes
+|-- cinematics/            <- Remotion teaser scaffold for the vertical slice
 |-- state/
 |   |-- demo-routes.ts
 |   |-- demo-storage.ts
@@ -65,6 +67,18 @@ The current working demo proves:
 - authority-backed buy/sell loop
 - local persistence across reload
 - commodity art rendering in the market
+- Eidolon shard centerpiece rendering in boot and hydration
+
+## Cinematics
+
+The repo now includes a working Remotion scaffold at `src/cinematics`.
+
+Useful commands:
+
+```bash
+npm run generate:cinematic
+npm run render:cinematic
+```
 
 ## Design rules
 

@@ -4,6 +4,7 @@ import { DemoPhaseShell } from "@/components/demo-phase-shell";
 import { PrimaryAction } from "@/components/primary-action";
 import { ResourceChip } from "@/components/resource-chip";
 import { SectionCard } from "@/components/section-card";
+import { SignalCore } from "@/components/signal-core";
 import { SystemLine } from "@/components/system-line";
 import { useDemoMarketLoop } from "@/hooks/use-demo-market-loop";
 import { formatObol } from "@/engine/demo-market";
@@ -88,7 +89,12 @@ export function TerminalHomeScreen() {
         </View>
       </SectionCard>
       <SectionCard eyebrow="terminal_home" title="cockpit" tone="amber">
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 14 }}>
+          <SignalCore
+            label="core status"
+            detail="The Eidolon shard is stable enough to trade, but still running hot under containment."
+            size="compact"
+          />
           <Text selectable style={{ color: palette.fg.primary, lineHeight: 22 }}>
             The deck is stable enough to trade. Start with {FIRST_TRADE_HINT_TICKER} if
             you want a lower-heat first move. One profitable loop is the current demo

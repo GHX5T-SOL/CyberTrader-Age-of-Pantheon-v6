@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { DemoPhaseShell } from "@/components/demo-phase-shell";
 import { PrimaryAction } from "@/components/primary-action";
 import { SectionCard } from "@/components/section-card";
+import { SignalCore } from "@/components/signal-core";
 import { SystemLine } from "@/components/system-line";
 import { useDemoStore } from "@/state/demo-store";
 
@@ -18,6 +19,10 @@ export function BootScreen() {
       description="Wake inside a damaged cyberdeck, stabilize the shell, and move into the local terminal."
     >
       <Stack.Screen options={{ title: "Boot" }} />
+      <SignalCore
+        label="eidolon shard // waking"
+        detail="A broken intelligence fragment is stabilizing inside stolen hardware."
+      />
       <SectionCard eyebrow="boot_sequence" title="wake signal" tone="cyan">
         <View style={{ gap: 6 }}>
           <SystemLine>BIOS_0X3F...................... ok</SystemLine>
