@@ -1,6 +1,7 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { palette } from "@/theme/colors";
 
 const monoFamily = process.env.EXPO_OS === "ios" ? "Menlo" : "monospace";
@@ -63,6 +64,13 @@ export function MobileGameShell({
 
   return (
     <SafeAreaView style={{ flex: 1, alignItems: "center", backgroundColor: palette.bg.void }}>
+      <LinearGradient
+        pointerEvents="none"
+        colors={[palette.bg.void, palette.bg.elevated, palette.bg.void]}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+      />
       <View
         pointerEvents="none"
         style={{
@@ -87,6 +95,28 @@ export function MobileGameShell({
           backgroundColor: palette.alpha.cyan18,
         }}
       />
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          opacity: 0.22,
+        }}
+      >
+        {Array.from({ length: 18 }).map((_, index) => (
+          <View
+            key={index}
+            style={{
+              height: 1,
+              marginTop: 22,
+              backgroundColor: index % 2 === 0 ? palette.alpha.cyan35 : palette.alpha.magenta35,
+            }}
+          />
+        ))}
+      </View>
       <View style={{ flex: 1, width: frameWidth, backgroundColor: palette.bg.void }}>
         {scroll ? (
           <ScrollView
@@ -103,4 +133,3 @@ export function MobileGameShell({
     </SafeAreaView>
   );
 }
-

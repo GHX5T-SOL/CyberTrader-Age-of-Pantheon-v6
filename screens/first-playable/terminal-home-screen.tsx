@@ -1,7 +1,9 @@
 import { Stack, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { HoloPanel } from "@/components/holo-panel";
 import { MetricRing } from "@/components/metric-ring";
 import { MobileGameShell } from "@/components/mobile-game-shell";
+import { ObjectiveStrip } from "@/components/objective-strip";
 import { PositionsPanel } from "@/components/positions-panel";
 import { PrimaryAction } from "@/components/primary-action";
 import { formatObol } from "@/engine/demo-market";
@@ -24,6 +26,7 @@ export function TerminalHomeScreen() {
   const systemMessage = useDemoStore((state) => state.systemMessage);
   const isBusy = useDemoStore((state) => state.isBusy);
   const openMarket = useDemoStore((state) => state.openMarket);
+  const advanceMarket = useDemoStore((state) => state.advanceMarket);
   const purchaseEnergyHour = useDemoStore((state) => state.purchaseEnergyHour);
   const resetDemo = useDemoStore((state) => state.resetDemo);
 
@@ -47,6 +50,11 @@ export function TerminalHomeScreen() {
           {systemMessage}
         </Text>
       </View>
+      <ObjectiveStrip
+        positions={positions}
+        firstTradeComplete={firstTradeComplete}
+        selectedTicker={Object.keys(positions)[0] ?? "VBLM"}
+      />
 
       <View style={styles.heroCard}>
         <View style={{ flexDirection: "row", justifyContent: "space-around", gap: 16 }}>
@@ -72,32 +80,57 @@ export function TerminalHomeScreen() {
         </View>
       </View>
 
+      <HoloPanel eyebrow="mission board" title="Choose your surface" tone="magenta">
+        <View style={{ gap: 10 }}>
+          <HubTile
+            number="01"
+            title="Game"
+            body="Enter S1LKROAD 4.0 and run the playable trade loop."
+            accent="magenta"
+            onPress={() => {
+              openMarket();
+              router.push("/market");
+            }}
+          />
+          <HubTile
+            number="02"
+            title="Tutorials"
+            body="Learn the loop: pick signal, set lot, buy, wait ticks, sell green."
+            accent="cyan"
+          />
+          <HubTile
+            number="03"
+            title="Settings"
+            body="Local demo mode. Audio, wallet, and accessibility controls are staged next."
+            accent="violet"
+          />
+        </View>
+      </HoloPanel>
+
       <View style={{ gap: 10 }}>
         <Text selectable style={styles.sectionHeader}>
-          Command Dashboard
+          Quick Actions
         </Text>
-        <HubTile
-          number="01"
-          title="Game"
-          body="Enter S1LKROAD 4.0 and run the playable trade loop."
-          accent="magenta"
-          onPress={() => {
-            openMarket();
-            router.push("/market");
-          }}
-        />
-        <HubTile
-          number="02"
-          title="Tutorials"
-          body="How to play: buy a low-risk commodity, wait for ticks, then sell for profit."
-          accent="cyan"
-        />
-        <HubTile
-          number="03"
-          title="Settings"
-          body="Local demo mode. Wallet, audio, and accessibility settings will land next."
-          accent="violet"
-        />
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <PrimaryAction
+            label="wait tick"
+            tone="acid"
+            compact
+            disabled={isBusy}
+            onPress={() => {
+              void advanceMarket();
+            }}
+          />
+          <PrimaryAction
+            label="buy energy"
+            tone="cyan"
+            compact
+            disabled={isBusy}
+            onPress={() => {
+              void purchaseEnergyHour();
+            }}
+          />
+        </View>
       </View>
 
       <View style={styles.walletCard}>
@@ -126,14 +159,6 @@ export function TerminalHomeScreen() {
       </View>
 
       <PositionsPanel positions={positions} />
-      <PrimaryAction
-        label="buy 1h energy"
-        tone="cyan"
-        disabled={isBusy}
-        onPress={() => {
-          void purchaseEnergyHour();
-        }}
-      />
       <PrimaryAction
         label="replay intro / reset demo"
         tone="heat"

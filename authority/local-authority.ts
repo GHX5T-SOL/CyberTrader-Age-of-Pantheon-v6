@@ -1,11 +1,13 @@
 import {
-  DEFAULT_TRADE_QUANTITY,
   DEMO_COMMODITIES,
   DEMO_STARTING_BALANCE,
   advancePrices,
+  applyMarketClockPulse,
+  canExecuteTrade,
   createInitialPrices,
   getCommodity,
-  getHeatDelta,
+  getStealthAdjustedHeatDelta,
+  getTradeEnergyCost,
   roundCurrency,
   type PriceMap,
 } from "@/engine/demo-market";
@@ -275,6 +277,16 @@ export class LocalAuthority implements Authority {
       throw new Error(`No price for ticker: ${input.ticker}`);
     }
 
+    const tradeCheck = canExecuteTrade({
+      ticker: input.ticker,
+      side: input.side,
+      quantity,
+      resources: state.resources,
+    });
+    if (!tradeCheck.ok) {
+      throw new Error(tradeCheck.reason);
+    }
+
     const trade: Trade = {
       id: this.nextId("trade"),
       playerId: input.playerId,
@@ -282,7 +294,11 @@ export class LocalAuthority implements Authority {
       side: input.side,
       quantity,
       price,
-      heatDelta: getHeatDelta(input.ticker, input.side),
+      heatDelta: getStealthAdjustedHeatDelta(
+        state.resources,
+        input.ticker,
+        input.side,
+      ),
       executedAt: this.nextTimestamp(),
     };
 
@@ -430,6 +446,16 @@ export class LocalAuthority implements Authority {
     return { ...state.resources };
   }
 
+  async advancePlayerClock(playerId: string, tick: number): Promise<Resources> {
+    const state = this.requirePlayerState(playerId);
+    state.resources = {
+      ...state.resources,
+      ...applyMarketClockPulse(state.resources, tick),
+    };
+
+    return { ...state.resources };
+  }
+
   async getActiveNews(tick: number): Promise<MarketNews[]> {
     const targetTick = Math.max(0, Math.floor(tick));
     const activeNews: MarketNews[] = [];
@@ -570,8 +596,7 @@ export class LocalAuthority implements Authority {
   }
 
   private getTradeEnergyCost(side: "BUY" | "SELL", quantity: number): number {
-    const baseCost = side === "BUY" ? 90 : 75;
-    return Math.max(15, Math.round((baseCost * quantity) / DEFAULT_TRADE_QUANTITY));
+    return getTradeEnergyCost(side, quantity);
   }
 
   private rankFromXp(xp: number): number {

@@ -66,6 +66,10 @@ The current working demo proves:
 - dashboard with Game, Tutorials, and Settings entry points
 - deterministic ticking market
 - authority-backed buy/sell loop
+- tactical lot-size selection
+- Energy and Heat trade rejection rules
+- passive deck-clock Heat decay and Energy recovery
+- manual "wait tick" action for controlled playtesting
 - local persistence across reload
 - commodity art rendering in the market
 - S1LKROAD dashboard styled after the approved Pirate OS mobile concept

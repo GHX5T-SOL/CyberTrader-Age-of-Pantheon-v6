@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import type { MarketNews } from "@/engine/types";
-import { SectionCard } from "@/components/section-card";
+import { HoloPanel } from "@/components/holo-panel";
 import { palette } from "@/theme/colors";
 
 const monoFamily = process.env.EXPO_OS === "ios" ? "Menlo" : "monospace";
@@ -13,7 +13,7 @@ export function NewsFeed({ news }: NewsFeedProps) {
   const visibleNews = news.slice(0, 3);
 
   return (
-    <SectionCard eyebrow="signal_feed" title="market rumors" tone={visibleNews.length ? "amber" : "cyan"}>
+    <HoloPanel eyebrow="signal_feed" title="market rumors" tone={visibleNews.length ? "amber" : "cyan"}>
       {visibleNews.length === 0 ? (
         <Text selectable style={{ color: palette.fg.muted, lineHeight: 22 }}>
           No clean rumors on this tick. The tape is moving on raw flow.
@@ -50,6 +50,6 @@ export function NewsFeed({ news }: NewsFeedProps) {
           ))}
         </View>
       )}
-    </SectionCard>
+    </HoloPanel>
   );
 }

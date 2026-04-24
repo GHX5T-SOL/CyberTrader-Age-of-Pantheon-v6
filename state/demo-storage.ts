@@ -20,6 +20,7 @@ interface PersistedDemoSession {
   positions: Record<string, Position>;
   activeNews: MarketNews[];
   selectedTicker: string;
+  orderSize: number;
   lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
   systemMessage: string;

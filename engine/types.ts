@@ -126,6 +126,7 @@ export interface Authority {
   // resources
   getResources(playerId: string): Promise<Resources>;
   purchaseEnergy(playerId: string, seconds: number, currency: Currency): Promise<Resources>;
+  advancePlayerClock?(playerId: string, tick: number): Promise<Resources>;
 
   // news
   getActiveNews(tick: number): Promise<MarketNews[]>;

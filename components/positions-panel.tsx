@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import type { Position } from "@/engine/types";
-import { SectionCard } from "@/components/section-card";
+import { HoloPanel } from "@/components/holo-panel";
 import { palette } from "@/theme/colors";
 
 const monoFamily = process.env.EXPO_OS === "ios" ? "Menlo" : "monospace";
@@ -13,7 +13,11 @@ export function PositionsPanel({ positions }: PositionsPanelProps) {
   const openPositions = Object.values(positions);
 
   return (
-    <SectionCard eyebrow="positions" title="open inventory" tone={openPositions.length ? "acid" : "amber"}>
+    <HoloPanel
+      eyebrow="positions"
+      title="open inventory"
+      tone={openPositions.length ? "cyan" : "amber"}
+    >
       {openPositions.length === 0 ? (
         <Text selectable style={{ color: palette.fg.muted, lineHeight: 22 }}>
           No open inventory. Buy one lot, let the tape move, then sell to close the
@@ -26,9 +30,9 @@ export function PositionsPanel({ positions }: PositionsPanelProps) {
               key={position.id}
               style={{
                 borderWidth: 1,
-                borderColor: `${palette.accent.acidGreen}35`,
+                borderColor: palette.alpha.cyan35,
                 borderRadius: 16,
-                backgroundColor: palette.bg.deepGreenBlack,
+                backgroundColor: palette.alpha.black50,
                 padding: 12,
                 gap: 6,
               }}
@@ -44,7 +48,7 @@ export function PositionsPanel({ positions }: PositionsPanelProps) {
           ))}
         </View>
       )}
-    </SectionCard>
+    </HoloPanel>
   );
 }
 

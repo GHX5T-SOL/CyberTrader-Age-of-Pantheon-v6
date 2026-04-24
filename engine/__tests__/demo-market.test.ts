@@ -1,8 +1,11 @@
 import {
   INITIAL_RESOURCES,
+  applyMarketClockPulse,
   advancePrices,
   buyCommodity,
+  canExecuteTrade,
   createInitialPrices,
+  getTradeEnergyCost,
   sellCommodity,
 } from "../demo-market";
 
@@ -47,5 +50,36 @@ describe("demo market loop", () => {
 
     expect(sold.realizedPnl).toBe(30);
     expect(sold.resources.balanceObol).toBe(1_000_030);
+  });
+
+  it("blocks trades when heat or energy would break the run", () => {
+    expect(getTradeEnergyCost("BUY", 25)).toBe(225);
+    expect(
+      canExecuteTrade({
+        ticker: "BLCK",
+        side: "BUY",
+        quantity: 25,
+        resources: { energySeconds: 10, heat: 6, stealth: 0 },
+      }),
+    ).toEqual({ ok: false, reason: "Dormant mode: buy energy before trading." });
+    expect(
+      canExecuteTrade({
+        ticker: "BLCK",
+        side: "BUY",
+        quantity: 25,
+        resources: { energySeconds: 5000, heat: 98, stealth: 0 },
+      }),
+    ).toEqual({ ok: false, reason: "Heat ceiling reached. Wait or cool down first." });
+  });
+
+  it("applies passive deck clock pressure deterministically", () => {
+    const pulse = applyMarketClockPulse(
+      { energySeconds: 3000, heat: 10, integrity: 82, stealth: 64, influence: 3 },
+      3,
+    );
+
+    expect(pulse.energySeconds).toBe(3030);
+    expect(pulse.heat).toBe(8);
+    expect(pulse.integrity).toBe(82);
   });
 });

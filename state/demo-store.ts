@@ -51,6 +51,7 @@ interface DemoStoreState {
   positions: Record<string, Position>;
   activeNews: MarketNews[];
   selectedTicker: string;
+  orderSize: number;
   lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
   systemMessage: string;
@@ -65,6 +66,7 @@ interface DemoStoreActions {
   openMarket: () => void;
   goHome: () => void;
   selectTicker: (ticker: string) => void;
+  setOrderSize: (quantity: number) => void;
   advanceMarket: () => Promise<void>;
   buySelected: () => Promise<void>;
   sellSelected: () => Promise<void>;
@@ -92,6 +94,7 @@ function buildInitialState(): DemoStoreState {
     positions: {},
     activeNews: [],
     selectedTicker: FIRST_TRADE_HINT_TICKER,
+    orderSize: DEFAULT_TRADE_QUANTITY,
     lastRealizedPnl: null,
     firstTradeComplete: false,
     systemMessage: "[sys] you are awake. the deck is not yours.",
@@ -153,6 +156,7 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     positions: state.positions,
     activeNews: state.activeNews,
     selectedTicker: state.selectedTicker,
+    orderSize: state.orderSize,
     lastRealizedPnl: state.lastRealizedPnl,
     firstTradeComplete: state.firstTradeComplete,
     systemMessage: state.systemMessage,
@@ -200,6 +204,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         changes: session.changes ?? createInitialChanges(),
         priceHistory: session.priceHistory ?? buildInitialPriceHistory(prices),
         activeNews: session.activeNews ?? [],
+        orderSize: session.orderSize ?? DEFAULT_TRADE_QUANTITY,
         lastRealizedPnl: session.lastRealizedPnl ?? null,
         isBusy: false,
         isHydrated: true,
@@ -292,6 +297,12 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         systemMessage: `[scan] ${ticker} locked // ${commodity.name.toLowerCase()}`,
       });
     },
+    setOrderSize: (quantity) => {
+      commitState({
+        orderSize: Math.max(1, Math.floor(quantity)),
+        systemMessage: `[order] lot size set // x${Math.max(1, Math.floor(quantity))}`,
+      });
+    },
     advanceMarket: async () => {
       const state = get();
       if (state.phase !== "terminal" || !state.isHydrated) {
@@ -300,9 +311,15 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
       const nextTick = state.tick + 1;
       const authority = getAuthority();
-      const [prices, activeNews] = await Promise.all([
-        authority.getTickPrices(nextTick),
+      const prices = await authority.getTickPrices(nextTick);
+      const [activeNews, resources, positions] = await Promise.all([
         authority.getActiveNews(nextTick),
+        state.playerId && authority.advancePlayerClock
+          ? authority.advancePlayerClock(state.playerId, nextTick)
+          : state.playerId
+            ? authority.getResources(state.playerId)
+            : Promise.resolve(state.resources),
+        state.playerId ? authority.getOpenPositions(state.playerId) : Promise.resolve([]),
       ]);
 
       set({
@@ -311,6 +328,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         changes: buildChangeMap(state.prices, prices),
         priceHistory: appendPriceHistory(state.priceHistory, prices),
         activeNews,
+        resources,
+        positions: state.playerId ? toPositionMap(positions) : state.positions,
       });
       await persistCurrentState();
     },
@@ -333,7 +352,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           playerId: state.playerId,
           ticker: state.selectedTicker,
           side: "BUY",
-          quantity: DEFAULT_TRADE_QUANTITY,
+          quantity: state.orderSize,
         });
 
         const [resources, positions, rank] = await Promise.all([
@@ -349,7 +368,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           profile: state.profile ? { ...state.profile, rank: rank.rank } : null,
           activeView: "market",
           isBusy: false,
-          systemMessage: `[trade] buy committed // ${state.selectedTicker} x${DEFAULT_TRADE_QUANTITY} @ ${price.toFixed(2)}`,
+          systemMessage: `[trade] buy committed // ${state.selectedTicker} x${state.orderSize} @ ${price.toFixed(2)}`,
         });
         await persistCurrentState();
       } catch (error) {

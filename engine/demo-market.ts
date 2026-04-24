@@ -15,6 +15,7 @@ export interface DemoHolding {
 
 export type PriceMap = Record<string, number>;
 export type ChangeMap = Record<string, number>;
+export type TradeIntent = "BUY" | "SELL";
 
 const VOLATILITY_FACTOR: Record<Commodity["volatility"], number> = {
   very_low: 0.003,
@@ -33,6 +34,9 @@ const HEAT_FACTOR: Record<Commodity["heatRisk"], number> = {
 };
 
 export const DEFAULT_TRADE_QUANTITY = 10;
+export const ORDER_SIZES = [5, 10, 25] as const;
+export const MAX_ENERGY_SECONDS = 72 * 60 * 60;
+export const DORMANT_ENERGY_THRESHOLD_SECONDS = 60;
 
 const DRIFT_BIAS: Record<string, number> = {
   VBLM: 0.0035,
@@ -97,6 +101,85 @@ export function getHeatDelta(ticker: string, side: "BUY" | "SELL"): number {
   }
 
   return Math.max(1, HEAT_FACTOR[commodity.heatRisk] - 3);
+}
+
+export function getTradeEnergyCost(side: TradeIntent, quantity: number): number {
+  const baseCost = side === "BUY" ? 90 : 75;
+  return Math.max(15, Math.round((baseCost * Math.max(1, quantity)) / DEFAULT_TRADE_QUANTITY));
+}
+
+export function getStealthAdjustedHeatDelta(
+  resources: Pick<DemoResources, "heat"> & { stealth?: number },
+  ticker: string,
+  side: TradeIntent,
+): number {
+  const stealth = resources.stealth ?? 0;
+  const mitigation = Math.floor(stealth / 35);
+  const panicTax = resources.heat >= 80 ? 2 : resources.heat >= 60 ? 1 : 0;
+
+  return Math.max(1, getHeatDelta(ticker, side) + panicTax - mitigation);
+}
+
+export function applyMarketClockPulse(
+  resources: Pick<DemoResources, "energySeconds" | "heat"> & {
+    integrity?: number;
+    stealth?: number;
+    influence?: number;
+  },
+  tick: number,
+): {
+  energySeconds: number;
+  heat: number;
+  integrity?: number;
+  stealth?: number;
+  influence?: number;
+} {
+  const stealth = resources.stealth ?? 0;
+  const heatDecay = 1 + (stealth >= 60 && tick % 3 === 0 ? 1 : 0);
+  const heat = Math.max(0, resources.heat - heatDecay);
+  const canRecharge = heat < 75 && resources.energySeconds < MAX_ENERGY_SECONDS;
+  const energySeconds = Math.min(
+    MAX_ENERGY_SECONDS,
+    resources.energySeconds + (canRecharge ? 30 : 0),
+  );
+  const integrity =
+    resources.integrity === undefined
+      ? undefined
+      : Math.max(0, resources.integrity - (resources.heat >= 90 ? 1 : 0));
+
+  return {
+    ...resources,
+    energySeconds,
+    heat,
+    integrity,
+  };
+}
+
+export function canExecuteTrade(input: {
+  ticker: string;
+  side: TradeIntent;
+  quantity: number;
+  resources: { energySeconds: number; heat: number; stealth?: number };
+}): { ok: true } | { ok: false; reason: string } {
+  if (input.resources.energySeconds < DORMANT_ENERGY_THRESHOLD_SECONDS) {
+    return { ok: false, reason: "Dormant mode: buy energy before trading." };
+  }
+
+  const energyCost = getTradeEnergyCost(input.side, input.quantity);
+  if (input.resources.energySeconds < energyCost) {
+    return { ok: false, reason: "Not enough Energy for this order." };
+  }
+
+  const heatDelta = getStealthAdjustedHeatDelta(
+    input.resources,
+    input.ticker,
+    input.side,
+  );
+  if (input.resources.heat + heatDelta >= 100) {
+    return { ok: false, reason: "Heat ceiling reached. Wait or cool down first." };
+  }
+
+  return { ok: true };
 }
 
 export function advancePrices(currentPrices: PriceMap, tick: number): { prices: PriceMap; changes: ChangeMap } {

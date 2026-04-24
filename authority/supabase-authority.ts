@@ -263,6 +263,10 @@ export class SupabaseAuthority implements Authority {
     return this.getResources(playerId);
   }
 
+  async advancePlayerClock(playerId: string, _tick: number): Promise<Resources> {
+    return this.getResources(playerId);
+  }
+
   async getActiveNews(tick: number): Promise<MarketNews[]> {
     const supabase = await requireSupabase();
     const targetTick = Math.max(0, Math.floor(tick));

@@ -1,9 +1,12 @@
 import { Stack, useRouter } from "expo-router";
 import { Image, ImageBackground, Pressable, Text, View } from "react-native";
 import { commodityArt } from "@/assets/commodity-art";
+import { HoloPanel } from "@/components/holo-panel";
 import { MetricRing } from "@/components/metric-ring";
 import { MobileGameShell } from "@/components/mobile-game-shell";
 import { NewsFeed } from "@/components/news-feed";
+import { ObjectiveStrip } from "@/components/objective-strip";
+import { OrderSizeSelector } from "@/components/order-size-selector";
 import { PositionsPanel } from "@/components/positions-panel";
 import { PriceSparkline } from "@/components/price-sparkline";
 import { PrimaryAction } from "@/components/primary-action";
@@ -28,9 +31,13 @@ export function MarketScreen() {
   const positions = useDemoStore((state) => state.positions);
   const activeNews = useDemoStore((state) => state.activeNews);
   const selectedTicker = useDemoStore((state) => state.selectedTicker);
+  const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
+  const orderSize = useDemoStore((state) => state.orderSize);
   const isBusy = useDemoStore((state) => state.isBusy);
   const systemMessage = useDemoStore((state) => state.systemMessage);
   const selectTicker = useDemoStore((state) => state.selectTicker);
+  const setOrderSize = useDemoStore((state) => state.setOrderSize);
+  const advanceMarket = useDemoStore((state) => state.advanceMarket);
   const buySelected = useDemoStore((state) => state.buySelected);
   const sellSelected = useDemoStore((state) => state.sellSelected);
   const goHome = useDemoStore((state) => state.goHome);
@@ -70,6 +77,11 @@ export function MarketScreen() {
       <Text selectable style={styles.idLine}>
         EIDOLON: {handle || "ZORO"} // LIVE MARKET // TICK {String(tick).padStart(4, "0")}
       </Text>
+      <ObjectiveStrip
+        positions={positions}
+        firstTradeComplete={firstTradeComplete}
+        selectedTicker={selectedTicker}
+      />
 
       <ImageBackground
         source={conceptBackdrop}
@@ -99,14 +111,18 @@ export function MarketScreen() {
         <PriceSparkline values={priceHistory[selectedTicker] ?? [selectedPrice]} tone="magenta" />
       </View>
 
-      <View style={styles.ledgerStrip}>
-        <Text selectable style={styles.ledgerLabel}>
-          WALLET
-        </Text>
-        <Text selectable style={styles.ledgerValue}>
-          {formatObol(balanceObol)} 0BOL
-        </Text>
-      </View>
+      <HoloPanel
+        eyebrow="deck state"
+        title="Wallet / Exposure"
+        tone="violet"
+        right={<Text selectable style={styles.ledgerValue}>{formatObol(balanceObol)} 0BOL</Text>}
+      >
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <StatPill label="Lot" value={`x${orderSize}`} tone="magenta" />
+          <StatPill label="Heat" value={`${resources.heat}%`} tone="cyan" />
+          <StatPill label="Open" value={String(Object.keys(positions).length)} tone="violet" />
+        </View>
+      </HoloPanel>
 
       <View style={{ gap: 10 }}>
         <View style={styles.sectionHeaderRow}>
@@ -117,7 +133,7 @@ export function MarketScreen() {
             LIVE MARKETS
           </Text>
         </View>
-        {DEMO_COMMODITIES.slice(0, 5).map((commodity) => (
+        {DEMO_COMMODITIES.map((commodity) => (
           <MarketRow
             key={commodity.ticker}
             commodity={commodity}
@@ -162,6 +178,7 @@ export function MarketScreen() {
             </Text>
           </View>
         </View>
+        <OrderSizeSelector value={orderSize} onChange={setOrderSize} />
         <View style={{ flexDirection: "row", gap: 10 }}>
           <PrimaryAction
             label="buy"
@@ -170,6 +187,15 @@ export function MarketScreen() {
             disabled={isBusy}
             onPress={() => {
               void buySelected();
+            }}
+          />
+          <PrimaryAction
+            label="wait tick"
+            tone="acid"
+            compact
+            disabled={isBusy}
+            onPress={() => {
+              void advanceMarket();
             }}
           />
           <PrimaryAction
@@ -189,6 +215,44 @@ export function MarketScreen() {
       <NewsFeed news={activeNews} />
       <PositionsPanel positions={positions} />
     </MobileGameShell>
+  );
+}
+
+function StatPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "cyan" | "magenta" | "violet";
+}) {
+  const color =
+    tone === "magenta"
+      ? palette.accent.magenta
+      : tone === "violet"
+        ? palette.accent.violet
+        : palette.accent.cyan;
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        borderWidth: 1,
+        borderColor: color,
+        borderRadius: 16,
+        backgroundColor: palette.alpha.black50,
+        padding: 10,
+        gap: 3,
+      }}
+    >
+      <Text selectable style={{ color: palette.fg.muted, fontSize: 9, letterSpacing: 1.3, textTransform: "uppercase", fontFamily: monoFamily }}>
+        {label}
+      </Text>
+      <Text selectable style={{ color, fontSize: 15, fontWeight: "900", fontFamily: monoFamily }}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -321,25 +385,9 @@ const styles = {
     fontSize: 12,
     lineHeight: 18,
   },
-  ledgerStrip: {
-    flexDirection: "row" as const,
-    justifyContent: "space-between" as const,
-    alignItems: "center" as const,
-    borderWidth: 1,
-    borderColor: palette.alpha.white10,
-    borderRadius: 18,
-    backgroundColor: palette.bg.card,
-    padding: 14,
-  },
-  ledgerLabel: {
-    color: palette.fg.muted,
-    fontSize: 11,
-    letterSpacing: 1.8,
-    fontFamily: monoFamily,
-  },
   ledgerValue: {
     color: palette.fg.primary,
-    fontSize: 17,
+    fontSize: 13,
     fontWeight: "900" as const,
     fontFamily: monoFamily,
   },
