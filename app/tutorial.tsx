@@ -36,7 +36,7 @@ export default function TutorialRoute() {
 
   return (
     <Modal visible transparent animationType="fade">
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", padding: 20 }}>
+      <View style={{ flex: 1, backgroundColor: terminalColors.tutorialBackdrop, justifyContent: "center", padding: 20 }}>
         <NeonBorder active style={{ alignSelf: "center", width: "100%", maxWidth: 360 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 10, marginBottom: 12 }}>
             TUTORIAL STEP {step + 1}/7
@@ -73,4 +73,3 @@ export default function TutorialRoute() {
     </Modal>
   );
 }
-

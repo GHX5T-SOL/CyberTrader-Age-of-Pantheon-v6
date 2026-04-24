@@ -20,8 +20,10 @@ export const terminalColors = {
   scanline: "rgba(255,255,255,0.03)",
   scanlineStrong: "rgba(255,255,255,0.04)",
   cyanFill: "rgba(0,240,255,0.15)",
+  cyanPress: "rgba(0,240,255,0.2)",
   cyanClear: "rgba(0,240,255,0)",
   vignette: "rgba(0,0,0,0.4)",
+  tutorialBackdrop: "rgba(0,0,0,0.85)",
 } as const;
 
 export const terminalFont = "JetBrains Mono";

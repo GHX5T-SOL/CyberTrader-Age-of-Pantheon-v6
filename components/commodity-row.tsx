@@ -56,7 +56,7 @@ export default function CommodityRow({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: pressed
-          ? "rgba(0,240,255,0.2)"
+          ? terminalColors.cyanPress
           : index % 2 === 0
             ? terminalColors.panelEven
             : terminalColors.panelAlt,
@@ -89,4 +89,3 @@ export default function CommodityRow({
 }
 
 export { CommodityRow };
-
