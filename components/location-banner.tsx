@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { getLocation } from "@/data/locations";
+import type { DistrictState } from "@/engine/types";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 interface LocationBannerProps {
@@ -7,6 +8,7 @@ interface LocationBannerProps {
   travelDestinationId: string | null;
   travelEndTime: number | null;
   nowMs: number;
+  districtState?: DistrictState;
   onTravelPress: () => void;
 }
 
@@ -15,6 +17,7 @@ export default function LocationBanner({
   travelDestinationId,
   travelEndTime,
   nowMs,
+  districtState = "NORMAL",
   onTravelPress,
 }: LocationBannerProps) {
   const current = getLocation(currentLocationId);
@@ -23,6 +26,14 @@ export default function LocationBanner({
   const etaMinutes = Math.floor(remainingMs / 60_000);
   const etaSeconds = Math.floor((remainingMs % 60_000) / 1000);
   const travelling = Boolean(travelDestinationId && remainingMs > 0);
+  const stateColor =
+    districtState === "BOOM"
+      ? terminalColors.green
+      : districtState === "LOCKDOWN"
+        ? terminalColors.red
+        : districtState === "BLACKOUT"
+          ? terminalColors.dim
+          : terminalColors.borderDim;
 
   return (
     <View
@@ -30,7 +41,7 @@ export default function LocationBanner({
         marginTop: 12,
         marginHorizontal: 12,
         borderWidth: 1,
-        borderColor: terminalColors.borderDim,
+        borderColor: stateColor,
         backgroundColor: terminalColors.panel,
         padding: 10,
         flexDirection: "row",
@@ -47,6 +58,9 @@ export default function LocationBanner({
           {travelling
             ? `TRAVELLING TO ${destination.name.toUpperCase()}`
             : current.name.toUpperCase()}
+        </Text>
+        <Text style={{ marginTop: 3, fontFamily: terminalFont, color: stateColor, fontSize: 10 }}>
+          DISTRICT STATE: {districtState}
         </Text>
         {travelling ? (
           <Text style={{ marginTop: 3, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>

@@ -1,14 +1,20 @@
 import * as React from "react";
 import { router } from "expo-router";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import ActionButton from "@/components/action-button";
 import CommodityRow from "@/components/commodity-row";
+import DailyChallengesPanel from "@/components/daily-challenges-panel";
+import FlashEventBanner from "@/components/flash-event-banner";
 import LocationBanner from "@/components/location-banner";
 import MetricChip from "@/components/metric-chip";
+import MissionBanner from "@/components/mission-banner";
 import PulsingDot from "@/components/pulsing-dot";
+import StreakDisplay from "@/components/streak-display";
 import { BurgerTrigger } from "@/components/burger-menu";
 import { useMenu } from "@/context/menu-context";
 import { getLocation, getUnlockedLocations } from "@/data/locations";
+import { getActiveDistrictState } from "@/engine/district-state";
 import { DEMO_COMMODITIES, formatObol } from "@/engine/demo-market";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
 import { useDemoStore } from "@/state/demo-store";
@@ -38,6 +44,14 @@ export default function HomeRoute() {
   const clock = useDemoStore((state) => state.clock);
   const world = useDemoStore((state) => state.world);
   const transitShipments = useDemoStore((state) => state.transitShipments);
+  const activeFlashEvent = useDemoStore((state) => state.activeFlashEvent);
+  const pendingMission = useDemoStore((state) => state.pendingMission);
+  const activeMission = useDemoStore((state) => state.activeMission);
+  const streak = useDemoStore((state) => state.streak);
+  const dailyChallenges = useDemoStore((state) => state.dailyChallenges);
+  const districtStates = useDemoStore((state) => state.districtStates);
+  const heatWarning = useDemoStore((state) => state.heatWarning);
+  const rankCelebration = useDemoStore((state) => state.rankCelebration);
   const tutorialCompleted = useDemoStore((state) => state.tutorialCompleted);
   const openMarket = useDemoStore((state) => state.openMarket);
   const selectTicker = useDemoStore((state) => state.selectTicker);
@@ -45,10 +59,12 @@ export default function HomeRoute() {
   const startTravel = useDemoStore((state) => state.startTravel);
   const reduceHeatWithBribe = useDemoStore((state) => state.reduceHeatWithBribe);
   const claimShipment = useDemoStore((state) => state.claimShipment);
+  const acceptMission = useDemoStore((state) => state.acceptMission);
+  const declineMission = useDemoStore((state) => state.declineMission);
+  const claimDailyChallenge = useDemoStore((state) => state.claimDailyChallenge);
   const [energyModal, setEnergyModal] = React.useState(false);
   const [travelModal, setTravelModal] = React.useState(false);
   const [hours, setHours] = React.useState(1);
-  const [missionFlash, setMissionFlash] = React.useState("");
 
   React.useEffect(() => {
     if (!tutorialCompleted) {
@@ -57,14 +73,26 @@ export default function HomeRoute() {
     }
   }, [tutorialCompleted]);
 
+  React.useEffect(() => {
+    if (!heatWarning || clock.nowMs - heatWarning.createdAt > 2500 || Platform.OS === "web") {
+      return;
+    }
+
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  }, [clock.nowMs, heatWarning]);
+
   const energyHours = Math.floor(resources.energySeconds / 3600);
   const energyPercent = Math.min(100, Math.round((resources.energySeconds / (72 * 3600)) * 100));
   const energyColor = energyHours > 24 ? "green" : energyHours >= 6 ? "amber" : "red";
   const heatColor = resources.heat < 30 ? "green" : resources.heat < 70 ? "amber" : "red";
   const latestNews = activeNews[0];
   const currentLocation = getLocation(world.currentLocationId);
+  const district = getActiveDistrictState(districtStates, world.currentLocationId, clock.nowMs);
   const travelling = Boolean(world.travelDestinationId && world.travelEndTime && world.travelEndTime > clock.nowMs);
   const visibleShipments = transitShipments.filter((shipment) => shipment.status === "transit" || shipment.status === "arrived");
+  const nextXp = progression.nextXpRequired === null
+    ? 0
+    : Math.max(0, progression.nextXpRequired - progression.xp);
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 34, backgroundColor: terminalColors.background }}>
@@ -83,6 +111,7 @@ export default function HomeRoute() {
         travelDestinationId={world.travelDestinationId}
         travelEndTime={world.travelEndTime}
         nowMs={clock.nowMs}
+        districtState={district.state}
         onTravelPress={() => setTravelModal(true)}
       />
 
@@ -116,7 +145,7 @@ export default function HomeRoute() {
         <MetricChip
           label="RANK"
           value={`${progression.level} ${progression.title}`.slice(0, 25)}
-          subValue={`${progression.xp} XP`}
+          subValue={progression.nextXpRequired === null ? "MAX RANK" : `${nextXp} XP TO NEXT`}
           icon="XP"
           accentColor={terminalColors.green}
         />
@@ -127,6 +156,40 @@ export default function HomeRoute() {
           accentColor={terminalColors.cyan}
         />
       </View>
+
+      <View style={{ marginTop: 8, marginHorizontal: 12 }}>
+        <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 11 }}>
+          RANK: {progression.title} {"->"} NEXT: {progression.nextXpRequired === null ? "MAX" : `${nextXp} XP`}
+        </Text>
+      </View>
+
+      {activeFlashEvent ? <FlashEventBanner event={activeFlashEvent} nowMs={clock.nowMs} /> : null}
+      {pendingMission || activeMission ? (
+        <MissionBanner
+          mission={(activeMission ?? pendingMission)!}
+          nowMs={clock.nowMs}
+          onAccept={acceptMission}
+          onDecline={declineMission}
+        />
+      ) : null}
+      <StreakDisplay streak={streak} nowMs={clock.nowMs} />
+      <DailyChallengesPanel challenges={dailyChallenges} onClaim={(id) => void claimDailyChallenge(id)} />
+
+      {heatWarning && clock.nowMs - heatWarning.createdAt < 2500 ? (
+        <View style={{ marginTop: 12, marginHorizontal: 12, borderWidth: 1, borderColor: terminalColors.red, padding: 10 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.red, fontSize: 12 }}>
+            HEAT THRESHOLD {heatWarning.threshold} CROSSED
+          </Text>
+        </View>
+      ) : null}
+
+      {rankCelebration && clock.nowMs - rankCelebration.createdAt < 3000 ? (
+        <View style={{ marginTop: 12, marginHorizontal: 12, borderWidth: 1, borderColor: terminalColors.cyan, backgroundColor: terminalColors.panel, padding: 14 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 22, textAlign: "center" }}>
+            RANK UP // {rankCelebration.title.toUpperCase()}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={{ marginTop: 20, paddingHorizontal: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -175,7 +238,7 @@ export default function HomeRoute() {
       {visibleShipments.length ? (
         <View style={{ marginTop: 18, paddingHorizontal: 16 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>SHIPMENTS</Text>
-          {visibleShipments.slice(0, 3).map((shipment) => {
+          {visibleShipments.map((shipment) => {
             const remainingMs = Math.max(0, shipment.arrivalTime - clock.nowMs);
             const etaMinutes = Math.floor(remainingMs / 60_000);
             const etaSeconds = Math.floor((remainingMs % 60_000) / 1000);
@@ -206,8 +269,7 @@ export default function HomeRoute() {
             router.push("/terminal");
           }],
           ["[MISSIONS]", () => {
-            setMissionFlash("AGENTOS MISSION GRID LOCKED");
-            setTimeout(() => setMissionFlash(""), 1400);
+            router.push("/missions");
           }],
           ["[UPGRADE]", () => router.push("/menu/progression")],
         ].map(([label, action]) => (
@@ -216,9 +278,6 @@ export default function HomeRoute() {
           </Pressable>
         ))}
       </View>
-      {missionFlash ? (
-        <Text style={{ marginTop: 10, textAlign: "center", fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>{missionFlash}</Text>
-      ) : null}
       <Text style={{ marginTop: 30, textAlign: "center", fontFamily: terminalFont, color: terminalColors.border, fontSize: 9 }}>
         //PIRATE OS v0.1.3
       </Text>

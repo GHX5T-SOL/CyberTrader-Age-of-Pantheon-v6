@@ -251,6 +251,7 @@ export class SupabaseAuthority implements Authority {
     side: "BUY" | "SELL";
     quantity: number;
     locationId?: string;
+    priceOverride?: number;
   }): Promise<TradeResult> {
     const commodity = getCommodity(input.ticker);
     if (!commodity) {

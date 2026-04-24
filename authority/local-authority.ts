@@ -255,6 +255,7 @@ export class LocalAuthority implements Authority {
     side: "BUY" | "SELL";
     quantity: number;
     locationId?: string;
+    priceOverride?: number;
   }): Promise<TradeResult> {
     const profile = this.requireProfile(input.playerId);
     const state = this.requirePlayerState(input.playerId);
@@ -265,7 +266,9 @@ export class LocalAuthority implements Authority {
     }
 
     const quantity = Math.max(1, Math.floor(input.quantity));
-    const price = await this.getCurrentLocationPrice(input.ticker, input.locationId ?? profile.currentLocationId);
+    const price = input.priceOverride !== undefined
+      ? roundCurrency(input.priceOverride)
+      : await this.getCurrentLocationPrice(input.ticker, input.locationId ?? profile.currentLocationId);
     const tradeValue = roundCurrency(price * quantity);
     const heatDelta = this.getValueBasedHeatDelta(input.ticker, tradeValue);
     const energyCost = getTradeEnergyCost(input.side, quantity);
@@ -568,6 +571,25 @@ export class LocalAuthority implements Authority {
       positions: await this.getOpenPositions(playerId),
       resources: { ...state.resources },
     };
+  }
+
+  async grantReward(
+    playerId: string,
+    amount: number,
+    reason: string,
+  ): Promise<LedgerEntry[]> {
+    const state = this.requirePlayerState(playerId);
+    const safeAmount = Math.max(0, roundCurrency(amount));
+    state.cashBalance = roundCurrency(state.cashBalance + safeAmount);
+    const ledgerEntry = this.createLedgerEntry({
+      playerId,
+      currency: "0BOL",
+      delta: safeAmount,
+      reason,
+      balanceAfter: state.cashBalance,
+    });
+    state.ledger.push(ledgerEntry);
+    return [{ ...ledgerEntry }];
   }
 
   async getActiveNews(tick: number): Promise<MarketNews[]> {

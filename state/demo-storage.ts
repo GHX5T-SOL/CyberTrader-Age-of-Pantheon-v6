@@ -1,5 +1,18 @@
 import type { LocalAuthoritySnapshot } from "@/authority/local-authority";
-import type { MarketNews, PlayerProfile, Position, RankSnapshot, Resources } from "@/engine/types";
+import type {
+  DailyChallenge,
+  DistrictStateRecord,
+  FlashEvent,
+  MarketNews,
+  Mission,
+  PlayerProfile,
+  Position,
+  RankCelebration,
+  RankSnapshot,
+  Resources,
+  TradeJuice,
+  TradeStreak,
+} from "@/engine/types";
 import type { ChangeMap, PriceMap } from "@/engine/demo-market";
 import type {
   DemoPhase,
@@ -32,6 +45,25 @@ interface PersistedDemoSession {
   notifications?: GameNotification[];
   transitShipments?: TransitShipment[];
   locationInventories?: LocationInventoryMap;
+  activeFlashEvent?: FlashEvent | null;
+  flashEventCount?: number;
+  nextFlashEventAt?: number;
+  flashCooldownUntil?: number;
+  pendingMission?: Mission | null;
+  activeMission?: Mission | null;
+  missionHistory?: Mission[];
+  npcReputation?: Record<string, number>;
+  missionCount?: number;
+  nextMissionAt?: number;
+  streak?: TradeStreak;
+  dailyChallenges?: DailyChallenge[];
+  dailyChallengeDayKey?: string;
+  districtStates?: Record<string, DistrictStateRecord>;
+  districtStateCount?: number;
+  nextDistrictStateAt?: number;
+  tradeJuice?: TradeJuice | null;
+  heatWarning?: { threshold: number; createdAt: number } | null;
+  rankCelebration?: RankCelebration | null;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;

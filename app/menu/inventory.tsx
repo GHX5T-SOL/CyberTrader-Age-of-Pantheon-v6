@@ -3,6 +3,8 @@ import { Pressable, Text, View } from "react-native";
 import CourierModal from "@/components/courier-modal";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import { getFlashCourierCostMultiplier } from "@/engine/flash-events";
+import { getActiveDistrictState, getDistrictCourierTimeMultiplier } from "@/engine/district-state";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -11,8 +13,15 @@ export default function InventoryMenuRoute() {
   const prices = useDemoStore((state) => state.prices);
   const progression = useDemoStore((state) => state.progression);
   const world = useDemoStore((state) => state.world);
+  const clock = useDemoStore((state) => state.clock);
+  const activeFlashEvent = useDemoStore((state) => state.activeFlashEvent);
+  const districtStates = useDemoStore((state) => state.districtStates);
+  const transitShipments = useDemoStore((state) => state.transitShipments);
   const sendCourierShipment = useDemoStore((state) => state.sendCourierShipment);
   const used = positions.length;
+  const activeCourierCount = transitShipments.filter((shipment) => shipment.status === "transit").length;
+  const courierLimit = 3 + Math.floor(Math.max(0, progression.level - 1) / 10);
+  const district = getActiveDistrictState(districtStates, world.currentLocationId, clock.nowMs);
   const [courierTicker, setCourierTicker] = React.useState<string | null>(null);
   const courierPosition = positions.find((position) => position.ticker === courierTicker);
 
@@ -21,6 +30,9 @@ export default function InventoryMenuRoute() {
       <NeonBorder active>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 12 }}>
           {used}/{progression.inventorySlots} SLOTS
+        </Text>
+        <Text style={{ marginTop: 6, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
+          COURIERS {activeCourierCount}/{courierLimit}
         </Text>
         <View style={{ height: 6, backgroundColor: terminalColors.borderDim, marginTop: 8 }}>
           <View
@@ -58,6 +70,8 @@ export default function InventoryMenuRoute() {
           ticker={courierPosition.ticker}
           maxQuantity={courierPosition.quantity}
           currentLocationId={world.currentLocationId}
+          costMultiplier={getFlashCourierCostMultiplier(activeFlashEvent)}
+          arrivalTimeMultiplier={getDistrictCourierTimeMultiplier(district.state)}
           onClose={() => setCourierTicker(null)}
           onSend={(input) => {
             void sendCourierShipment({

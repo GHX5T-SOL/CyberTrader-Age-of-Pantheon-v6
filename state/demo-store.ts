@@ -28,10 +28,58 @@ import {
   type ChangeMap,
   type PriceMap,
 } from "@/engine/demo-market";
+import {
+  createDailyChallenges,
+  advanceDailyChallengeProgress,
+  claimDailyChallenge as claimDailyChallengeEngine,
+  getDailyChallengeDayKey,
+} from "@/engine/daily-challenges";
+import {
+  createDistrictShift,
+  createInitialDistrictStates,
+  districtAnnouncement,
+  getActiveDistrictState,
+  getDistrictCourierTimeMultiplier,
+  getNextDistrictShiftDelay,
+  isDistrictTradingBlocked,
+  normalizeDistrictStates,
+} from "@/engine/district-state";
+import {
+  FLASH_EVENT_COOLDOWN_MS,
+  applyFlashEventPriceModifiers,
+  createFlashEvent,
+  getFlashCourierCostMultiplier,
+  getNextFlashEventDelay,
+  isTradingBlockedByFlash,
+  updateFlashEvent,
+} from "@/engine/flash-events";
+import {
+  createMission,
+  getMissionProgress,
+  getNextMissionDelay,
+} from "@/engine/mission-generator";
 import { checkRaid } from "@/engine/raid-checker";
 import { getRankSnapshot } from "@/engine/rank";
 import { seededStream } from "@/engine/prng";
-import type { MarketNews, PlayerProfile, Position, RankSnapshot, Resources } from "@/engine/types";
+import {
+  applySellToStreak,
+  createInitialStreak,
+  expireStreakIfNeeded,
+} from "@/engine/streak";
+import type {
+  DailyChallenge,
+  DistrictStateRecord,
+  FlashEvent,
+  MarketNews,
+  Mission,
+  PlayerProfile,
+  Position,
+  RankCelebration,
+  RankSnapshot,
+  Resources,
+  TradeJuice,
+  TradeStreak,
+} from "@/engine/types";
 import {
   clearDemoSession,
   loadDemoSession,
@@ -73,6 +121,9 @@ const INITIAL_PLAYER_RESOURCES: Resources = {
 const GAME_TICK_MS = 30_000;
 const MAX_CATCH_UP_TICKS = 100;
 const BLACK_MARKET_BRIBE_COST = 50_000;
+const ENGAGEMENT_SEED = "v6-engagement";
+const BASE_COURIER_LIMIT = 3;
+const HEAT_WARNING_THRESHOLDS = [30, 50, 70, 90] as const;
 
 interface DemoStoreState {
   phase: DemoPhase;
@@ -94,6 +145,25 @@ interface DemoStoreState {
   notifications: GameNotification[];
   transitShipments: TransitShipment[];
   locationInventories: LocationInventoryMap;
+  activeFlashEvent: FlashEvent | null;
+  flashEventCount: number;
+  nextFlashEventAt: number;
+  flashCooldownUntil: number;
+  pendingMission: Mission | null;
+  activeMission: Mission | null;
+  missionHistory: Mission[];
+  npcReputation: Record<string, number>;
+  missionCount: number;
+  nextMissionAt: number;
+  streak: TradeStreak;
+  dailyChallenges: DailyChallenge[];
+  dailyChallengeDayKey: string;
+  districtStates: Record<string, DistrictStateRecord>;
+  districtStateCount: number;
+  nextDistrictStateAt: number;
+  tradeJuice: TradeJuice | null;
+  heatWarning: { threshold: number; createdAt: number } | null;
+  rankCelebration: RankCelebration | null;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;
@@ -134,6 +204,9 @@ interface DemoStoreActions {
     courierId: CourierService["id"];
   }) => Promise<void>;
   claimShipment: (shipmentId: string) => Promise<void>;
+  acceptMission: () => void;
+  declineMission: () => void;
+  claimDailyChallenge: (challengeId: string) => Promise<void>;
   resetDemo: () => Promise<void>;
 }
 
@@ -143,6 +216,7 @@ function buildInitialState(): DemoStoreState {
   const nowMs = Date.now();
   const basePrices = createInitialPrices();
   const prices = applyLocationPriceModifiers(basePrices, DEFAULT_LOCATION_ID);
+  const dailyChallengeDayKey = getDailyChallengeDayKey(nowMs);
 
   return {
     phase: "intro",
@@ -173,6 +247,25 @@ function buildInitialState(): DemoStoreState {
     notifications: [],
     transitShipments: [],
     locationInventories: {},
+    activeFlashEvent: null,
+    flashEventCount: 0,
+    nextFlashEventAt: nowMs + getNextFlashEventDelay(ENGAGEMENT_SEED, 0),
+    flashCooldownUntil: 0,
+    pendingMission: null,
+    activeMission: null,
+    missionHistory: [],
+    npcReputation: {},
+    missionCount: 0,
+    nextMissionAt: nowMs + getNextMissionDelay(ENGAGEMENT_SEED, 0),
+    streak: createInitialStreak(),
+    dailyChallenges: createDailyChallenges(nowMs, 1),
+    dailyChallengeDayKey,
+    districtStates: createInitialDistrictStates(nowMs),
+    districtStateCount: 0,
+    nextDistrictStateAt: nowMs + getNextDistrictShiftDelay(ENGAGEMENT_SEED, 0),
+    tradeJuice: null,
+    heatWarning: null,
+    rankCelebration: null,
     selectedTicker: FIRST_TRADE_HINT_TICKER,
     orderSize: DEFAULT_TRADE_QUANTITY,
     lastRealizedPnl: null,
@@ -252,6 +345,112 @@ function addNotification(
   return [makeNotification(message, tone), ...notifications].slice(0, 20);
 }
 
+function getCourierLimit(rankLevel: number): number {
+  return BASE_COURIER_LIMIT + Math.floor(Math.max(0, rankLevel - 1) / 10);
+}
+
+function applyAllPriceModifiers(input: {
+  basePrices: PriceMap;
+  locationId: string;
+  districtStates: Record<string, DistrictStateRecord>;
+  activeFlashEvent: FlashEvent | null;
+  nowMs: number;
+  tick: number;
+}): PriceMap {
+  const district = getActiveDistrictState(
+    input.districtStates,
+    input.locationId,
+    input.nowMs,
+  );
+  const locationPrices = applyLocationPriceModifiers(
+    input.basePrices,
+    input.locationId,
+    district.state,
+  );
+  return applyFlashEventPriceModifiers({
+    prices: locationPrices,
+    event: input.activeFlashEvent,
+    locationId: input.locationId,
+    nowMs: input.nowMs,
+    tick: input.tick,
+  });
+}
+
+function getTradeBlockReason(state: DemoStoreState): string | null {
+  const district = getActiveDistrictState(
+    state.districtStates,
+    state.world.currentLocationId,
+    state.clock.nowMs,
+  );
+  if (isTravelling(state.world, state.clock.nowMs)) {
+    return "[sys] travelling. trading blocked until arrival.";
+  }
+  if (isDistrictTradingBlocked(district.state)) {
+    return `[sys] ${district.state.toLowerCase()} in this district. trading blocked.`;
+  }
+  if (isTradingBlockedByFlash(state.activeFlashEvent, state.world.currentLocationId)) {
+    return "[sys] district blackout. trading frozen.";
+  }
+  return null;
+}
+
+function updateHeatWarning(
+  previousHeat: number,
+  nextResources: Resources,
+  notifications: GameNotification[],
+): {
+  resources: Resources;
+  notifications: GameNotification[];
+  heatWarning: DemoStoreState["heatWarning"];
+} {
+  const threshold = HEAT_WARNING_THRESHOLDS.find(
+    (value) => previousHeat < value && nextResources.heat >= value,
+  );
+
+  if (!threshold) {
+    return { resources: nextResources, notifications, heatWarning: null };
+  }
+
+  return {
+    resources: nextResources,
+    notifications: addNotification(
+      notifications,
+      `Heat crossed ${threshold}. eAgent attention rising.`,
+      "warning",
+    ),
+    heatWarning: { threshold, createdAt: Date.now() },
+  };
+}
+
+function maybeRankCelebration(
+  previous: RankSnapshot,
+  next: RankSnapshot,
+): RankCelebration | null {
+  if (next.level <= previous.level) {
+    return null;
+  }
+  // AUDIO: rank_up.wav on rank change
+  return {
+    level: next.level,
+    title: next.title,
+    createdAt: Date.now(),
+  };
+}
+
+function markMissionStatus(
+  mission: Mission,
+  status: Mission["status"],
+  nowMs: number,
+): Mission {
+  return {
+    ...mission,
+    status,
+    completedAt: status === "completed" || status === "failed" || status === "declined"
+      ? nowMs
+      : mission.completedAt,
+  };
+}
+
 function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
   return {
     phase: state.phase,
@@ -273,6 +472,25 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     notifications: state.notifications,
     transitShipments: state.transitShipments,
     locationInventories: state.locationInventories,
+    activeFlashEvent: state.activeFlashEvent,
+    flashEventCount: state.flashEventCount,
+    nextFlashEventAt: state.nextFlashEventAt,
+    flashCooldownUntil: state.flashCooldownUntil,
+    pendingMission: state.pendingMission,
+    activeMission: state.activeMission,
+    missionHistory: state.missionHistory,
+    npcReputation: state.npcReputation,
+    missionCount: state.missionCount,
+    nextMissionAt: state.nextMissionAt,
+    streak: state.streak,
+    dailyChallenges: state.dailyChallenges,
+    dailyChallengeDayKey: state.dailyChallengeDayKey,
+    districtStates: state.districtStates,
+    districtStateCount: state.districtStateCount,
+    nextDistrictStateAt: state.nextDistrictStateAt,
+    tradeJuice: state.tradeJuice,
+    heatWarning: state.heatWarning,
+    rankCelebration: state.rankCelebration,
     selectedTicker: state.selectedTicker,
     orderSize: state.orderSize,
     lastRealizedPnl: state.lastRealizedPnl,
@@ -299,11 +517,25 @@ export const useDemoStore = create<DemoStore>((set, get) => {
     void persistCurrentState();
   };
 
-  const refreshFromAuthority = async (playerId: string, nextTick: number, locationId: string) => {
+  const refreshFromAuthority = async (
+    playerId: string,
+    nextTick: number,
+    locationId: string,
+    nowMs: number,
+    activeFlashEvent: FlashEvent | null = get().activeFlashEvent,
+    districtStates: Record<string, DistrictStateRecord> = get().districtStates,
+  ) => {
     const authority = getAuthority();
     const current = get();
     const basePrices = await authority.getTickPrices(nextTick);
-    const prices = applyLocationPriceModifiers(basePrices, locationId);
+    const prices = applyAllPriceModifiers({
+      basePrices,
+      locationId,
+      districtStates,
+      activeFlashEvent,
+      nowMs,
+      tick: nextTick,
+    });
     const [activeNews, resources, positions, progression] = await Promise.all([
       authority.getActiveNews(nextTick),
       authority.advancePlayerClock
@@ -363,6 +595,25 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         notifications: session.notifications ?? [],
         transitShipments: session.transitShipments ?? [],
         locationInventories: session.locationInventories ?? {},
+        activeFlashEvent: session.activeFlashEvent ?? null,
+        flashEventCount: session.flashEventCount ?? 0,
+        nextFlashEventAt: session.nextFlashEventAt ?? fallback.nextFlashEventAt,
+        flashCooldownUntil: session.flashCooldownUntil ?? 0,
+        pendingMission: session.pendingMission ?? null,
+        activeMission: session.activeMission ?? null,
+        missionHistory: session.missionHistory ?? [],
+        npcReputation: session.npcReputation ?? {},
+        missionCount: session.missionCount ?? 0,
+        nextMissionAt: session.nextMissionAt ?? fallback.nextMissionAt,
+        streak: session.streak ?? fallback.streak,
+        dailyChallenges: session.dailyChallenges ?? fallback.dailyChallenges,
+        dailyChallengeDayKey: session.dailyChallengeDayKey ?? fallback.dailyChallengeDayKey,
+        districtStates: session.districtStates ?? fallback.districtStates,
+        districtStateCount: session.districtStateCount ?? 0,
+        nextDistrictStateAt: session.nextDistrictStateAt ?? fallback.nextDistrictStateAt,
+        tradeJuice: session.tradeJuice ?? null,
+        heatWarning: session.heatWarning ?? null,
+        rankCelebration: session.rankCelebration ?? null,
         orderSize: session.orderSize ?? DEFAULT_TRADE_QUANTITY,
         lastRealizedPnl: session.lastRealizedPnl ?? null,
         introSeen: session.introSeen ?? false,
@@ -459,6 +710,25 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             travelEndTime: null,
           },
           notifications: addNotification([], "Local shard online.", "success"),
+          activeFlashEvent: null,
+          flashEventCount: 0,
+          nextFlashEventAt: nowMs + getNextFlashEventDelay(ENGAGEMENT_SEED, 0),
+          flashCooldownUntil: 0,
+          pendingMission: null,
+          activeMission: null,
+          missionHistory: [],
+          npcReputation: {},
+          missionCount: 0,
+          nextMissionAt: nowMs + getNextMissionDelay(ENGAGEMENT_SEED, 0),
+          streak: createInitialStreak(),
+          dailyChallenges: createDailyChallenges(nowMs, progression.level),
+          dailyChallengeDayKey: getDailyChallengeDayKey(nowMs),
+          districtStates: createInitialDistrictStates(nowMs),
+          districtStateCount: 0,
+          nextDistrictStateAt: nowMs + getNextDistrictShiftDelay(ENGAGEMENT_SEED, 0),
+          tradeJuice: null,
+          heatWarning: null,
+          rankCelebration: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -542,6 +812,25 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             travelEndTime: null,
           },
           notifications: addNotification([], "Local shard online.", "success"),
+          activeFlashEvent: null,
+          flashEventCount: 0,
+          nextFlashEventAt: nowMs + getNextFlashEventDelay(ENGAGEMENT_SEED, 0),
+          flashCooldownUntil: 0,
+          pendingMission: null,
+          activeMission: null,
+          missionHistory: [],
+          npcReputation: {},
+          missionCount: 0,
+          nextMissionAt: nowMs + getNextMissionDelay(ENGAGEMENT_SEED, 0),
+          streak: createInitialStreak(),
+          dailyChallenges: createDailyChallenges(nowMs, progression.level),
+          dailyChallengeDayKey: getDailyChallengeDayKey(nowMs),
+          districtStates: createInitialDistrictStates(nowMs),
+          districtStateCount: 0,
+          nextDistrictStateAt: nowMs + getNextDistrictShiftDelay(ENGAGEMENT_SEED, 0),
+          tradeJuice: null,
+          heatWarning: null,
+          rankCelebration: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -593,10 +882,12 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
 
       const nextTick = state.tick + 1;
+      const nowMs = state.clock.nowMs || Date.now();
       const refresh = await refreshFromAuthority(
         state.playerId,
         nextTick,
         state.world.currentLocationId,
+        nowMs,
       );
       set(refresh);
       await persistCurrentState();
@@ -614,11 +905,95 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         return;
       }
 
+      const authority = getAuthority();
       let nextWorld = state.world;
       let nextNotifications = state.notifications;
       let nextShipments = state.transitShipments;
       let nextLocationInventories = state.locationInventories;
-      let didMutate = false;
+      let nextActiveFlashEvent = updateFlashEvent(state.activeFlashEvent, nowMs);
+      let nextFlashEventCount = state.flashEventCount;
+      let nextFlashEventAt = state.nextFlashEventAt;
+      let nextFlashCooldownUntil = state.flashCooldownUntil;
+      let nextPendingMission = state.pendingMission;
+      let nextActiveMission = state.activeMission;
+      let nextMissionHistory = state.missionHistory;
+      let nextNpcReputation = state.npcReputation;
+      let nextMissionCount = state.missionCount;
+      let nextMissionAt = state.nextMissionAt;
+      let nextStreak = expireStreakIfNeeded(state.streak, nowMs);
+      let nextDailyChallenges = state.dailyChallenges;
+      let nextDailyChallengeDayKey = state.dailyChallengeDayKey;
+      let nextDistrictStates = normalizeDistrictStates(state.districtStates, nowMs);
+      let nextDistrictStateCount = state.districtStateCount;
+      let nextDistrictStateAt = state.nextDistrictStateAt;
+      let nextResources = state.resources;
+      let nextPositions = state.positions;
+      let nextProgression = state.progression;
+      let nextBalanceObol = state.balanceObol;
+      let nextHeatWarning = state.heatWarning;
+      let nextRankCelebration = state.rankCelebration;
+      let nextTradeJuice = state.tradeJuice;
+      let didMutate = nextActiveFlashEvent !== state.activeFlashEvent || nextStreak !== state.streak || nextDistrictStates !== state.districtStates;
+
+      const expiredFlash = state.activeFlashEvent && !nextActiveFlashEvent ? state.activeFlashEvent : null;
+      if (expiredFlash) {
+        nextFlashCooldownUntil = nowMs + FLASH_EVENT_COOLDOWN_MS;
+        nextFlashEventAt = nextFlashCooldownUntil + getNextFlashEventDelay(ENGAGEMENT_SEED, nextFlashEventCount);
+        if (expiredFlash.type === "eagent_proximity" && nextResources.heat > 50) {
+          const stream = seededStream(`${expiredFlash.id}:forced-raid`);
+          const losses: Record<string, number> = {};
+          for (const [ticker, position] of Object.entries(nextPositions)) {
+            losses[ticker] = Math.max(1, Math.floor(position.quantity * (0.25 + stream() * 0.35)));
+          }
+          if (Object.keys(losses).length > 0 && authority.applyRaidLoss) {
+            const raidState = await authority.applyRaidLoss(state.playerId, losses);
+            nextPositions = toPositionMap(raidState.positions);
+            nextResources = raidState.resources;
+          }
+          const raidRank = await authority.updateXp(state.playerId, 100, "eagent_proximity_raid");
+          nextRankCelebration = maybeRankCelebration(nextProgression, raidRank) ?? nextRankCelebration;
+          nextProgression = raidRank;
+          nextNotifications = addNotification(nextNotifications, "ALERT: eAgent RAID! Scanner lock resolved the hard way.", "danger");
+          // AUDIO: raid_warning.wav on eAgent proximity
+          didMutate = true;
+        }
+      }
+
+      if (!nextActiveFlashEvent && nowMs >= nextFlashEventAt && nowMs >= nextFlashCooldownUntil) {
+        nextActiveFlashEvent = createFlashEvent({
+          nowMs,
+          seed: ENGAGEMENT_SEED,
+          index: nextFlashEventCount,
+        });
+        nextFlashEventCount += 1;
+        nextNotifications = addNotification(nextNotifications, nextActiveFlashEvent.headline, "warning");
+        // AUDIO: news_alert.wav on flash event
+        didMutate = true;
+      }
+
+      const dayKey = getDailyChallengeDayKey(nowMs);
+      if (dayKey !== nextDailyChallengeDayKey) {
+        nextDailyChallengeDayKey = dayKey;
+        nextDailyChallenges = createDailyChallenges(nowMs, nextProgression.level);
+        nextNotifications = addNotification(nextNotifications, "Daily challenges refreshed.", "info");
+        didMutate = true;
+      }
+
+      if (nowMs >= nextDistrictStateAt) {
+        const district = createDistrictShift({
+          nowMs,
+          seed: ENGAGEMENT_SEED,
+          index: nextDistrictStateCount,
+        });
+        nextDistrictStates = {
+          ...nextDistrictStates,
+          [district.locationId]: district,
+        };
+        nextDistrictStateCount += 1;
+        nextDistrictStateAt = district.endTimestamp + getNextDistrictShiftDelay(ENGAGEMENT_SEED, nextDistrictStateCount);
+        nextNotifications = addNotification(nextNotifications, districtAnnouncement(district), district.state === "BOOM" ? "success" : "warning");
+        didMutate = true;
+      }
 
       if (
         state.world.travelDestinationId &&
@@ -631,11 +1006,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           travelDestinationId: null,
           travelEndTime: null,
         };
-        nextNotifications = addNotification(
-          nextNotifications,
-          `Arrived at ${location.name}.`,
-          "success",
-        );
+        nextNotifications = addNotification(nextNotifications, `Arrived at ${location.name}.`, "success");
         didMutate = true;
       }
 
@@ -649,11 +1020,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         const lost = stream() < service.lossChance;
         didMutate = true;
         if (lost) {
-          nextNotifications = addNotification(
-            nextNotifications,
-            `${service.name} lost ${shipment.quantity} ${shipment.ticker}.`,
-            "danger",
-          );
+          nextNotifications = addNotification(nextNotifications, `${service.name} lost ${shipment.quantity} ${shipment.ticker}.`, "danger");
           return { ...shipment, status: "lost" };
         }
 
@@ -675,64 +1042,173 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             },
           ],
         };
+        nextDailyChallenges = advanceDailyChallengeProgress(nextDailyChallenges, { courier_success: 1 });
         nextNotifications = addNotification(
           nextNotifications,
-          `${shipment.quantity} ${shipment.ticker} arrived at ${getLocation(shipment.destinationId).name}.`,
+          `Shipment of ${shipment.quantity} ${shipment.ticker} arrived at ${getLocation(shipment.destinationId).name}. Claim it when you travel there.`,
           "success",
         );
         return arrived;
       });
+
+      if (!nextPendingMission && !nextActiveMission && nowMs >= nextMissionAt) {
+        nextPendingMission = createMission({
+          nowMs,
+          seed: ENGAGEMENT_SEED,
+          index: nextMissionCount,
+          rankLevel: nextProgression.level,
+          prices: state.prices,
+        });
+        nextMissionCount += 1;
+        nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
+        nextNotifications = addNotification(nextNotifications, `${nextPendingMission.title}: ${nextPendingMission.objective}`, "info");
+        didMutate = true;
+      }
+
+      if (nextActiveMission) {
+        const progress = getMissionProgress({
+          mission: nextActiveMission,
+          positions: nextPositions,
+          currentLocationId: nextWorld.currentLocationId,
+          nowMs,
+        });
+        if (progress.complete || progress.failed) {
+          const completed = progress.complete;
+          const finishedMission = markMissionStatus(nextActiveMission, completed ? "completed" : "failed", nowMs);
+          nextMissionHistory = [finishedMission, ...nextMissionHistory].slice(0, 20);
+          nextNpcReputation = {
+            ...nextNpcReputation,
+            [finishedMission.npcId]: (nextNpcReputation[finishedMission.npcId] ?? 0) + (completed ? finishedMission.reputationDelta : -1),
+          };
+          nextActiveMission = null;
+          nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
+          if (completed) {
+            const ledger = authority.grantReward
+              ? await authority.grantReward(state.playerId, finishedMission.rewardObol, `mission_${finishedMission.type.toLowerCase()}`)
+              : [];
+            const rank = await authority.updateXp(state.playerId, finishedMission.rewardXp, "mission_complete");
+            nextBalanceObol = latestBalance(nextBalanceObol, ledger);
+            nextRankCelebration = maybeRankCelebration(nextProgression, rank) ?? nextRankCelebration;
+            nextProgression = rank;
+            nextNotifications = addNotification(nextNotifications, `Mission complete: ${finishedMission.title}.`, "success");
+          } else {
+            nextNotifications = addNotification(nextNotifications, `Mission failed: ${finishedMission.title}. Contact disappointed.`, "warning");
+          }
+          didMutate = true;
+        }
+      }
 
       const lastTickAt = state.clock.lastTickAt || nowMs;
       const missedTicks = Math.min(
         MAX_CATCH_UP_TICKS,
         Math.floor(Math.max(0, nowMs - lastTickAt) / GAME_TICK_MS),
       );
+      let nextTick = state.tick;
+      let refresh: Partial<DemoStoreState> = {};
 
       if (missedTicks > 0) {
-        let cursorTick = state.tick;
-        let refresh: Partial<DemoStoreState> = {};
-
         for (let index = 0; index < missedTicks; index += 1) {
-          cursorTick += 1;
+          nextTick += 1;
           refresh = await refreshFromAuthority(
             state.playerId,
-            cursorTick,
+            nextTick,
             nextWorld.currentLocationId,
+            nowMs,
+            nextActiveFlashEvent,
+            nextDistrictStates,
           );
+          nextResources = (refresh.resources ?? nextResources) as Resources;
+          nextPositions = (refresh.positions ?? nextPositions) as Record<string, Position>;
+          nextProgression = (refresh.progression ?? nextProgression) as RankSnapshot;
+          if (getActiveDistrictState(nextDistrictStates, nextWorld.currentLocationId, nowMs).state === "BLACKOUT") {
+            nextResources = {
+              ...nextResources,
+              heat: Math.max(0, nextResources.heat - 2),
+            };
+            refresh = {
+              ...refresh,
+              resources: nextResources,
+            };
+          }
 
-          if (cursorTick % 60 === 0 && cursorTick !== state.clock.lastRaidTick) {
-            const currentPositions = (refresh.positions ?? state.positions) as Record<string, Position>;
-            const currentResources = (refresh.resources ?? state.resources) as Resources;
+          if (nextTick % 60 === 0 && nextTick !== state.clock.lastRaidTick) {
             const raid = checkRaid({
-              tick: cursorTick,
-              heat: currentResources.heat,
-              positions: currentPositions,
+              tick: nextTick,
+              heat: nextResources.heat,
+              positions: nextPositions,
             });
             if (raid.triggered) {
-              const authority = getAuthority();
               const raidState = authority.applyRaidLoss
                 ? await authority.applyRaidLoss(state.playerId, raid.losses)
-                : { positions: Object.values(currentPositions), resources: currentResources };
-              const progression = await authority.updateXp(
-                state.playerId,
-                raid.xpBonus,
-                "raid_survived",
-              );
+                : { positions: Object.values(nextPositions), resources: nextResources };
+              const progression = await authority.updateXp(state.playerId, raid.xpBonus, "raid_survived");
+              nextPositions = toPositionMap(raidState.positions);
+              nextResources = raidState.resources;
+              nextProgression = progression;
               refresh = {
                 ...refresh,
-                positions: toPositionMap(raidState.positions),
-                resources: raidState.resources,
+                positions: nextPositions,
+                resources: nextResources,
                 progression,
               };
               nextNotifications = addNotification(nextNotifications, raid.message, "danger");
             }
           }
         }
+      }
 
+      const shouldReprice = didMutate || missedTicks > 0;
+      if (shouldReprice && missedTicks === 0) {
+        const basePrices = await authority.getTickPrices(nextTick);
+        const prices = applyAllPriceModifiers({
+          basePrices,
+          locationId: nextWorld.currentLocationId,
+          districtStates: nextDistrictStates,
+          activeFlashEvent: nextActiveFlashEvent,
+          nowMs,
+          tick: nextTick,
+        });
+        refresh = {
+          ...refresh,
+          prices,
+          changes: buildChangeMap(state.prices, prices),
+          priceHistory: appendPriceHistory(state.priceHistory, prices),
+        };
+      }
+
+      const heatUpdate = updateHeatWarning(state.resources.heat, nextResources, nextNotifications);
+      nextNotifications = heatUpdate.notifications;
+      nextHeatWarning = heatUpdate.heatWarning ?? nextHeatWarning;
+      nextResources = heatUpdate.resources;
+
+      if (shouldReprice || didMutate || nextStreak !== state.streak) {
         set({
           ...refresh,
+          tick: nextTick,
           world: nextWorld,
+          resources: nextResources,
+          positions: nextPositions,
+          progression: nextProgression,
+          balanceObol: nextBalanceObol,
+          activeFlashEvent: nextActiveFlashEvent,
+          flashEventCount: nextFlashEventCount,
+          nextFlashEventAt,
+          flashCooldownUntil: nextFlashCooldownUntil,
+          pendingMission: nextPendingMission,
+          activeMission: nextActiveMission,
+          missionHistory: nextMissionHistory,
+          npcReputation: nextNpcReputation,
+          missionCount: nextMissionCount,
+          nextMissionAt,
+          streak: nextStreak,
+          dailyChallenges: nextDailyChallenges,
+          dailyChallengeDayKey: nextDailyChallengeDayKey,
+          districtStates: nextDistrictStates,
+          districtStateCount: nextDistrictStateCount,
+          nextDistrictStateAt,
+          tradeJuice: nextTradeJuice,
+          heatWarning: nextHeatWarning,
+          rankCelebration: nextRankCelebration,
           transitShipments: nextShipments,
           locationInventories: nextLocationInventories,
           notifications: nextNotifications,
@@ -740,20 +1216,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             nowMs,
             displayTime: formatClock(nowMs),
             lastTickAt: lastTickAt + missedTicks * GAME_TICK_MS,
-            lastRaidTick: cursorTick % 60 === 0 ? cursorTick : state.clock.lastRaidTick,
+            lastRaidTick: nextTick % 60 === 0 ? nextTick : state.clock.lastRaidTick,
           },
-        });
-        await persistCurrentState();
-        return;
-      }
-
-      if (didMutate) {
-        set({
-          world: nextWorld,
-          transitShipments: nextShipments,
-          locationInventories: nextLocationInventories,
-          notifications: nextNotifications,
-          clock: baseClock,
         });
         await persistCurrentState();
       }
@@ -763,8 +1227,9 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy) {
         return;
       }
-      if (isTravelling(state.world, state.clock.nowMs)) {
-        commitState({ systemMessage: "[sys] travelling. trading blocked until arrival." });
+      const tradeBlockReason = getTradeBlockReason(state);
+      if (tradeBlockReason) {
+        commitState({ systemMessage: tradeBlockReason });
         return;
       }
 
@@ -783,14 +1248,26 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           side: "BUY",
           quantity: state.orderSize,
           locationId: state.world.currentLocationId,
+          priceOverride: price,
         });
+        const heatUpdate = updateHeatWarning(
+          state.resources.heat,
+          result.resources,
+          state.notifications,
+        );
 
         set({
           positions: toPositionMap(result.positions),
-          resources: result.resources,
+          resources: heatUpdate.resources,
           balanceObol: latestBalance(state.balanceObol, result.ledger),
           progression: result.rank,
           profile: state.profile ? { ...state.profile, rank: result.rank.level } : null,
+          dailyChallenges: advanceDailyChallengeProgress(state.dailyChallenges, {
+            location_trades: state.world.currentLocationId === "neon_plaza" ? 1 : 0,
+          }),
+          notifications: heatUpdate.notifications,
+          heatWarning: heatUpdate.heatWarning ?? state.heatWarning,
+          rankCelebration: maybeRankCelebration(state.progression, result.rank),
           activeView: "market",
           isBusy: false,
           systemMessage: `[trade] buy committed // ${state.selectedTicker} x${state.orderSize} @ ${price.toFixed(2)}`,
@@ -812,8 +1289,9 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy) {
         return;
       }
-      if (isTravelling(state.world, state.clock.nowMs)) {
-        commitState({ systemMessage: "[sys] travelling. trading blocked until arrival." });
+      const tradeBlockReason = getTradeBlockReason(state);
+      if (tradeBlockReason) {
+        commitState({ systemMessage: tradeBlockReason });
         return;
       }
 
@@ -833,22 +1311,62 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           side: "SELL",
           quantity: Math.min(state.orderSize, position.quantity),
           locationId: state.world.currentLocationId,
+          priceOverride: price,
         });
+        const nextStreak = applySellToStreak({
+          streak: state.streak,
+          realizedPnl: result.realizedPnl,
+          nowMs: state.clock.nowMs || Date.now(),
+        });
+        const streakBonusXp = result.realizedPnl > 0
+          ? Math.floor(result.xpGained * (nextStreak.multiplier - 1))
+          : 0;
+        let nextRank = result.rank;
+        if (streakBonusXp > 0) {
+          nextRank = await authority.updateXp(
+            state.playerId,
+            streakBonusXp,
+            `streak_${nextStreak.count}`,
+          );
+        }
+        const heatUpdate = updateHeatWarning(
+          state.resources.heat,
+          result.resources,
+          state.notifications,
+        );
+        let nextNotifications = heatUpdate.notifications;
+        const totalXp = result.xpGained + streakBonusXp;
+        if (totalXp > 0) {
+          nextNotifications = addNotification(nextNotifications, `XP +${totalXp}`, "success");
+        }
+        if (result.realizedPnl > 0) {
+          // AUDIO: trade_success.wav on profit
+        }
 
         set({
           positions: toPositionMap(result.positions),
-          resources: result.resources,
+          resources: heatUpdate.resources,
           balanceObol: latestBalance(state.balanceObol, result.ledger),
-          progression: result.rank,
-          profile: state.profile ? { ...state.profile, rank: result.rank.level } : null,
+          progression: nextRank,
+          profile: state.profile ? { ...state.profile, rank: nextRank.level } : null,
           lastRealizedPnl: result.realizedPnl,
           firstTradeComplete: state.firstTradeComplete || result.realizedPnl > 0,
+          streak: nextStreak,
+          dailyChallenges: advanceDailyChallengeProgress(state.dailyChallenges, {
+            daily_profit: Math.max(0, result.realizedPnl),
+            location_trades: state.world.currentLocationId === "neon_plaza" ? 1 : 0,
+          }),
+          tradeJuice: {
+            kind: result.realizedPnl > 0 ? "profit" : result.realizedPnl < 0 ? "loss" : "breakeven",
+            pnl: result.realizedPnl,
+            bigWin: result.realizedPnl > 50_000,
+            createdAt: Date.now(),
+          },
+          heatWarning: heatUpdate.heatWarning ?? state.heatWarning,
+          rankCelebration: maybeRankCelebration(state.progression, nextRank),
           activeView: "home",
           isBusy: false,
-          notifications:
-            result.xpGained > 0
-              ? addNotification(state.notifications, `XP +${result.xpGained}`, "success")
-              : state.notifications,
+          notifications: nextNotifications,
           systemMessage: `[trade] sell executed // ${state.selectedTicker} ${formatDelta(result.realizedPnl)} 0BOL`,
         });
         await persistCurrentState();
@@ -926,6 +1444,15 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy || state.world.currentLocationId !== "black_market") {
         return;
       }
+      const district = getActiveDistrictState(
+        state.districtStates,
+        state.world.currentLocationId,
+        state.clock.nowMs,
+      );
+      if (district.state === "BLACKOUT") {
+        commitState({ systemMessage: "[sys] blackout. bribe channel offline." });
+        return;
+      }
 
       set({ isBusy: true });
       try {
@@ -962,6 +1489,20 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy) {
         return;
       }
+      const currentDistrict = getActiveDistrictState(
+        state.districtStates,
+        state.world.currentLocationId,
+        state.clock.nowMs,
+      );
+      if (currentDistrict.state === "BLACKOUT") {
+        commitState({ systemMessage: "[sys] blackout. courier dispatch disabled." });
+        return;
+      }
+      const activeCourierCount = state.transitShipments.filter((shipment) => shipment.status === "transit").length;
+      if (activeCourierCount >= getCourierLimit(state.progression.level)) {
+        commitState({ systemMessage: "[sys] courier grid full. wait for a run to finish." });
+        return;
+      }
 
       const position = state.positions[ticker];
       const destination = LOCATIONS.find((location) => location.id === destinationId && location.unlocked);
@@ -978,20 +1519,29 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         if (!authority.transferPositionToShipment) {
           throw new Error("Courier authority unavailable");
         }
+        const destinationDistrict = getActiveDistrictState(
+          state.districtStates,
+          destination.id,
+          state.clock.nowMs,
+        );
+        const effectiveCost = roundCurrency(
+          courier.cost * getFlashCourierCostMultiplier(state.activeFlashEvent),
+        );
         const result = await authority.transferPositionToShipment(
           state.playerId,
           ticker,
           sendQuantity,
-          courier.cost,
+          effectiveCost,
         );
         const nowMs = state.clock.nowMs || Date.now();
+        const timeMultiplier = getDistrictCourierTimeMultiplier(destinationDistrict.state);
         const shipment: TransitShipment = {
           id: `shipment_${nowMs}_${ticker}_${destination.id}`,
           ticker,
           quantity: sendQuantity,
           avgEntry: position.avgEntry,
           destinationId: destination.id,
-          arrivalTime: nowMs + destination.travelTime * 60_000,
+          arrivalTime: nowMs + destination.travelTime * 60_000 * timeMultiplier,
           courierUsed: courier.id,
           status: "transit",
         };
@@ -1067,6 +1617,107 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             error instanceof Error
               ? `[sys] ${error.message}`
               : "[sys] claim failed.",
+        });
+        await persistCurrentState();
+      }
+    },
+    acceptMission: () => {
+      const state = get();
+      if (!state.pendingMission) {
+        return;
+      }
+
+      const mission: Mission = {
+        ...state.pendingMission,
+        status: "active",
+        acceptedAt: state.clock.nowMs || Date.now(),
+      };
+      commitState({
+        pendingMission: null,
+        activeMission: mission,
+        notifications: addNotification(
+          state.notifications,
+          `Mission accepted: ${mission.title}.`,
+          "success",
+        ),
+        systemMessage: `[mission] accepted // ${mission.title}`,
+      });
+    },
+    declineMission: () => {
+      const state = get();
+      if (!state.pendingMission) {
+        return;
+      }
+
+      const nowMs = state.clock.nowMs || Date.now();
+      const declined = markMissionStatus(state.pendingMission, "declined", nowMs);
+      commitState({
+        pendingMission: null,
+        missionHistory: [declined, ...state.missionHistory].slice(0, 20),
+        npcReputation: {
+          ...state.npcReputation,
+          [declined.npcId]: (state.npcReputation[declined.npcId] ?? 0) - 1,
+        },
+        nextMissionAt: nowMs + getNextMissionDelay(ENGAGEMENT_SEED, state.missionCount),
+        notifications: addNotification(
+          state.notifications,
+          `Mission declined: ${declined.title}.`,
+          "warning",
+        ),
+        systemMessage: `[mission] declined // ${declined.title}`,
+      });
+    },
+    claimDailyChallenge: async (challengeId) => {
+      const state = get();
+      if (!state.playerId || state.isBusy) {
+        return;
+      }
+
+      const { challenges, claimed } = claimDailyChallengeEngine(
+        state.dailyChallenges,
+        challengeId,
+      );
+      if (!claimed) {
+        return;
+      }
+
+      set({ isBusy: true });
+      try {
+        const authority = getAuthority();
+        const ledger = authority.grantReward
+          ? await authority.grantReward(
+              state.playerId,
+              claimed.rewardObol,
+              `daily_${claimed.type}`,
+            )
+          : [];
+        const rank = await authority.updateXp(
+          state.playerId,
+          claimed.rewardXp,
+          `daily_${claimed.type}`,
+        );
+        set({
+          dailyChallenges: challenges,
+          balanceObol: latestBalance(state.balanceObol, ledger),
+          progression: rank,
+          profile: state.profile ? { ...state.profile, rank: rank.level } : null,
+          rankCelebration: maybeRankCelebration(state.progression, rank),
+          notifications: addNotification(
+            state.notifications,
+            `Challenge claimed: ${claimed.title}`,
+            "success",
+          ),
+          isBusy: false,
+          systemMessage: `[challenge] claimed // ${claimed.rewardObol} 0BOL`,
+        });
+        await persistCurrentState();
+      } catch (error) {
+        set({
+          isBusy: false,
+          systemMessage:
+            error instanceof Error
+              ? `[sys] ${error.message}`
+              : "[sys] challenge claim failed.",
         });
         await persistCurrentState();
       }

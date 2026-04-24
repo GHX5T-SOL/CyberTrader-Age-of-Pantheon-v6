@@ -121,6 +121,102 @@ export interface TradeResult {
   realizedPnl: number;
 }
 
+export type FlashEventType =
+  | "volatility_spike"
+  | "arbitrage_window"
+  | "eagent_proximity"
+  | "district_blackout"
+  | "whale_dump"
+  | "gang_takeover";
+
+export interface FlashEvent {
+  id: string;
+  type: FlashEventType;
+  headline: string;
+  description: string;
+  ticker?: string;
+  locationId?: string;
+  startTimestamp: number;
+  activationTimestamp?: number;
+  endTimestamp: number;
+  modifierActive: boolean;
+}
+
+export type MissionType = "DELIVERY" | "BUY_REQUEST" | "HOLD" | "INTEL_DROP";
+export type MissionStatus = "pending" | "active" | "completed" | "failed" | "declined";
+
+export interface Mission {
+  id: string;
+  npcId: string;
+  type: MissionType;
+  status: MissionStatus;
+  title: string;
+  objective: string;
+  ticker?: string;
+  quantity?: number;
+  destinationId?: string;
+  startTimestamp: number;
+  endTimestamp: number;
+  acceptedAt?: number;
+  completedAt?: number;
+  rewardObol: number;
+  rewardXp: number;
+  reputationDelta: number;
+}
+
+export interface NpcReputation {
+  npcId: string;
+  reputation: number;
+}
+
+export type DailyChallengeType =
+  | "daily_profit"
+  | "location_trades"
+  | "raid_survivor"
+  | "courier_success"
+  | "rank_push";
+
+export interface DailyChallenge {
+  id: string;
+  type: DailyChallengeType;
+  title: string;
+  target: number;
+  progress: number;
+  rewardObol: number;
+  rewardXp: number;
+  completed: boolean;
+  claimed: boolean;
+}
+
+export interface TradeStreak {
+  count: number;
+  multiplier: number;
+  lastProfitableTradeAt: number | null;
+  expiresAt: number | null;
+}
+
+export type DistrictState = "BOOM" | "NORMAL" | "LOCKDOWN" | "BLACKOUT";
+
+export interface DistrictStateRecord {
+  locationId: string;
+  state: DistrictState;
+  startTimestamp: number;
+  endTimestamp: number;
+}
+
+export interface TradeJuice {
+  kind: "profit" | "loss" | "breakeven";
+  pnl: number;
+  bigWin: boolean;
+  createdAt: number;
+}
+
+export interface RankCelebration {
+  level: number;
+  title: string;
+  createdAt: number;
+}
+
 export interface Authority {
   getProfile(playerId: string): Promise<PlayerProfile>;
   createProfile(input: Omit<PlayerProfile, "id" | "createdAt">): Promise<PlayerProfile>;
@@ -136,6 +232,7 @@ export interface Authority {
     side: "BUY" | "SELL";
     quantity: number;
     locationId?: string;
+    priceOverride?: number;
   }): Promise<TradeResult>;
 
   getResources(playerId: string): Promise<Resources>;
@@ -162,6 +259,11 @@ export interface Authority {
     playerId: string,
     losses: Record<string, number>,
   ): Promise<{ positions: Position[]; resources: Resources }>;
+  grantReward?(
+    playerId: string,
+    amount: number,
+    reason: string,
+  ): Promise<LedgerEntry[]>;
 
   getActiveNews(tick: number): Promise<MarketNews[]>;
 

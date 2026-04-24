@@ -9,6 +9,8 @@ interface CourierModalProps {
   ticker: string;
   maxQuantity: number;
   currentLocationId: string;
+  costMultiplier?: number;
+  arrivalTimeMultiplier?: number;
   onClose: () => void;
   onSend: (input: {
     quantity: number;
@@ -22,6 +24,8 @@ export default function CourierModal({
   ticker,
   maxQuantity,
   currentLocationId,
+  costMultiplier = 1,
+  arrivalTimeMultiplier = 1,
   onClose,
   onSend,
 }: CourierModalProps) {
@@ -80,9 +84,24 @@ export default function CourierModal({
                 onPress={() => setCourierId(service.id)}
                 style={{ borderWidth: 1, borderColor: courierId === service.id ? terminalColors.amber : terminalColors.borderDim, padding: 8 }}
               >
+                {(() => {
+                  const riskPercent = Math.round(service.lossChance * 100);
+                  const effectiveCost = Math.round(service.cost * costMultiplier);
+                  const riskColor = riskPercent >= 30 ? terminalColors.red : riskPercent >= 10 ? terminalColors.amber : terminalColors.green;
+                  return (
+                    <>
                 <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11 }}>
-                  {service.name.toUpperCase()} // {service.cost} 0BOL // LOSS {Math.round(service.lossChance * 100)}%
+                  {service.name.toUpperCase()} // {effectiveCost} 0BOL // RISK {riskPercent}%
                 </Text>
+                <Text style={{ marginTop: 3, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9 }}>
+                  ETA x{arrivalTimeMultiplier.toFixed(1)}
+                </Text>
+                <View style={{ height: 4, backgroundColor: terminalColors.borderDim, marginTop: 5 }}>
+                  <View style={{ height: 4, width: `${riskPercent}%`, backgroundColor: riskColor }} />
+                </View>
+                    </>
+                  );
+                })()}
               </Pressable>
             ))}
           </View>
