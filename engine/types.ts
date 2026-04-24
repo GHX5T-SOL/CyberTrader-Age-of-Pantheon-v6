@@ -124,10 +124,12 @@ export interface TradeResult {
 export type FlashEventType =
   | "volatility_spike"
   | "arbitrage_window"
-  | "eagent_proximity"
+  | "eagent_scan"
   | "district_blackout"
-  | "whale_dump"
+  | "flash_crash"
   | "gang_takeover";
+
+export type FlashRiskLevel = "low" | "medium" | "high" | "critical";
 
 export interface FlashEvent {
   id: string;
@@ -139,18 +141,34 @@ export interface FlashEvent {
   startTimestamp: number;
   activationTimestamp?: number;
   endTimestamp: number;
-  modifierActive: boolean;
+  modifierApplied: boolean;
+  riskLevel: FlashRiskLevel;
+  multiplier?: number;
+  amplitude?: number;
 }
 
-export type MissionType = "DELIVERY" | "BUY_REQUEST" | "HOLD" | "INTEL_DROP";
+export type MissionType = "delivery" | "buy_request" | "hold" | "intel_drop";
 export type MissionStatus = "pending" | "active" | "completed" | "failed" | "declined";
 
 export interface Mission {
   id: string;
   npcId: string;
+  npcName: string;
   type: MissionType;
-  status: MissionStatus;
   title: string;
+  description: string;
+  requiredTicker?: string;
+  requiredQuantity?: number;
+  destinationLocationId?: string;
+  reward0Bol: number;
+  rewardXp: number;
+  reputationChangeOnSuccess: number;
+  reputationChangeOnFail: number;
+  expiresAtTimestamp: number;
+  accepted: boolean;
+  completed: boolean;
+  failed: boolean;
+  status: MissionStatus;
   objective: string;
   ticker?: string;
   quantity?: number;
@@ -160,7 +178,6 @@ export interface Mission {
   acceptedAt?: number;
   completedAt?: number;
   rewardObol: number;
-  rewardXp: number;
   reputationDelta: number;
 }
 
@@ -193,15 +210,53 @@ export interface TradeStreak {
   multiplier: number;
   lastProfitableTradeAt: number | null;
   expiresAt: number | null;
+  record: number;
+  unlockedTitle?: "Hot Hand" | "Prophet" | "Oracle";
 }
 
-export type DistrictState = "BOOM" | "NORMAL" | "LOCKDOWN" | "BLACKOUT";
+export type DistrictState =
+  | "NORMAL"
+  | "BOOM"
+  | "LOCKDOWN"
+  | "BLACKOUT"
+  | "FESTIVAL"
+  | "GANG_CONTROL"
+  | "MARKET_CRASH";
 
 export interface DistrictStateRecord {
   locationId: string;
   state: DistrictState;
   startTimestamp: number;
   endTimestamp: number;
+  festivalTicker?: string;
+}
+
+export type BountyTier = 0 | 1 | 2 | 3;
+export type BountyStatus = "SAFE" | "WATCHED" | "HUNTED" | "PRIORITY TARGET";
+
+export interface BountySnapshot {
+  level: BountyTier;
+  status: BountyStatus;
+  heatMin: number;
+  heatMax: number;
+  courierRiskBonus: number;
+  missionRewardMultiplier: number;
+  raidProbabilityDivisor: number;
+}
+
+export interface AwayReportItem {
+  id: string;
+  tone: "success" | "warning" | "danger" | "info";
+  message: string;
+  action?: "missions" | "terminal" | "travel" | "inventory" | "black_market";
+}
+
+export interface AwayReport {
+  id: string;
+  createdAt: number;
+  minutesAway: number;
+  items: AwayReportItem[];
+  dismissed: boolean;
 }
 
 export interface TradeJuice {

@@ -14,13 +14,16 @@ export function checkRaid(input: {
   tick: number;
   heat: number;
   positions: Record<string, Position>;
+  raidIntervalTicks?: number;
+  probabilityDivisor?: number;
 }): RaidResult {
-  if (input.tick <= 0 || input.tick % 60 !== 0 || input.heat <= 0) {
+  const intervalTicks = input.raidIntervalTicks ?? 60;
+  if (input.tick <= 0 || input.tick % intervalTicks !== 0 || input.heat <= 0) {
     return emptyRaid();
   }
 
   const stream = seededStream(`${input.seed ?? "phase1-local"}:raid:${input.tick}:${input.heat}`);
-  const probability = Math.min(0.5, Math.max(0, input.heat / 200));
+  const probability = Math.min(0.67, Math.max(0, input.heat / (input.probabilityDivisor ?? 200)));
   if (stream() > probability) {
     return emptyRaid();
   }

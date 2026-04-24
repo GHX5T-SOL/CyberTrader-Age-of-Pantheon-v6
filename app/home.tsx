@@ -3,6 +3,8 @@ import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import ActionButton from "@/components/action-button";
+import AnimatedNumber from "@/components/animated-number";
+import AwayReportPanel from "@/components/away-report";
 import CommodityRow from "@/components/commodity-row";
 import DailyChallengesPanel from "@/components/daily-challenges-panel";
 import FlashEventBanner from "@/components/flash-event-banner";
@@ -50,6 +52,8 @@ export default function HomeRoute() {
   const streak = useDemoStore((state) => state.streak);
   const dailyChallenges = useDemoStore((state) => state.dailyChallenges);
   const districtStates = useDemoStore((state) => state.districtStates);
+  const bounty = useDemoStore((state) => state.bounty);
+  const awayReport = useDemoStore((state) => state.awayReport);
   const heatWarning = useDemoStore((state) => state.heatWarning);
   const rankCelebration = useDemoStore((state) => state.rankCelebration);
   const tutorialCompleted = useDemoStore((state) => state.tutorialCompleted);
@@ -62,6 +66,7 @@ export default function HomeRoute() {
   const acceptMission = useDemoStore((state) => state.acceptMission);
   const declineMission = useDemoStore((state) => state.declineMission);
   const claimDailyChallenge = useDemoStore((state) => state.claimDailyChallenge);
+  const dismissAwayReport = useDemoStore((state) => state.dismissAwayReport);
   const [energyModal, setEnergyModal] = React.useState(false);
   const [travelModal, setTravelModal] = React.useState(false);
   const [hours, setHours] = React.useState(1);
@@ -129,7 +134,7 @@ export default function HomeRoute() {
         <MetricChip
           label="HEAT"
           value={`${resources.heat}%`}
-          subValue={`${resources.heat}/100`}
+          subValue={`STATUS: ${bounty.status}`}
           progressValue={resources.heat}
           progressColor={heatColor}
           icon="HT"
@@ -161,8 +166,16 @@ export default function HomeRoute() {
         <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 11 }}>
           RANK: {progression.title} {"->"} NEXT: {progression.nextXpRequired === null ? "MAX" : `${nextXp} XP`}
         </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>LIVE 0BOL:</Text>
+          <AnimatedNumber
+            value={balance}
+            style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 11 }}
+          />
+        </View>
       </View>
 
+      <AwayReportPanel report={awayReport} onDismiss={dismissAwayReport} />
       {activeFlashEvent ? <FlashEventBanner event={activeFlashEvent} nowMs={clock.nowMs} /> : null}
       {pendingMission || activeMission ? (
         <MissionBanner
@@ -249,7 +262,7 @@ export default function HomeRoute() {
                   {shipment.ticker} x{shipment.quantity} // {getLocation(shipment.destinationId).name.toUpperCase()}
                 </Text>
                 <Text style={{ marginTop: 3, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-                  {shipment.status === "transit" ? `ETA ${etaMinutes}m ${etaSeconds}s` : "ARRIVED"}
+                  {shipment.status === "transit" ? `ETA ${etaMinutes}m ${etaSeconds}s` : "ARRIVED"} // RISK {(shipment.riskLevel ?? "medium").toUpperCase()}
                 </Text>
                 {canClaim ? (
                   <Pressable onPress={() => void claimShipment(shipment.id)} style={{ marginTop: 6 }}>

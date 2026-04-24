@@ -4,7 +4,12 @@ import CourierModal from "@/components/courier-modal";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
 import { getFlashCourierCostMultiplier } from "@/engine/flash-events";
-import { getActiveDistrictState, getDistrictCourierTimeMultiplier } from "@/engine/district-state";
+import {
+  getActiveDistrictState,
+  getDistrictCourierRiskBonus,
+  getDistrictCourierRiskMultiplier,
+  getDistrictCourierTimeMultiplier,
+} from "@/engine/district-state";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -16,11 +21,12 @@ export default function InventoryMenuRoute() {
   const clock = useDemoStore((state) => state.clock);
   const activeFlashEvent = useDemoStore((state) => state.activeFlashEvent);
   const districtStates = useDemoStore((state) => state.districtStates);
+  const bounty = useDemoStore((state) => state.bounty);
   const transitShipments = useDemoStore((state) => state.transitShipments);
   const sendCourierShipment = useDemoStore((state) => state.sendCourierShipment);
   const used = positions.length;
   const activeCourierCount = transitShipments.filter((shipment) => shipment.status === "transit").length;
-  const courierLimit = 3 + Math.floor(Math.max(0, progression.level - 1) / 10);
+  const courierLimit = progression.level >= 10 ? 5 : 3;
   const district = getActiveDistrictState(districtStates, world.currentLocationId, clock.nowMs);
   const [courierTicker, setCourierTicker] = React.useState<string | null>(null);
   const courierPosition = positions.find((position) => position.ticker === courierTicker);
@@ -70,8 +76,10 @@ export default function InventoryMenuRoute() {
           ticker={courierPosition.ticker}
           maxQuantity={courierPosition.quantity}
           currentLocationId={world.currentLocationId}
-          costMultiplier={getFlashCourierCostMultiplier(activeFlashEvent)}
+          costMultiplier={getFlashCourierCostMultiplier(activeFlashEvent, world.currentLocationId)}
           arrivalTimeMultiplier={getDistrictCourierTimeMultiplier(district.state)}
+          riskBonus={getDistrictCourierRiskBonus(district.state) + bounty.courierRiskBonus}
+          riskMultiplier={getDistrictCourierRiskMultiplier(district.state)}
           onClose={() => setCourierTicker(null)}
           onSend={(input) => {
             void sendCourierShipment({

@@ -3,12 +3,13 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import ActionButton from "@/components/action-button";
+import AnimatedNumber from "@/components/animated-number";
 import ChartSparkline from "@/components/chart-sparkline";
 import CommodityRow from "@/components/commodity-row";
 import ConfirmModal from "@/components/confirm-modal";
 import NeonBorder from "@/components/neon-border";
 import { getLocation } from "@/data/locations";
-import { getActiveDistrictState, isDistrictTradingBlocked } from "@/engine/district-state";
+import { getActiveDistrictState, isDistrictBuyRestricted, isDistrictSellRestricted } from "@/engine/district-state";
 import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
 import { isTradingBlockedByFlash } from "@/engine/flash-events";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
@@ -35,6 +36,8 @@ export default function TerminalRoute() {
   const activeFlashEvent = useDemoStore((state) => state.activeFlashEvent);
   const districtStates = useDemoStore((state) => state.districtStates);
   const tradeJuice = useDemoStore((state) => state.tradeJuice);
+  const resources = useDemoStore((state) => state.resources);
+  const heatWarning = useDemoStore((state) => state.heatWarning);
   const orderSize = useDemoStore((state) => state.orderSize);
   const setOrderSize = useDemoStore((state) => state.setOrderSize);
   const buySelected = useDemoStore((state) => state.buySelected);
@@ -66,7 +69,7 @@ export default function TerminalRoute() {
   const travelling = Boolean(world.travelDestinationId && world.travelEndTime && world.travelEndTime > clock.nowMs);
   const destination = getLocation(world.travelDestinationId);
   const district = getActiveDistrictState(districtStates, world.currentLocationId, clock.nowMs);
-  const districtBlocked = isDistrictTradingBlocked(district.state);
+  const districtBlocked = side === "BUY" ? isDistrictBuyRestricted(district.state) : isDistrictSellRestricted(district.state);
   const flashBlocked = isTradingBlockedByFlash(activeFlashEvent, world.currentLocationId);
   const tradeBlocked = travelling || districtBlocked || flashBlocked;
   const remainingMs = world.travelEndTime ? Math.max(0, world.travelEndTime - clock.nowMs) : 0;
@@ -89,6 +92,13 @@ export default function TerminalRoute() {
     void Haptics.notificationAsync(type);
   }, [clock.nowMs, tradeJuice]);
 
+  React.useEffect(() => {
+    if (!heatWarning || clock.nowMs - heatWarning.createdAt > 2500 || Platform.OS === "web") {
+      return;
+    }
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  }, [clock.nowMs, heatWarning]);
+
   const execute = async () => {
     setConfirmVisible(false);
     if (side === "BUY") {
@@ -102,6 +112,12 @@ export default function TerminalRoute() {
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, backgroundColor: terminalColors.background }}>
+      {resources.heat >= 90 ? (
+        <View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderWidth: 2, borderColor: terminalColors.red, opacity: 0.35, zIndex: 5 }} />
+      ) : null}
+      {heatWarning && clock.nowMs - heatWarning.createdAt < 1800 ? (
+        <View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderWidth: 2, borderColor: terminalColors.red, zIndex: 6 }} />
+      ) : null}
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
         <Pressable
           onPress={() => {
@@ -188,7 +204,11 @@ export default function TerminalRoute() {
             </Pressable>
           ))}
         </View>
-        <Text style={{ marginTop: 16, fontFamily: terminalFont, color: terminalColors.text, fontSize: 30 }}>{price.toFixed(2)} 0BOL</Text>
+        <AnimatedNumber
+          value={price}
+          formatter={(value) => `${value.toFixed(2)} 0BOL`}
+          style={{ marginTop: 16, fontFamily: terminalFont, color: terminalColors.text, fontSize: 30 }}
+        />
         <Text style={{ marginTop: 10, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>QUANTITY</Text>
         <TextInput
           value={String(orderSize)}
@@ -220,18 +240,30 @@ export default function TerminalRoute() {
       </NeonBorder>
 
       {tradeJuice && clock.nowMs - tradeJuice.createdAt < 2500 ? (
-        <Text
-          style={{
-            marginTop: 10,
-            fontFamily: terminalFont,
-            color: tradeJuice.kind === "profit" ? terminalColors.green : tradeJuice.kind === "loss" ? terminalColors.red : terminalColors.amber,
-            fontSize: tradeJuice.bigWin ? 18 : 12,
-            textAlign: "center",
-          }}
-        >
-          {tradeJuice.bigWin ? "BIG WIN // " : ""}
-          {tradeJuice.kind.toUpperCase()} {tradeJuice.pnl >= 0 ? "+" : ""}{tradeJuice.pnl.toFixed(2)} 0BOL
-        </Text>
+        <View style={{ marginTop: 10, alignItems: "center" }}>
+          <Text
+            style={{
+              fontFamily: terminalFont,
+              color: tradeJuice.kind === "profit" ? terminalColors.green : tradeJuice.kind === "loss" ? terminalColors.red : terminalColors.amber,
+              fontSize: tradeJuice.bigWin ? 18 : 12,
+              textAlign: "center",
+            }}
+          >
+            {tradeJuice.bigWin ? "BIG WIN // " : ""}
+            {tradeJuice.kind.toUpperCase()}
+          </Text>
+          <AnimatedNumber
+            value={tradeJuice.pnl}
+            formatter={(value) => `${value >= 0 ? "+" : ""}${value.toFixed(2)} 0BOL`}
+            style={{
+              marginTop: 3,
+              fontFamily: terminalFont,
+              color: tradeJuice.kind === "profit" ? terminalColors.green : tradeJuice.kind === "loss" ? terminalColors.red : terminalColors.amber,
+              fontSize: tradeJuice.bigWin ? 18 : 12,
+              textAlign: "center",
+            }}
+          />
+        </View>
       ) : null}
 
       {flash ? (

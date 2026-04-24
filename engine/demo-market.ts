@@ -5,7 +5,7 @@ import {
   type LocationDefinition,
 } from "@/data/locations";
 import { getDistrictPriceMultiplier } from "@/engine/district-state";
-import type { Commodity, DistrictState } from "./types";
+import type { Commodity, DistrictState, DistrictStateRecord } from "./types";
 
 export interface DemoResources {
   balanceObol: number;
@@ -165,7 +165,7 @@ export function applyMarketClockPulse(
 export function applyLocationPriceModifiers(
   prices: PriceMap,
   locationIdOrDefinition: string | LocationDefinition | null | undefined,
-  districtState: DistrictState = "NORMAL",
+  districtState: DistrictState | DistrictStateRecord = "NORMAL",
 ): PriceMap {
   const location =
     typeof locationIdOrDefinition === "string" || !locationIdOrDefinition
@@ -176,7 +176,7 @@ export function applyLocationPriceModifiers(
     DEMO_COMMODITIES.map((commodity) => {
       const current = prices[commodity.ticker] ?? commodity.basePrice;
       const demandBonus = commodityMatchesLocationDemand(commodity, location) ? 1.1 : 1;
-      return [commodity.ticker, roundCurrency(current * location.priceMod * demandBonus * getDistrictPriceMultiplier(districtState))];
+      return [commodity.ticker, roundCurrency(current * location.priceMod * demandBonus * getDistrictPriceMultiplier(districtState, commodity, location.id))];
     }),
   );
 }

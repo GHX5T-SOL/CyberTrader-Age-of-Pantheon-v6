@@ -26,14 +26,7 @@ export default function LocationBanner({
   const etaMinutes = Math.floor(remainingMs / 60_000);
   const etaSeconds = Math.floor((remainingMs % 60_000) / 1000);
   const travelling = Boolean(travelDestinationId && remainingMs > 0);
-  const stateColor =
-    districtState === "BOOM"
-      ? terminalColors.green
-      : districtState === "LOCKDOWN"
-        ? terminalColors.red
-        : districtState === "BLACKOUT"
-          ? terminalColors.dim
-          : terminalColors.borderDim;
+  const stateColor = getStateColor(districtState);
 
   return (
     <View
@@ -44,6 +37,9 @@ export default function LocationBanner({
         borderColor: stateColor,
         backgroundColor: terminalColors.panel,
         padding: 10,
+        shadowColor: stateColor,
+        shadowOpacity: districtState === "NORMAL" ? 0.12 : 0.45,
+        shadowRadius: districtState === "BLACKOUT" ? 2 : 10,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
@@ -88,3 +84,25 @@ export default function LocationBanner({
 }
 
 export { LocationBanner };
+
+function getStateColor(state: DistrictState): string {
+  if (state === "BOOM") {
+    return "#39FF14";
+  }
+  if (state === "LOCKDOWN") {
+    return "#FF3131";
+  }
+  if (state === "BLACKOUT") {
+    return terminalColors.dim;
+  }
+  if (state === "FESTIVAL") {
+    return terminalColors.amber;
+  }
+  if (state === "GANG_CONTROL") {
+    return "#FF6A00";
+  }
+  if (state === "MARKET_CRASH") {
+    return terminalColors.red;
+  }
+  return terminalColors.borderDim;
+}

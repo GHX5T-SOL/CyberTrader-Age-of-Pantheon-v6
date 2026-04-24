@@ -1,6 +1,8 @@
 import type { LocalAuthoritySnapshot } from "@/authority/local-authority";
 import type {
   DailyChallenge,
+  AwayReport,
+  BountySnapshot,
   DistrictStateRecord,
   FlashEvent,
   MarketNews,
@@ -61,6 +63,8 @@ interface PersistedDemoSession {
   districtStates?: Record<string, DistrictStateRecord>;
   districtStateCount?: number;
   nextDistrictStateAt?: number;
+  bounty?: BountySnapshot;
+  awayReport?: AwayReport | null;
   tradeJuice?: TradeJuice | null;
   heatWarning?: { threshold: number; createdAt: number } | null;
   rankCelebration?: RankCelebration | null;

@@ -43,7 +43,7 @@ export default function MissionsRoute() {
                 {npc.name.toUpperCase()} // {npc.faction.toUpperCase()}
               </Text>
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-                {locked ? `LOCKED RANK ${npc.unlockedAtRank}` : npc.description}
+                {locked ? `LOCKED RANK ${npc.unlockedAtRank}` : npc.personality}
               </Text>
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
                 REP {npcReputation[npc.id] ?? 0}
@@ -58,11 +58,11 @@ export default function MissionsRoute() {
         {missionHistory.length ? (
           missionHistory.slice(0, 8).map((mission) => (
             <View key={mission.id} style={{ marginTop: 10, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10 }}>
-              <Text style={{ fontFamily: terminalFont, color: mission.status === "completed" ? terminalColors.green : terminalColors.amber, fontSize: 11 }}>
-                {mission.status.toUpperCase()} // {mission.title}
+              <Text style={{ fontFamily: terminalFont, color: mission.completed ? terminalColors.green : terminalColors.amber, fontSize: 11 }}>
+                {(mission.completed ? "COMPLETED" : mission.failed ? "FAILED" : mission.status.toUpperCase())} // {mission.title}
               </Text>
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-                {mission.objective}
+                {mission.description}
               </Text>
             </View>
           ))

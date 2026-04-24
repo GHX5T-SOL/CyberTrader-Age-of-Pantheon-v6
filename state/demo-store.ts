@@ -35,13 +35,22 @@ import {
   getDailyChallengeDayKey,
 } from "@/engine/daily-challenges";
 import {
+  getBountyByHeat,
+  getBountyFlashFrequencyMultiplier,
+  getBountyRaidIntervalTicks,
+  getBountyRiskLabel,
+} from "@/engine/bounty";
+import {
   createDistrictShift,
   createInitialDistrictStates,
   districtAnnouncement,
   getActiveDistrictState,
+  getDistrictCourierRiskBonus,
+  getDistrictCourierRiskMultiplier,
   getDistrictCourierTimeMultiplier,
   getNextDistrictShiftDelay,
-  isDistrictTradingBlocked,
+  isDistrictBuyRestricted,
+  isDistrictSellRestricted,
   normalizeDistrictStates,
 } from "@/engine/district-state";
 import {
@@ -68,6 +77,8 @@ import {
 } from "@/engine/streak";
 import type {
   DailyChallenge,
+  AwayReport,
+  BountySnapshot,
   DistrictStateRecord,
   FlashEvent,
   MarketNews,
@@ -161,6 +172,8 @@ interface DemoStoreState {
   districtStates: Record<string, DistrictStateRecord>;
   districtStateCount: number;
   nextDistrictStateAt: number;
+  bounty: BountySnapshot;
+  awayReport: AwayReport | null;
   tradeJuice: TradeJuice | null;
   heatWarning: { threshold: number; createdAt: number } | null;
   rankCelebration: RankCelebration | null;
@@ -207,6 +220,8 @@ interface DemoStoreActions {
   acceptMission: () => void;
   declineMission: () => void;
   claimDailyChallenge: (challengeId: string) => Promise<void>;
+  recordAwayReport: (nowMs: number, awayStartedAt: number) => void;
+  dismissAwayReport: () => void;
   resetDemo: () => Promise<void>;
 }
 
@@ -263,6 +278,8 @@ function buildInitialState(): DemoStoreState {
     districtStates: createInitialDistrictStates(nowMs),
     districtStateCount: 0,
     nextDistrictStateAt: nowMs + getNextDistrictShiftDelay(ENGAGEMENT_SEED, 0),
+    bounty: getBountyByHeat(INITIAL_PLAYER_RESOURCES.heat),
+    awayReport: null,
     tradeJuice: null,
     heatWarning: null,
     rankCelebration: null,
@@ -346,7 +363,7 @@ function addNotification(
 }
 
 function getCourierLimit(rankLevel: number): number {
-  return BASE_COURIER_LIMIT + Math.floor(Math.max(0, rankLevel - 1) / 10);
+  return rankLevel >= 10 ? 5 : BASE_COURIER_LIMIT;
 }
 
 function applyAllPriceModifiers(input: {
@@ -365,7 +382,7 @@ function applyAllPriceModifiers(input: {
   const locationPrices = applyLocationPriceModifiers(
     input.basePrices,
     input.locationId,
-    district.state,
+    district,
   );
   return applyFlashEventPriceModifiers({
     prices: locationPrices,
@@ -376,7 +393,7 @@ function applyAllPriceModifiers(input: {
   });
 }
 
-function getTradeBlockReason(state: DemoStoreState): string | null {
+function getTradeBlockReason(state: DemoStoreState, side: "BUY" | "SELL"): string | null {
   const district = getActiveDistrictState(
     state.districtStates,
     state.world.currentLocationId,
@@ -385,8 +402,11 @@ function getTradeBlockReason(state: DemoStoreState): string | null {
   if (isTravelling(state.world, state.clock.nowMs)) {
     return "[sys] travelling. trading blocked until arrival.";
   }
-  if (isDistrictTradingBlocked(district.state)) {
-    return `[sys] ${district.state.toLowerCase()} in this district. trading blocked.`;
+  if (side === "BUY" && isDistrictBuyRestricted(district.state)) {
+    return `[sys] ${district.state.toLowerCase()} in this district. buys restricted.`;
+  }
+  if (side === "SELL" && isDistrictSellRestricted(district.state)) {
+    return `[sys] ${district.state.toLowerCase()} in this district. sells restricted.`;
   }
   if (isTradingBlockedByFlash(state.activeFlashEvent, state.world.currentLocationId)) {
     return "[sys] district blackout. trading frozen.";
@@ -422,6 +442,27 @@ function updateHeatWarning(
   };
 }
 
+function updateBountyFeedback(
+  previousHeat: number,
+  nextResources: Resources,
+  notifications: GameNotification[],
+): { bounty: BountySnapshot; notifications: GameNotification[] } {
+  const previousBounty = getBountyByHeat(previousHeat);
+  const bounty = getBountyByHeat(nextResources.heat);
+  if (bounty.level <= previousBounty.level) {
+    return { bounty, notifications };
+  }
+
+  return {
+    bounty,
+    notifications: addNotification(
+      notifications,
+      `eAGENT WATCHLIST: You are now ${bounty.status}.`,
+      "danger",
+    ),
+  };
+}
+
 function maybeRankCelebration(
   previous: RankSnapshot,
   next: RankSnapshot,
@@ -445,6 +486,9 @@ function markMissionStatus(
   return {
     ...mission,
     status,
+    accepted: status === "active" || mission.accepted,
+    completed: status === "completed",
+    failed: status === "failed" || status === "declined",
     completedAt: status === "completed" || status === "failed" || status === "declined"
       ? nowMs
       : mission.completedAt,
@@ -488,6 +532,8 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     districtStates: state.districtStates,
     districtStateCount: state.districtStateCount,
     nextDistrictStateAt: state.nextDistrictStateAt,
+    bounty: state.bounty,
+    awayReport: state.awayReport,
     tradeJuice: state.tradeJuice,
     heatWarning: state.heatWarning,
     rankCelebration: state.rankCelebration,
@@ -611,6 +657,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         districtStates: session.districtStates ?? fallback.districtStates,
         districtStateCount: session.districtStateCount ?? 0,
         nextDistrictStateAt: session.nextDistrictStateAt ?? fallback.nextDistrictStateAt,
+        bounty: session.bounty ?? getBountyByHeat((session.resources ?? fallback.resources).heat),
+        awayReport: session.awayReport ?? null,
         tradeJuice: session.tradeJuice ?? null,
         heatWarning: session.heatWarning ?? null,
         rankCelebration: session.rankCelebration ?? null,
@@ -933,13 +981,16 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       let nextHeatWarning = state.heatWarning;
       let nextRankCelebration = state.rankCelebration;
       let nextTradeJuice = state.tradeJuice;
+      let nextBounty = getBountyByHeat(nextResources.heat);
+      let nextAwayReport = state.awayReport;
       let didMutate = nextActiveFlashEvent !== state.activeFlashEvent || nextStreak !== state.streak || nextDistrictStates !== state.districtStates;
 
       const expiredFlash = state.activeFlashEvent && !nextActiveFlashEvent ? state.activeFlashEvent : null;
       if (expiredFlash) {
         nextFlashCooldownUntil = nowMs + FLASH_EVENT_COOLDOWN_MS;
-        nextFlashEventAt = nextFlashCooldownUntil + getNextFlashEventDelay(ENGAGEMENT_SEED, nextFlashEventCount);
-        if (expiredFlash.type === "eagent_proximity" && nextResources.heat > 50) {
+        nextFlashEventAt = nextFlashCooldownUntil + getNextFlashEventDelay(ENGAGEMENT_SEED, nextFlashEventCount) * getBountyFlashFrequencyMultiplier(nextBounty.level);
+        nextNotifications = addNotification(nextNotifications, `EVENT EXPIRED: ${expiredFlash.headline}.`, "info");
+        if (expiredFlash.type === "eagent_scan" && nextResources.heat > 50) {
           const stream = seededStream(`${expiredFlash.id}:forced-raid`);
           const losses: Record<string, number> = {};
           for (const [ticker, position] of Object.entries(nextPositions)) {
@@ -950,7 +1001,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             nextPositions = toPositionMap(raidState.positions);
             nextResources = raidState.resources;
           }
-          const raidRank = await authority.updateXp(state.playerId, 100, "eagent_proximity_raid");
+          const raidRank = await authority.updateXp(state.playerId, 100, "eagent_scan_raid");
           nextRankCelebration = maybeRankCelebration(nextProgression, raidRank) ?? nextRankCelebration;
           nextProgression = raidRank;
           nextNotifications = addNotification(nextNotifications, "ALERT: eAgent RAID! Scanner lock resolved the hard way.", "danger");
@@ -967,7 +1018,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         });
         nextFlashEventCount += 1;
         nextNotifications = addNotification(nextNotifications, nextActiveFlashEvent.headline, "warning");
-        // AUDIO: news_alert.wav on flash event
+        // AUDIO: event_spawn.wav on flash event
+        if (nextActiveFlashEvent.type === "eagent_scan") {
+          // AUDIO: raid_warning.wav on eAgent proximity
+        }
         didMutate = true;
       }
 
@@ -1017,10 +1071,11 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
         const service = getCourierService(shipment.courierUsed);
         const stream = seededStream(`${shipment.id}:${shipment.arrivalTime}:${service.id}`);
-        const lost = stream() < service.lossChance;
+        const lossChance = shipment.lossChance ?? service.lossChance;
+        const lost = stream() < lossChance;
         didMutate = true;
         if (lost) {
-          nextNotifications = addNotification(nextNotifications, `${service.name} lost ${shipment.quantity} ${shipment.ticker}.`, "danger");
+          nextNotifications = addNotification(nextNotifications, `Courier intercepted! Lost ${shipment.quantity} ${shipment.ticker}. Risk: ${shipment.riskLevel ?? getBountyRiskLabel(lossChance)}.`, "danger");
           return { ...shipment, status: "lost" };
         }
 
@@ -1058,10 +1113,23 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           index: nextMissionCount,
           rankLevel: nextProgression.level,
           prices: state.prices,
+          rewardMultiplier: nextBounty.missionRewardMultiplier,
         });
         nextMissionCount += 1;
         nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
-        nextNotifications = addNotification(nextNotifications, `${nextPendingMission.title}: ${nextPendingMission.objective}`, "info");
+        nextNotifications = addNotification(nextNotifications, `${nextPendingMission.title}: ${nextPendingMission.description}`, "info");
+        didMutate = true;
+      }
+
+      if (nextPendingMission && !nextPendingMission.accepted && nowMs >= nextPendingMission.startTimestamp + 3 * 60_000) {
+        const expired = markMissionStatus(nextPendingMission, "failed", nowMs);
+        nextPendingMission = null;
+        nextMissionHistory = [expired, ...nextMissionHistory].slice(0, 20);
+        nextNpcReputation = {
+          ...nextNpcReputation,
+          [expired.npcId]: (nextNpcReputation[expired.npcId] ?? 0) + expired.reputationChangeOnFail,
+        };
+        nextNotifications = addNotification(nextNotifications, `Mission from ${expired.npcName} expired.`, "warning");
         didMutate = true;
       }
 
@@ -1078,19 +1146,20 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           nextMissionHistory = [finishedMission, ...nextMissionHistory].slice(0, 20);
           nextNpcReputation = {
             ...nextNpcReputation,
-            [finishedMission.npcId]: (nextNpcReputation[finishedMission.npcId] ?? 0) + (completed ? finishedMission.reputationDelta : -1),
+            [finishedMission.npcId]: (nextNpcReputation[finishedMission.npcId] ?? 0) + (completed ? finishedMission.reputationChangeOnSuccess : finishedMission.reputationChangeOnFail),
           };
           nextActiveMission = null;
           nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
           if (completed) {
             const ledger = authority.grantReward
-              ? await authority.grantReward(state.playerId, finishedMission.rewardObol, `mission_${finishedMission.type.toLowerCase()}`)
+              ? await authority.grantReward(state.playerId, finishedMission.reward0Bol, `mission_${finishedMission.type}`)
               : [];
             const rank = await authority.updateXp(state.playerId, finishedMission.rewardXp, "mission_complete");
             nextBalanceObol = latestBalance(nextBalanceObol, ledger);
             nextRankCelebration = maybeRankCelebration(nextProgression, rank) ?? nextRankCelebration;
             nextProgression = rank;
             nextNotifications = addNotification(nextNotifications, `Mission complete: ${finishedMission.title}.`, "success");
+            // AUDIO: mission_complete.wav on mission finish
           } else {
             nextNotifications = addNotification(nextNotifications, `Mission failed: ${finishedMission.title}. Contact disappointed.`, "warning");
           }
@@ -1131,11 +1200,14 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             };
           }
 
-          if (nextTick % 60 === 0 && nextTick !== state.clock.lastRaidTick) {
+          const raidIntervalTicks = getBountyRaidIntervalTicks(nextBounty.level);
+          if (nextTick % raidIntervalTicks === 0 && nextTick !== state.clock.lastRaidTick) {
             const raid = checkRaid({
               tick: nextTick,
               heat: nextResources.heat,
               positions: nextPositions,
+              raidIntervalTicks,
+              probabilityDivisor: nextBounty.raidProbabilityDivisor,
             });
             if (raid.triggered) {
               const raidState = authority.applyRaidLoss
@@ -1180,8 +1252,11 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       nextNotifications = heatUpdate.notifications;
       nextHeatWarning = heatUpdate.heatWarning ?? nextHeatWarning;
       nextResources = heatUpdate.resources;
+      const bountyUpdate = updateBountyFeedback(state.resources.heat, nextResources, nextNotifications);
+      nextBounty = bountyUpdate.bounty;
+      nextNotifications = bountyUpdate.notifications;
 
-      if (shouldReprice || didMutate || nextStreak !== state.streak) {
+      if (shouldReprice || didMutate || nextStreak !== state.streak || nextBounty.level !== state.bounty.level || nextAwayReport !== state.awayReport) {
         set({
           ...refresh,
           tick: nextTick,
@@ -1206,6 +1281,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           districtStates: nextDistrictStates,
           districtStateCount: nextDistrictStateCount,
           nextDistrictStateAt,
+          bounty: nextBounty,
+          awayReport: nextAwayReport,
           tradeJuice: nextTradeJuice,
           heatWarning: nextHeatWarning,
           rankCelebration: nextRankCelebration,
@@ -1216,7 +1293,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             nowMs,
             displayTime: formatClock(nowMs),
             lastTickAt: lastTickAt + missedTicks * GAME_TICK_MS,
-            lastRaidTick: nextTick % 60 === 0 ? nextTick : state.clock.lastRaidTick,
+            lastRaidTick: nextTick % getBountyRaidIntervalTicks(nextBounty.level) === 0 ? nextTick : state.clock.lastRaidTick,
           },
         });
         await persistCurrentState();
@@ -1227,7 +1304,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy) {
         return;
       }
-      const tradeBlockReason = getTradeBlockReason(state);
+      const tradeBlockReason = getTradeBlockReason(state, "BUY");
       if (tradeBlockReason) {
         commitState({ systemMessage: tradeBlockReason });
         return;
@@ -1255,17 +1332,23 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           result.resources,
           state.notifications,
         );
+        const bountyUpdate = updateBountyFeedback(
+          state.resources.heat,
+          heatUpdate.resources,
+          heatUpdate.notifications,
+        );
 
         set({
           positions: toPositionMap(result.positions),
           resources: heatUpdate.resources,
           balanceObol: latestBalance(state.balanceObol, result.ledger),
           progression: result.rank,
+          bounty: bountyUpdate.bounty,
           profile: state.profile ? { ...state.profile, rank: result.rank.level } : null,
           dailyChallenges: advanceDailyChallengeProgress(state.dailyChallenges, {
             location_trades: state.world.currentLocationId === "neon_plaza" ? 1 : 0,
           }),
-          notifications: heatUpdate.notifications,
+          notifications: bountyUpdate.notifications,
           heatWarning: heatUpdate.heatWarning ?? state.heatWarning,
           rankCelebration: maybeRankCelebration(state.progression, result.rank),
           activeView: "market",
@@ -1289,7 +1372,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       if (!state.playerId || state.isBusy) {
         return;
       }
-      const tradeBlockReason = getTradeBlockReason(state);
+      const tradeBlockReason = getTradeBlockReason(state, "SELL");
       if (tradeBlockReason) {
         commitState({ systemMessage: tradeBlockReason });
         return;
@@ -1334,13 +1417,20 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           result.resources,
           state.notifications,
         );
-        let nextNotifications = heatUpdate.notifications;
+        const bountyUpdate = updateBountyFeedback(
+          state.resources.heat,
+          heatUpdate.resources,
+          heatUpdate.notifications,
+        );
+        let nextNotifications = bountyUpdate.notifications;
         const totalXp = result.xpGained + streakBonusXp;
         if (totalXp > 0) {
           nextNotifications = addNotification(nextNotifications, `XP +${totalXp}`, "success");
         }
         if (result.realizedPnl > 0) {
           // AUDIO: trade_success.wav on profit
+        } else if (result.realizedPnl < 0) {
+          // AUDIO: trade_loss.wav on loss
         }
 
         set({
@@ -1348,6 +1438,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           resources: heatUpdate.resources,
           balanceObol: latestBalance(state.balanceObol, result.ledger),
           progression: nextRank,
+          bounty: bountyUpdate.bounty,
           profile: state.profile ? { ...state.profile, rank: nextRank.level } : null,
           lastRealizedPnl: result.realizedPnl,
           firstTradeComplete: state.firstTradeComplete || result.realizedPnl > 0,
@@ -1463,6 +1554,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           : { resources: { ...state.resources, heat: Math.max(0, state.resources.heat - reduction) }, ledger: [] };
         set({
           resources: result.resources,
+          bounty: getBountyByHeat(result.resources.heat),
           balanceObol: latestBalance(state.balanceObol, result.ledger),
           notifications: addNotification(
             state.notifications,
@@ -1524,8 +1616,14 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           destination.id,
           state.clock.nowMs,
         );
+        const riskChance = Math.min(
+          0.95,
+          courier.lossChance * getDistrictCourierRiskMultiplier(currentDistrict.state) +
+            getDistrictCourierRiskBonus(currentDistrict.state) +
+            state.bounty.courierRiskBonus,
+        );
         const effectiveCost = roundCurrency(
-          courier.cost * getFlashCourierCostMultiplier(state.activeFlashEvent),
+          courier.cost * getFlashCourierCostMultiplier(state.activeFlashEvent, state.world.currentLocationId),
         );
         const result = await authority.transferPositionToShipment(
           state.playerId,
@@ -1544,6 +1642,9 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           arrivalTime: nowMs + destination.travelTime * 60_000 * timeMultiplier,
           courierUsed: courier.id,
           status: "transit",
+          lossChance: riskChance,
+          riskLevel: getBountyRiskLabel(riskChance),
+          costPaid: effectiveCost,
         };
 
         set({
@@ -1630,6 +1731,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       const mission: Mission = {
         ...state.pendingMission,
         status: "active",
+        accepted: true,
         acceptedAt: state.clock.nowMs || Date.now(),
       };
       commitState({
@@ -1721,6 +1823,76 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         });
         await persistCurrentState();
       }
+    },
+    recordAwayReport: (nowMs, awayStartedAt) => {
+      const state = get();
+      const awayMs = Math.max(0, nowMs - awayStartedAt);
+      if (awayMs < 2 * 60_000) {
+        return;
+      }
+
+      const items = [
+        ...state.transitShipments
+          .filter((shipment) => shipment.arrivalTime >= awayStartedAt && shipment.arrivalTime <= nowMs)
+          .slice(0, 4)
+          .map((shipment) => ({
+            id: `away_${shipment.id}`,
+            tone: shipment.status === "lost" ? "danger" as const : "success" as const,
+            message: shipment.status === "lost"
+              ? `x Courier: ${shipment.quantity} ${shipment.ticker} lost in transit`
+              : `+ Courier: ${shipment.quantity} ${shipment.ticker} arrived at ${getLocation(shipment.destinationId).name}`,
+            action: "inventory" as const,
+          })),
+        ...(state.pendingMission && state.pendingMission.startTimestamp >= awayStartedAt
+          ? [{
+              id: `away_${state.pendingMission.id}`,
+              tone: "warning" as const,
+              message: `! Mission from ${state.pendingMission.npcName} waiting`,
+              action: "missions" as const,
+            }]
+          : []),
+        ...(state.activeFlashEvent
+          ? [{
+              id: `away_${state.activeFlashEvent.id}`,
+              tone: state.activeFlashEvent.riskLevel === "critical" ? "danger" as const : "warning" as const,
+              message: `! Flash Event: ${state.activeFlashEvent.headline}`,
+              action: "terminal" as const,
+            }]
+          : []),
+        ...Object.values(state.districtStates)
+          .filter((district) => district.startTimestamp >= awayStartedAt && district.state !== "NORMAL")
+          .slice(0, 3)
+          .map((district) => ({
+            id: `away_${district.locationId}_${district.startTimestamp}`,
+            tone: district.state === "BOOM" || district.state === "FESTIVAL" ? "success" as const : "warning" as const,
+            message: `! ${getLocation(district.locationId).name} entered ${district.state}`,
+            action: "travel" as const,
+          })),
+      ].slice(0, 8);
+
+      commitState({
+        awayReport: {
+          id: `away_${nowMs}`,
+          createdAt: nowMs,
+          minutesAway: Math.max(2, Math.round(awayMs / 60_000)),
+          items: items.length
+            ? items
+            : [{ id: `away_quiet_${nowMs}`, tone: "info", message: "No major events. The grid kept humming." }],
+          dismissed: false,
+        },
+      });
+    },
+    dismissAwayReport: () => {
+      const state = get();
+      if (!state.awayReport) {
+        return;
+      }
+      commitState({
+        awayReport: {
+          ...state.awayReport,
+          dismissed: true,
+        },
+      });
     },
     resetDemo: async () => {
       resetConfiguredAuthority();

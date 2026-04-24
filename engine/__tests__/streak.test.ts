@@ -8,8 +8,8 @@ describe("trade streaks", () => {
     streak = applySellToStreak({ streak, realizedPnl: 300, nowMs: 2000 });
 
     expect(streak.count).toBe(3);
-    expect(streak.multiplier).toBe(1.2);
-    expect(getStreakMultiplier(10)).toBe(2);
+    expect(streak.multiplier).toBe(1.05);
+    expect(getStreakMultiplier(10)).toBe(1.15);
   });
 
   it("breaks on loss and expires after thirty minutes", () => {

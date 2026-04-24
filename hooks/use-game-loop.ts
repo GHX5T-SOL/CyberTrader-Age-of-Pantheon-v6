@@ -4,10 +4,12 @@ import { useDemoStore } from "@/state/demo-store";
 
 export function useGameLoop() {
   const runGameLoop = useDemoStore((state) => state.runGameLoop);
+  const recordAwayReport = useDemoStore((state) => state.recordAwayReport);
 
   React.useEffect(() => {
     let active = true;
     let busy = false;
+    let backgroundedAt: number | null = null;
 
     const tick = () => {
       if (!active || busy) {
@@ -24,7 +26,15 @@ export function useGameLoop() {
     const interval = setInterval(tick, 1000);
     const subscription = AppState.addEventListener("change", (status: AppStateStatus) => {
       if (status === "active") {
+        const awayStartedAt = backgroundedAt;
+        backgroundedAt = null;
+        if (awayStartedAt && Date.now() - awayStartedAt > 2 * 60_000) {
+          void runGameLoop(Date.now()).then(() => recordAwayReport(Date.now(), awayStartedAt));
+          return;
+        }
         tick();
+      } else {
+        backgroundedAt = Date.now();
       }
     });
 
@@ -33,5 +43,5 @@ export function useGameLoop() {
       clearInterval(interval);
       subscription.remove();
     };
-  }, [runGameLoop]);
+  }, [recordAwayReport, runGameLoop]);
 }

@@ -1,10 +1,10 @@
 import { getLocation } from "@/data/locations";
-import { getUnlockedNpcs } from "@/data/npcs";
+import { getNpc, getUnlockedNpcs } from "@/data/npcs";
 import { roundCurrency, type PriceMap } from "@/engine/demo-market";
 import { seededStream } from "@/engine/prng";
 import type { Mission, MissionType, Position } from "@/engine/types";
 
-const MISSION_TYPES: MissionType[] = ["DELIVERY", "BUY_REQUEST", "HOLD", "INTEL_DROP"];
+const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop"];
 
 export function getNextMissionDelay(seed: string, index: number): number {
   const stream = seededStream(`${seed}:mission-delay:${index}`);
@@ -17,13 +17,15 @@ export function createMission(input: {
   index: number;
   rankLevel: number;
   prices: PriceMap;
+  rewardMultiplier?: number;
 }): Mission {
   const stream = seededStream(`${input.seed}:mission:${input.index}`);
   const npcs = getUnlockedNpcs(input.rankLevel);
   const npc = npcs[Math.floor(stream() * npcs.length)] ?? npcs[0]!;
-  const type = MISSION_TYPES[Math.floor(stream() * MISSION_TYPES.length)] ?? "DELIVERY";
+  const type = MISSION_TYPES[Math.floor(stream() * MISSION_TYPES.length)] ?? "delivery";
+  const rewardMultiplier = input.rewardMultiplier ?? 1;
 
-  if (type === "BUY_REQUEST") {
+  if (type === "buy_request") {
     const ticker = "PGAS";
     const quantity = 20;
     const marketValue = quantity * (input.prices[ticker] ?? 91);
@@ -33,30 +35,30 @@ export function createMission(input: {
       type,
       minutes: 8,
       title: `${npc.name}: Acquire ${ticker}`,
-      objective: `Acquire ${quantity} ${ticker} within 8 minutes. Pays 20% above market.`,
+      description: `Acquire ${quantity} ${ticker} within 8 minutes. I'll pay 20% above current market.`,
       ticker,
       quantity,
-      rewardObol: roundCurrency(marketValue * 1.2),
+      reward0Bol: roundCurrency(marketValue * 1.2 * rewardMultiplier),
       rewardXp: 70,
     });
   }
 
-  if (type === "HOLD") {
+  if (type === "hold") {
     return baseMission({
       input,
       npcId: npc.id,
       type,
       minutes: 15,
       title: `${npc.name}: Hold Your Nerve`,
-      objective: "Hold 50 NGLS for 15 minutes without selling.",
+      description: "Hold 50 NGLS for 15 minutes without selling. Can you stomach volatility?",
       ticker: "NGLS",
       quantity: 50,
-      rewardObol: 15_000,
+      reward0Bol: roundCurrency(15_000 * rewardMultiplier),
       rewardXp: 90,
     });
   }
 
-  if (type === "INTEL_DROP") {
+  if (type === "intel_drop") {
     const destination = getLocation("tech_valley");
     return baseMission({
       input,
@@ -64,9 +66,9 @@ export function createMission(input: {
       type,
       minutes: 5,
       title: `${npc.name}: Intel Drop`,
-      objective: `Visit ${destination.name} within 5 minutes. Price intel is hot.`,
+      description: `Visit ${destination.name} within 5 minutes. I have price-moving information.`,
       destinationId: destination.id,
-      rewardObol: 7_500,
+      reward0Bol: roundCurrency(7_500 * rewardMultiplier),
       rewardXp: 60,
     });
   }
@@ -78,14 +80,14 @@ export function createMission(input: {
   return baseMission({
     input,
     npcId: npc.id,
-    type: "DELIVERY",
+    type: "delivery",
     minutes: 12,
     title: `${npc.name}: Port Delivery`,
-    objective: `Bring ${quantity} ${ticker} to ${destination.name} in 12 minutes.`,
+    description: `Bring ${quantity} ${ticker} to ${destination.name} in 12 minutes. Reward: 1.5x market value + 5,000 bonus.`,
     ticker,
     quantity,
     destinationId: destination.id,
-    rewardObol: roundCurrency(marketValue * 1.5 + 5000),
+    reward0Bol: roundCurrency((marketValue * 1.5 + 5000) * rewardMultiplier),
     rewardXp: 80,
   });
 }
@@ -102,12 +104,14 @@ export function getMissionProgress(input: {
   failed: boolean;
 } {
   const mission = input.mission;
-  const quantity = mission.quantity ?? 1;
-  const held = mission.ticker ? input.positions[mission.ticker]?.quantity ?? 0 : 0;
-  const atDestination = !mission.destinationId || mission.destinationId === input.currentLocationId;
-  const expired = input.nowMs >= mission.endTimestamp;
+  const quantity = mission.requiredQuantity ?? mission.quantity ?? 1;
+  const ticker = mission.requiredTicker ?? mission.ticker;
+  const destinationId = mission.destinationLocationId ?? mission.destinationId;
+  const held = ticker ? input.positions[ticker]?.quantity ?? 0 : 0;
+  const atDestination = !destinationId || destinationId === input.currentLocationId;
+  const expired = input.nowMs >= mission.expiresAtTimestamp;
 
-  if (mission.type === "DELIVERY") {
+  if (mission.type === "delivery") {
     return {
       progress: Math.min(quantity, atDestination ? held : 0),
       target: quantity,
@@ -116,7 +120,7 @@ export function getMissionProgress(input: {
     };
   }
 
-  if (mission.type === "BUY_REQUEST") {
+  if (mission.type === "buy_request") {
     return {
       progress: Math.min(quantity, held),
       target: quantity,
@@ -125,7 +129,7 @@ export function getMissionProgress(input: {
     };
   }
 
-  if (mission.type === "HOLD") {
+  if (mission.type === "hold") {
     return {
       progress: Math.min(quantity, held),
       target: quantity,
@@ -152,27 +156,41 @@ function baseMission(input: {
   type: MissionType;
   minutes: number;
   title: string;
-  objective: string;
+  description: string;
   ticker?: string;
   quantity?: number;
   destinationId?: string;
-  rewardObol: number;
+  reward0Bol: number;
   rewardXp: number;
 }): Mission {
+  const npc = getNpc(input.npcId);
+  const expiresAtTimestamp = input.input.nowMs + input.minutes * 60_000;
   return {
     id: `mission_${input.input.nowMs}_${input.input.index}`,
     npcId: input.npcId,
+    npcName: npc.name,
     type: input.type,
-    status: "pending",
     title: input.title,
-    objective: input.objective,
+    description: input.description,
+    requiredTicker: input.ticker,
+    requiredQuantity: input.quantity,
+    destinationLocationId: input.destinationId,
+    reward0Bol: input.reward0Bol,
+    rewardXp: input.rewardXp,
+    reputationChangeOnSuccess: 2,
+    reputationChangeOnFail: -1,
+    expiresAtTimestamp,
+    accepted: false,
+    completed: false,
+    failed: false,
+    status: "pending",
+    objective: input.description,
     ticker: input.ticker,
     quantity: input.quantity,
     destinationId: input.destinationId,
     startTimestamp: input.input.nowMs,
-    endTimestamp: input.input.nowMs + input.minutes * 60_000,
-    rewardObol: input.rewardObol,
-    rewardXp: input.rewardXp,
+    endTimestamp: expiresAtTimestamp,
+    rewardObol: input.reward0Bol,
     reputationDelta: 2,
   };
 }

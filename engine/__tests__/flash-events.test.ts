@@ -13,16 +13,17 @@ describe("flash events", () => {
     expect(updateFlashEvent(event, event.endTimestamp + 1)).toBeNull();
   });
 
-  it("applies whale dump price recovery", () => {
+  it("applies flash crash price recovery", () => {
     const event = {
       id: "whale",
-      type: "whale_dump" as const,
+      type: "flash_crash" as const,
       headline: "dump",
       description: "dump",
       ticker: "FDST",
       startTimestamp: 0,
       endTimestamp: 240000,
-      modifierActive: true,
+      modifierApplied: true,
+      riskLevel: "medium" as const,
     };
 
     const early = applyFlashEventPriceModifiers({
@@ -53,7 +54,8 @@ describe("flash events", () => {
         description: "gang",
         startTimestamp: 0,
         endTimestamp: 100,
-        modifierActive: true,
+        modifierApplied: true,
+        riskLevel: "high",
       }),
     ).toBe(2);
   });

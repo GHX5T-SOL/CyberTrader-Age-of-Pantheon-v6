@@ -8,6 +8,7 @@ export interface LocationDefinition {
   priceMod: number;
   demandTags: string[];
   currentState: DistrictState;
+  stateEndTimestamp: number | null;
   special?: "heat_reduction";
 }
 
@@ -27,6 +28,9 @@ export interface TransitShipment {
   arrivalTime: number;
   courierUsed: CourierService["id"];
   status: "transit" | "arrived" | "lost" | "claimed";
+  lossChance?: number;
+  riskLevel?: "low" | "medium" | "high" | "critical";
+  costPaid?: number;
 }
 
 export type LocationInventoryMap = Record<string, Position[]>;
@@ -34,16 +38,16 @@ export type LocationInventoryMap = Record<string, Position[]>;
 export const DEFAULT_LOCATION_ID = "neon_plaza";
 
 export const LOCATIONS: LocationDefinition[] = [
-  { id: "neon_plaza", name: "Neon Plaza", unlocked: true, travelTime: 0, priceMod: 1.0, demandTags: [], currentState: "NORMAL" },
-  { id: "tech_valley", name: "Tech Valley", unlocked: true, travelTime: 5, priceMod: 1.05, demandTags: ["tech", "data"], currentState: "NORMAL" },
-  { id: "the_port", name: "The Port", unlocked: true, travelTime: 8, priceMod: 0.95, demandTags: ["gas", "supply"], currentState: "NORMAL" },
-  { id: "the_slums", name: "The Slums", unlocked: false, travelTime: 15, priceMod: 0.85, demandTags: ["cheap"], currentState: "NORMAL" },
-  { id: "the_lab", name: "The Lab", unlocked: false, travelTime: 12, priceMod: 1.2, demandTags: ["research", "premium"], currentState: "NORMAL" },
-  { id: "the_greenhouse", name: "The Greenhouse", unlocked: false, travelTime: 10, priceMod: 1.0, demandTags: ["bio"], currentState: "NORMAL" },
-  { id: "crypto_exchange", name: "Crypto Exchange", unlocked: false, travelTime: 3, priceMod: 1.15, demandTags: ["digital"], currentState: "NORMAL" },
-  { id: "black_market", name: "Black Market", unlocked: true, travelTime: 6, priceMod: 0.9, demandTags: ["contraband"], currentState: "NORMAL", special: "heat_reduction" },
-  { id: "the_rooftop", name: "The Rooftop", unlocked: false, travelTime: 20, priceMod: 1.3, demandTags: ["luxury"], currentState: "NORMAL" },
-  { id: "undercity", name: "Undercity", unlocked: false, travelTime: 18, priceMod: 0.75, demandTags: ["scrap"], currentState: "NORMAL" },
+  { id: "neon_plaza", name: "Neon Plaza", unlocked: true, travelTime: 0, priceMod: 1.0, demandTags: [], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "tech_valley", name: "Tech Valley", unlocked: true, travelTime: 5, priceMod: 1.05, demandTags: ["tech", "data"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "the_port", name: "The Port", unlocked: true, travelTime: 8, priceMod: 0.95, demandTags: ["gas", "supply"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "the_slums", name: "The Slums", unlocked: false, travelTime: 15, priceMod: 0.85, demandTags: ["cheap"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "the_lab", name: "The Lab", unlocked: false, travelTime: 12, priceMod: 1.2, demandTags: ["research", "premium"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "the_greenhouse", name: "The Greenhouse", unlocked: false, travelTime: 10, priceMod: 1.0, demandTags: ["bio"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "crypto_exchange", name: "Crypto Exchange", unlocked: false, travelTime: 3, priceMod: 1.15, demandTags: ["digital"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "black_market", name: "Black Market", unlocked: true, travelTime: 6, priceMod: 0.9, demandTags: ["contraband"], currentState: "NORMAL", stateEndTimestamp: null, special: "heat_reduction" },
+  { id: "the_rooftop", name: "The Rooftop", unlocked: false, travelTime: 20, priceMod: 1.3, demandTags: ["luxury"], currentState: "NORMAL", stateEndTimestamp: null },
+  { id: "undercity", name: "Undercity", unlocked: false, travelTime: 18, priceMod: 0.75, demandTags: ["scrap"], currentState: "NORMAL", stateEndTimestamp: null },
 ];
 
 export const COURIER_SERVICES: CourierService[] = [

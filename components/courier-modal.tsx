@@ -11,6 +11,8 @@ interface CourierModalProps {
   currentLocationId: string;
   costMultiplier?: number;
   arrivalTimeMultiplier?: number;
+  riskBonus?: number;
+  riskMultiplier?: number;
   onClose: () => void;
   onSend: (input: {
     quantity: number;
@@ -26,6 +28,8 @@ export default function CourierModal({
   currentLocationId,
   costMultiplier = 1,
   arrivalTimeMultiplier = 1,
+  riskBonus = 0,
+  riskMultiplier = 1,
   onClose,
   onSend,
 }: CourierModalProps) {
@@ -85,7 +89,8 @@ export default function CourierModal({
                 style={{ borderWidth: 1, borderColor: courierId === service.id ? terminalColors.amber : terminalColors.borderDim, padding: 8 }}
               >
                 {(() => {
-                  const riskPercent = Math.round(service.lossChance * 100);
+                  const adjustedLossChance = Math.min(0.95, service.lossChance * riskMultiplier + riskBonus);
+                  const riskPercent = Math.round(adjustedLossChance * 100);
                   const effectiveCost = Math.round(service.cost * costMultiplier);
                   const riskColor = riskPercent >= 30 ? terminalColors.red : riskPercent >= 10 ? terminalColors.amber : terminalColors.green;
                   return (

@@ -1,4 +1,4 @@
-import { getUnlockedLocations } from "@/data/locations";
+import { getLocation, getUnlockedLocations } from "@/data/locations";
 import { DEMO_COMMODITIES, roundCurrency, type PriceMap } from "@/engine/demo-market";
 import { seededStream } from "@/engine/prng";
 import type { FlashEvent, FlashEventType } from "@/engine/types";
@@ -6,13 +6,14 @@ import type { FlashEvent, FlashEventType } from "@/engine/types";
 const FLASH_TYPES: FlashEventType[] = [
   "volatility_spike",
   "arbitrage_window",
-  "eagent_proximity",
+  "eagent_scan",
   "district_blackout",
-  "whale_dump",
+  "flash_crash",
   "gang_takeover",
 ];
 
 export const FLASH_EVENT_COOLDOWN_MS = 2 * 60_000;
+const BLACKOUT_WARNING_MS = 2 * 60_000;
 
 export function getNextFlashEventDelay(seed: string, index: number): number {
   const stream = seededStream(`${seed}:flash-delay:${index}`);
@@ -28,85 +29,95 @@ export function createFlashEvent(input: {
   const type = FLASH_TYPES[Math.floor(stream() * FLASH_TYPES.length)] ?? "volatility_spike";
   const ticker = DEMO_COMMODITIES[Math.floor(stream() * DEMO_COMMODITIES.length)]?.ticker ?? "FDST";
   const location = getUnlockedLocations()[Math.floor(stream() * getUnlockedLocations().length)] ?? getUnlockedLocations()[0]!;
-  const duration = type === "arbitrage_window"
-    ? 180_000
-    : type === "eagent_proximity"
-      ? 90_000
-      : type === "district_blackout"
-        ? 7 * 60_000
-        : type === "whale_dump"
-          ? 4 * 60_000
-          : type === "gang_takeover"
-            ? 8 * 60_000
-            : (90 + Math.floor(stream() * 91)) * 1000;
+  const id = `flash_${input.nowMs}_${input.index}`;
 
   switch (type) {
-    case "volatility_spike":
+    case "volatility_spike": {
+      const duration = (90 + Math.floor(stream() * 91)) * 1000;
+      const amplitude = roundCurrency(0.15 + stream() * 0.2);
       return {
-        id: `flash_${input.nowMs}_${input.index}`,
+        id,
         type,
-        headline: `${ticker} prices swinging wildly!`,
-        description: `${ticker} random-walk amplitude tripled for ${Math.round(duration / 1000)} seconds.`,
+        headline: `${ticker} VOLATILITY SPIKE`,
+        description: `${getLocation(location.id).name} ${ticker} prices swinging wildly: +/-${Math.round(amplitude * 100)}% window.`,
         ticker,
-        startTimestamp: input.nowMs,
-        endTimestamp: input.nowMs + duration,
-        modifierActive: true,
-      };
-    case "arbitrage_window":
-      return {
-        id: `flash_${input.nowMs}_${input.index}`,
-        type,
-        headline: `${location.name} prices crashed!`,
-        description: "3 minutes to move goods before the window closes.",
         locationId: location.id,
         startTimestamp: input.nowMs,
         endTimestamp: input.nowMs + duration,
-        modifierActive: true,
+        modifierApplied: true,
+        riskLevel: "high",
+        amplitude,
       };
-    case "eagent_proximity":
+    }
+    case "arbitrage_window": {
+      const duration = (120 + Math.floor(stream() * 121)) * 1000;
+      const multiplier = roundCurrency(1.5 + stream());
       return {
-        id: `flash_${input.nowMs}_${input.index}`,
+        id,
         type,
-        headline: "Scanner detected!",
+        headline: `${location.name} ARBITRAGE WINDOW`,
+        description: `${location.name} buying ${ticker} at ${multiplier.toFixed(1)}x normal price. Move fast and sell there.`,
+        ticker,
+        locationId: location.id,
+        startTimestamp: input.nowMs,
+        endTimestamp: input.nowMs + duration,
+        modifierApplied: true,
+        riskLevel: "medium",
+        multiplier,
+      };
+    }
+    case "eagent_scan":
+      return {
+        id,
+        type,
+        headline: "eAGENT SCAN DETECTED",
         description: "90 seconds to reduce Heat below 50 or face a guaranteed raid.",
         startTimestamp: input.nowMs,
-        endTimestamp: input.nowMs + duration,
-        modifierActive: true,
+        endTimestamp: input.nowMs + 90_000,
+        modifierApplied: true,
+        riskLevel: "critical",
       };
-    case "district_blackout":
+    case "district_blackout": {
+      const freezeDuration = (180 + Math.floor(stream() * 121)) * 1000;
       return {
-        id: `flash_${input.nowMs}_${input.index}`,
+        id,
         type,
-        headline: `${location.name} going dark.`,
-        description: "Trading freezes after 2 minutes, then stays frozen for 5 minutes.",
+        headline: `${location.name} BLACKOUT WARNING`,
+        description: `${location.name} trading freezes after 2 minutes, then stays down for ${Math.round(freezeDuration / 60_000)} minutes.`,
         locationId: location.id,
         startTimestamp: input.nowMs,
-        activationTimestamp: input.nowMs + 2 * 60_000,
-        endTimestamp: input.nowMs + duration,
-        modifierActive: false,
+        activationTimestamp: input.nowMs + BLACKOUT_WARNING_MS,
+        endTimestamp: input.nowMs + BLACKOUT_WARNING_MS + freezeDuration,
+        modifierApplied: false,
+        riskLevel: "high",
       };
-    case "whale_dump":
+    }
+    case "flash_crash":
       return {
-        id: `flash_${input.nowMs}_${input.index}`,
+        id,
         type,
-        headline: `Someone's liquidating 50,000 ${ticker}.`,
-        description: `${ticker} drops 35% instantly and recovers over 4 minutes.`,
+        headline: `${ticker} FLASH CRASH`,
+        description: `${ticker} drops 35% instantly and recovers linearly over 4 minutes.`,
         ticker,
         startTimestamp: input.nowMs,
-        endTimestamp: input.nowMs + duration,
-        modifierActive: true,
+        endTimestamp: input.nowMs + 4 * 60_000,
+        modifierApplied: true,
+        riskLevel: "medium",
+        multiplier: 0.65,
       };
     case "gang_takeover":
     default:
       return {
-        id: `flash_${input.nowMs}_${input.index}`,
+        id,
         type: "gang_takeover",
-        headline: "Blackwake seized The Port route.",
-        description: "All courier costs doubled for 8 minutes.",
-        locationId: "the_port",
+        headline: `${location.name} GANG TAKEOVER`,
+        description: `All courier costs dispatched from ${location.name} doubled for 8 minutes.`,
+        locationId: location.id,
         startTimestamp: input.nowMs,
-        endTimestamp: input.nowMs + duration,
-        modifierActive: true,
+        endTimestamp: input.nowMs + 8 * 60_000,
+        modifierApplied: true,
+        riskLevel: "high",
+        multiplier: 2,
       };
   }
 }
@@ -122,7 +133,7 @@ export function updateFlashEvent(
   if (event.type === "district_blackout") {
     return {
       ...event,
-      modifierActive: nowMs >= (event.activationTimestamp ?? event.startTimestamp),
+      modifierApplied: nowMs >= (event.activationTimestamp ?? event.startTimestamp),
     };
   }
 
@@ -137,24 +148,28 @@ export function applyFlashEventPriceModifiers(input: {
   tick: number;
 }): PriceMap {
   const event = input.event;
-  if (!event?.modifierActive) {
+  if (!event?.modifierApplied) {
     return input.prices;
   }
 
-  if (event.type === "arbitrage_window" && event.locationId === input.locationId) {
-    return mapPrices(input.prices, (price) => price * 0.8);
+  if (event.type === "arbitrage_window" && event.locationId === input.locationId && event.ticker) {
+    return {
+      ...input.prices,
+      [event.ticker]: roundCurrency((input.prices[event.ticker] ?? 1) * (event.multiplier ?? 1.75)),
+    };
   }
 
-  if (event.type === "volatility_spike" && event.ticker) {
+  if (event.type === "volatility_spike" && event.ticker && event.locationId === input.locationId) {
     const stream = seededStream(`${event.id}:vol:${input.tick}:${Math.floor(input.nowMs / 10_000)}`);
-    const swing = (stream() - 0.5) * 0.6;
+    const amplitude = event.amplitude ?? 0.25;
+    const swing = (stream() - 0.5) * 2 * amplitude;
     return {
       ...input.prices,
       [event.ticker]: roundCurrency(Math.max(1, (input.prices[event.ticker] ?? 1) * (1 + swing))),
     };
   }
 
-  if (event.type === "whale_dump" && event.ticker) {
+  if (event.type === "flash_crash" && event.ticker) {
     const progress = Math.min(1, Math.max(0, (input.nowMs - event.startTimestamp) / Math.max(1, event.endTimestamp - event.startTimestamp)));
     const multiplier = 0.65 + progress * 0.35;
     return {
@@ -166,8 +181,14 @@ export function applyFlashEventPriceModifiers(input: {
   return input.prices;
 }
 
-export function getFlashCourierCostMultiplier(event: FlashEvent | null): number {
-  return event?.type === "gang_takeover" && event.modifierActive ? 2 : 1;
+export function getFlashCourierCostMultiplier(
+  event: FlashEvent | null,
+  locationId?: string,
+): number {
+  if (!event || event.type !== "gang_takeover" || !event.modifierApplied) {
+    return 1;
+  }
+  return !locationId || event.locationId === locationId ? event.multiplier ?? 2 : 1;
 }
 
 export function isTradingBlockedByFlash(
@@ -176,13 +197,7 @@ export function isTradingBlockedByFlash(
 ): boolean {
   return Boolean(
     event?.type === "district_blackout" &&
-      event.modifierActive &&
+      event.modifierApplied &&
       event.locationId === locationId,
-  );
-}
-
-function mapPrices(prices: PriceMap, mapper: (price: number) => number): PriceMap {
-  return Object.fromEntries(
-    Object.entries(prices).map(([ticker, price]) => [ticker, roundCurrency(Math.max(1, mapper(price)))]),
   );
 }
