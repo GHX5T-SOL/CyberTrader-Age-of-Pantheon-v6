@@ -207,9 +207,18 @@ export class LocalAuthority implements Authority {
 
   async getOpenPositions(playerId: string): Promise<Position[]> {
     const state = this.requirePlayerState(playerId);
+    const prices = await this.getTickPrices(this.currentTick);
     return [...state.openPositions.values()]
       .sort((left, right) => left.ticker.localeCompare(right.ticker))
-      .map((position) => this.clonePosition(position));
+      .map((position) =>
+        this.clonePosition({
+          ...position,
+          unrealizedPnl: roundCurrency(
+            ((prices[position.ticker] ?? position.avgEntry) - position.avgEntry) *
+              position.quantity,
+          ),
+        }),
+      );
   }
 
   async getLedger(playerId: string): Promise<LedgerEntry[]> {

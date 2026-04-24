@@ -1,11 +1,13 @@
 import { Stack, useRouter } from "expo-router";
 import { Text, View, useWindowDimensions } from "react-native";
 import { DemoPhaseShell } from "@/components/demo-phase-shell";
+import { PositionsPanel } from "@/components/positions-panel";
 import { PrimaryAction } from "@/components/primary-action";
 import { ResourceChip } from "@/components/resource-chip";
 import { SectionCard } from "@/components/section-card";
 import { SignalCore } from "@/components/signal-core";
 import { SystemLine } from "@/components/system-line";
+import { TutorialPanel } from "@/components/tutorial-panel";
 import { useDemoMarketLoop } from "@/hooks/use-demo-market-loop";
 import { formatObol } from "@/engine/demo-market";
 import { FIRST_TRADE_HINT_TICKER } from "@/engine/demo-market";
@@ -23,10 +25,14 @@ export function TerminalHomeScreen() {
   const tick = useDemoStore((state) => state.tick);
   const balanceObol = useDemoStore((state) => state.balanceObol);
   const resources = useDemoStore((state) => state.resources);
+  const positions = useDemoStore((state) => state.positions);
+  const selectedTicker = useDemoStore((state) => state.selectedTicker);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
+  const lastRealizedPnl = useDemoStore((state) => state.lastRealizedPnl);
   const systemMessage = useDemoStore((state) => state.systemMessage);
   const isBusy = useDemoStore((state) => state.isBusy);
   const openMarket = useDemoStore((state) => state.openMarket);
+  const purchaseEnergyHour = useDemoStore((state) => state.purchaseEnergyHour);
   const resetDemo = useDemoStore((state) => state.resetDemo);
 
   useDemoMarketLoop();
@@ -116,14 +122,35 @@ export function TerminalHomeScreen() {
           />
         </View>
       </SectionCard>
+      <TutorialPanel
+        phase="home"
+        positions={positions}
+        firstTradeComplete={firstTradeComplete}
+        selectedTicker={selectedTicker}
+      />
+      <PositionsPanel positions={positions} />
       {firstTradeComplete ? (
         <SectionCard eyebrow="loop_status" title="first loop survived" tone="acid">
           <Text selectable style={{ color: palette.fg.primary, lineHeight: 22 }}>
             You woke up, claimed the deck, traded live inventory, and exited with a
             green result. That is the first real game loop now proven in routed form.
           </Text>
+          {lastRealizedPnl !== null ? (
+            <SystemLine tone={lastRealizedPnl >= 0 ? "acid" : "heat"}>
+              [result] realized {lastRealizedPnl >= 0 ? "+" : ""}
+              {lastRealizedPnl.toFixed(2)} 0BOL
+            </SystemLine>
+          ) : null}
         </SectionCard>
       ) : null}
+      <PrimaryAction
+        label="buy 1h energy"
+        tone="cyan"
+        disabled={isBusy}
+        onPress={() => {
+          void purchaseEnergyHour();
+        }}
+      />
       <PrimaryAction
         label="reset demo"
         tone="heat"

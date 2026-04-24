@@ -2,6 +2,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import { commodityArt } from "@/assets/commodity-art";
 import { FIRST_TRADE_HINT_TICKER, formatObol } from "@/engine/demo-market";
 import type { Commodity } from "@/engine/types";
+import { PriceSparkline } from "@/components/price-sparkline";
 import { SectionCard } from "@/components/section-card";
 import { palette } from "@/theme/colors";
 
@@ -16,6 +17,7 @@ interface TradeTicketProps {
     avgEntry: number;
   };
   canSell: boolean;
+  priceHistory?: number[];
   onBuy: () => void;
   onSell: () => void;
 }
@@ -25,6 +27,7 @@ export function TradeTicket({
   price,
   holding,
   canSell,
+  priceHistory = [],
   onBuy,
   onSell,
 }: TradeTicketProps) {
@@ -72,6 +75,10 @@ export function TradeTicket({
           <MetricRow label="price" value={`${price.toFixed(2)} 0BOL`} />
           <MetricRow label="default lot" value={`10 units // ${formatObol(totalBuy)} 0BOL`} />
           <MetricRow label="heat impact" value={commodity.heatRisk.replace("_", " ")} tone="heat" />
+          <PriceSparkline
+            values={priceHistory.length ? priceHistory : [price]}
+            tone={projectedPnl >= 0 ? "acid" : "heat"}
+          />
         </View>
       </View>
 

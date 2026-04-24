@@ -2,9 +2,12 @@ import { Stack, useRouter } from "expo-router";
 import { Text, View, useWindowDimensions } from "react-native";
 import { CommodityRow } from "@/components/commodity-row";
 import { DemoPhaseShell } from "@/components/demo-phase-shell";
+import { NewsFeed } from "@/components/news-feed";
+import { PositionsPanel } from "@/components/positions-panel";
 import { PrimaryAction } from "@/components/primary-action";
 import { ResourceChip } from "@/components/resource-chip";
 import { SectionCard } from "@/components/section-card";
+import { TutorialPanel } from "@/components/tutorial-panel";
 import { TradeTicket } from "@/components/trade-ticket";
 import { DEMO_COMMODITIES, formatObol } from "@/engine/demo-market";
 import { useDemoMarketLoop } from "@/hooks/use-demo-market-loop";
@@ -20,8 +23,11 @@ export function MarketScreen() {
   const resources = useDemoStore((state) => state.resources);
   const prices = useDemoStore((state) => state.prices);
   const changes = useDemoStore((state) => state.changes);
+  const priceHistory = useDemoStore((state) => state.priceHistory);
   const positions = useDemoStore((state) => state.positions);
+  const activeNews = useDemoStore((state) => state.activeNews);
   const selectedTicker = useDemoStore((state) => state.selectedTicker);
+  const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const isBusy = useDemoStore((state) => state.isBusy);
   const systemMessage = useDemoStore((state) => state.systemMessage);
   const selectTicker = useDemoStore((state) => state.selectTicker);
@@ -65,6 +71,12 @@ export function MarketScreen() {
           <ResourceChip label="Tick" value={String(tick).padStart(4, "0")} tone="amber" />
         </View>
       </SectionCard>
+      <TutorialPanel
+        phase="market"
+        positions={positions}
+        firstTradeComplete={firstTradeComplete}
+        selectedTicker={selectedTicker}
+      />
       <View style={{ flexDirection: "row", gap: 10 }}>
         <PrimaryAction
           label="terminal home"
@@ -77,6 +89,7 @@ export function MarketScreen() {
           }}
         />
       </View>
+      <NewsFeed news={activeNews} />
       <SectionCard eyebrow="s1lkroad_4.0" title="market scan" tone="cyan">
         <Text selectable style={{ color: palette.fg.muted, lineHeight: 22 }}>
           Ticker first. Name second. Read the delta. Small trades keep Heat under
@@ -104,6 +117,7 @@ export function MarketScreen() {
         price={selectedPrice}
         holding={selectedPosition}
         canSell={Boolean(selectedPosition) && !isBusy}
+        priceHistory={priceHistory[selectedTicker]}
         onBuy={() => {
           void buySelected();
         }}
@@ -113,6 +127,7 @@ export function MarketScreen() {
           });
         }}
       />
+      <PositionsPanel positions={positions} />
     </DemoPhaseShell>
   );
 }

@@ -1,5 +1,5 @@
 import type { LocalAuthoritySnapshot } from "@/authority/local-authority";
-import type { PlayerProfile, Position, Resources } from "@/engine/types";
+import type { MarketNews, PlayerProfile, Position, Resources } from "@/engine/types";
 import type { ChangeMap, PriceMap } from "@/engine/demo-market";
 import type { DemoPhase, TerminalView } from "@/state/demo-store";
 
@@ -14,10 +14,13 @@ interface PersistedDemoSession {
   tick: number;
   prices: PriceMap;
   changes: ChangeMap;
+  priceHistory: Record<string, number[]>;
   balanceObol: number;
   resources: Resources;
   positions: Record<string, Position>;
+  activeNews: MarketNews[];
   selectedTicker: string;
+  lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
   systemMessage: string;
   authoritySnapshot: LocalAuthoritySnapshot | null;

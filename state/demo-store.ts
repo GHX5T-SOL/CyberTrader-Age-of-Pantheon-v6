@@ -17,7 +17,7 @@ import {
   type ChangeMap,
   type PriceMap,
 } from "@/engine/demo-market";
-import type { PlayerProfile, Position, Resources } from "@/engine/types";
+import type { MarketNews, PlayerProfile, Position, Resources } from "@/engine/types";
 import {
   clearDemoSession,
   loadDemoSession,
@@ -45,10 +45,13 @@ interface DemoStoreState {
   tick: number;
   prices: PriceMap;
   changes: ChangeMap;
+  priceHistory: Record<string, number[]>;
   balanceObol: number;
   resources: Resources;
   positions: Record<string, Position>;
+  activeNews: MarketNews[];
   selectedTicker: string;
+  lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
   systemMessage: string;
   isBusy: boolean;
@@ -65,12 +68,15 @@ interface DemoStoreActions {
   advanceMarket: () => Promise<void>;
   buySelected: () => Promise<void>;
   sellSelected: () => Promise<void>;
+  purchaseEnergyHour: () => Promise<void>;
   resetDemo: () => Promise<void>;
 }
 
 type DemoStore = DemoStoreState & DemoStoreActions;
 
 function buildInitialState(): DemoStoreState {
+  const prices = createInitialPrices();
+
   return {
     phase: "boot",
     activeView: "home",
@@ -78,12 +84,15 @@ function buildInitialState(): DemoStoreState {
     profile: null,
     playerId: null,
     tick: 0,
-    prices: createInitialPrices(),
+    prices,
     changes: createInitialChanges(),
+    priceHistory: buildInitialPriceHistory(prices),
     balanceObol: DEMO_STARTING_BALANCE,
     resources: { ...INITIAL_PLAYER_RESOURCES },
     positions: {},
+    activeNews: [],
     selectedTicker: FIRST_TRADE_HINT_TICKER,
+    lastRealizedPnl: null,
     firstTradeComplete: false,
     systemMessage: "[sys] you are awake. the deck is not yours.",
     isBusy: false,
@@ -100,6 +109,22 @@ function buildChangeMap(currentPrices: PriceMap, nextPrices: PriceMap): ChangeMa
     Object.entries(nextPrices).map(([ticker, nextPrice]) => [
       ticker,
       roundCurrency(nextPrice - (currentPrices[ticker] ?? nextPrice)),
+    ]),
+  );
+}
+
+function buildInitialPriceHistory(prices: PriceMap): Record<string, number[]> {
+  return Object.fromEntries(Object.entries(prices).map(([ticker, price]) => [ticker, [price]]));
+}
+
+function appendPriceHistory(
+  history: Record<string, number[]>,
+  prices: PriceMap,
+): Record<string, number[]> {
+  return Object.fromEntries(
+    Object.entries(prices).map(([ticker, price]) => [
+      ticker,
+      [...(history[ticker] ?? []), price].slice(-14),
     ]),
   );
 }
@@ -122,10 +147,13 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     tick: state.tick,
     prices: state.prices,
     changes: state.changes,
+    priceHistory: state.priceHistory,
     balanceObol: state.balanceObol,
     resources: state.resources,
     positions: state.positions,
+    activeNews: state.activeNews,
     selectedTicker: state.selectedTicker,
+    lastRealizedPnl: state.lastRealizedPnl,
     firstTradeComplete: state.firstTradeComplete,
     systemMessage: state.systemMessage,
     authoritySnapshot: exportAuthoritySnapshot(),
@@ -165,8 +193,14 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
 
       restoreLocalAuthority(session.authoritySnapshot);
+      const prices = session.prices ?? createInitialPrices();
       set({
         ...session,
+        prices,
+        changes: session.changes ?? createInitialChanges(),
+        priceHistory: session.priceHistory ?? buildInitialPriceHistory(prices),
+        activeNews: session.activeNews ?? [],
+        lastRealizedPnl: session.lastRealizedPnl ?? null,
         isBusy: false,
         isHydrated: true,
       });
@@ -200,11 +234,12 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           faction: null,
         });
 
-        const [prices, resources, ledger, positions] = await Promise.all([
+        const [prices, resources, ledger, positions, activeNews] = await Promise.all([
           authority.getTickPrices(0),
           authority.getResources(profile.id),
           authority.getLedger(profile.id),
           authority.getOpenPositions(profile.id),
+          authority.getActiveNews(0),
         ]);
 
         set({
@@ -216,9 +251,11 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           tick: 0,
           prices,
           changes: createInitialChanges(),
+          priceHistory: buildInitialPriceHistory(prices),
           balanceObol: latestBalance(DEMO_STARTING_BALANCE, ledger),
           resources,
           positions: toPositionMap(positions),
+          activeNews,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -262,12 +299,18 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
 
       const nextTick = state.tick + 1;
-      const prices = await getAuthority().getTickPrices(nextTick);
+      const authority = getAuthority();
+      const [prices, activeNews] = await Promise.all([
+        authority.getTickPrices(nextTick),
+        authority.getActiveNews(nextTick),
+      ]);
 
       set({
         tick: nextTick,
         prices,
         changes: buildChangeMap(state.prices, prices),
+        priceHistory: appendPriceHistory(state.priceHistory, prices),
+        activeNews,
       });
       await persistCurrentState();
     },
@@ -354,6 +397,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           resources,
           balanceObol: latestBalance(state.balanceObol, result.ledger),
           profile: state.profile ? { ...state.profile, rank: rank.rank } : null,
+          lastRealizedPnl: result.position.realizedPnl,
           firstTradeComplete:
             state.firstTradeComplete ||
             (result.position.quantity === 0 && result.position.realizedPnl > 0),
@@ -369,6 +413,37 @@ export const useDemoStore = create<DemoStore>((set, get) => {
             error instanceof Error
               ? `[sys] ${error.message.toLowerCase()}`
               : "[sys] sell failed.",
+        });
+        await persistCurrentState();
+      }
+    },
+    purchaseEnergyHour: async () => {
+      const state = get();
+      if (!state.playerId || state.isBusy) {
+        return;
+      }
+
+      set({ isBusy: true });
+
+      try {
+        const authority = getAuthority();
+        const resources = await authority.purchaseEnergy(state.playerId, 3600, "0BOL");
+        const ledger = await authority.getLedger(state.playerId);
+
+        set({
+          resources,
+          balanceObol: latestBalance(state.balanceObol, ledger),
+          isBusy: false,
+          systemMessage: "[energy] one hour purchased // shell stabilized",
+        });
+        await persistCurrentState();
+      } catch (error) {
+        set({
+          isBusy: false,
+          systemMessage:
+            error instanceof Error
+              ? `[sys] ${error.message.toLowerCase()}`
+              : "[sys] energy purchase failed.",
         });
         await persistCurrentState();
       }

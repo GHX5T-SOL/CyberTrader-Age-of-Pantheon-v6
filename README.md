@@ -68,6 +68,11 @@ The current working demo proves:
 - local persistence across reload
 - commodity art rendering in the market
 - Eidolon shard centerpiece rendering in boot and hydration
+- guided first-trade objective panel
+- open-position visibility with live unrealized PnL
+- authority-fed market rumor panel
+- selected ticker mini price chart
+- one-hour Energy refill action
 
 ## Cinematics
 
