@@ -5,10 +5,14 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BurgerMenu } from "@/components/burger-menu";
 import { TerminalShell } from "@/components/terminal-shell";
 import { MenuContext } from "@/context/menu-context";
+import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
+import { useGameLoop } from "@/hooks/use-game-loop";
 import { terminalColors } from "@/theme/terminal";
 
 export default function RootLayout() {
   const [menuVisible, setMenuVisible] = React.useState(false);
+  useDemoBootstrap();
+  useGameLoop();
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: terminalColors.background }}>

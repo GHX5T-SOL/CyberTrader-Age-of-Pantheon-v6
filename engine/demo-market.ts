@@ -1,4 +1,9 @@
 import { seededStream } from "./prng";
+import {
+  commodityMatchesLocationDemand,
+  getLocation,
+  type LocationDefinition,
+} from "@/data/locations";
 import type { Commodity } from "./types";
 
 export interface DemoResources {
@@ -32,6 +37,8 @@ const HEAT_FACTOR: Record<Commodity["heatRisk"], number> = {
   high: 6,
   very_high: 8,
 };
+
+const HIGH_RISK_TICKERS = new Set(["BLCK", "AETH", "HXMD"]);
 
 export const DEFAULT_TRADE_QUANTITY = 10;
 export const ORDER_SIZES = [5, 10, 25] as const;
@@ -120,6 +127,11 @@ export function getStealthAdjustedHeatDelta(
   return Math.max(1, getHeatDelta(ticker, side) + panicTax - mitigation);
 }
 
+export function getValueBasedTradeHeatDelta(ticker: string, totalCost: number): number {
+  const divisor = HIGH_RISK_TICKERS.has(ticker) ? 2500 : 5000;
+  return Math.max(1, Math.ceil(Math.max(0, totalCost) / divisor));
+}
+
 export function applyMarketClockPulse(
   resources: Pick<DemoResources, "energySeconds" | "heat"> & {
     integrity?: number;
@@ -134,14 +146,8 @@ export function applyMarketClockPulse(
   stealth?: number;
   influence?: number;
 } {
-  const stealth = resources.stealth ?? 0;
-  const heatDecay = 1 + (stealth >= 60 && tick % 3 === 0 ? 1 : 0);
-  const heat = Math.max(0, resources.heat - heatDecay);
-  const canRecharge = heat < 75 && resources.energySeconds < MAX_ENERGY_SECONDS;
-  const energySeconds = Math.min(
-    MAX_ENERGY_SECONDS,
-    resources.energySeconds + (canRecharge ? 30 : 0),
-  );
+  const heat = Math.max(0, resources.heat - (tick > 0 && tick % 20 === 0 ? 1 : 0));
+  const energySeconds = Math.max(0, resources.energySeconds - 30);
   const integrity =
     resources.integrity === undefined
       ? undefined
@@ -153,6 +159,24 @@ export function applyMarketClockPulse(
     heat,
     integrity,
   };
+}
+
+export function applyLocationPriceModifiers(
+  prices: PriceMap,
+  locationIdOrDefinition: string | LocationDefinition | null | undefined,
+): PriceMap {
+  const location =
+    typeof locationIdOrDefinition === "string" || !locationIdOrDefinition
+      ? getLocation(locationIdOrDefinition)
+      : locationIdOrDefinition;
+
+  return Object.fromEntries(
+    DEMO_COMMODITIES.map((commodity) => {
+      const current = prices[commodity.ticker] ?? commodity.basePrice;
+      const demandBonus = commodityMatchesLocationDemand(commodity, location) ? 1.1 : 1;
+      return [commodity.ticker, roundCurrency(current * location.priceMod * demandBonus)];
+    }),
+  );
 }
 
 export function canExecuteTrade(input: {

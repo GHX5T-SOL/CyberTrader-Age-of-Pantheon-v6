@@ -82,6 +82,9 @@ describe("LocalAuthority", () => {
     const ledgerAfterBuy = await authority.getLedger(profile.id);
 
     expect(buy.ledger).toHaveLength(1);
+    expect(buy.resources.heat).toBeGreaterThan(6);
+    expect(buy.rank.level).toBe(1);
+    expect(buy.xpGained).toBe(0);
     expect(ledgerAfterBuy).toHaveLength(2);
     expect(resourcesAfterBuy.energySeconds).toBe(72 * 60 * 60 - 90);
     expect(positionsAfterBuy[0]?.ticker).toBe("VBLM");
@@ -100,10 +103,31 @@ describe("LocalAuthority", () => {
     const ledgerAfterSell = await authority.getLedger(profile.id);
 
     expect(sell.position.quantity).toBe(0);
+    expect(sell.xpGained).toBeGreaterThanOrEqual(5);
     expect(positionsAfterSell).toHaveLength(0);
     expect(ledgerAfterSell).toHaveLength(3);
     expect(resourcesAfterSell.energySeconds).toBe(72 * 60 * 60 - 165);
     expect(ledgerAfterSell.at(-1)?.balanceAfter).toBeGreaterThan(ledgerAfterBuy.at(-1)?.balanceAfter ?? 0);
+  });
+
+  it("enforces inventory slots for new tickers", async () => {
+    const authority = new LocalAuthority({ seed: "slot-limit", startedAt: STARTED_AT });
+    const profile = await authority.createProfile({
+      walletAddress: null,
+      devIdentity: "slot_dev",
+      eidolonHandle: "SLOTS",
+      osTier: "PIRATE",
+      rank: 1,
+      faction: null,
+    });
+
+    for (const ticker of ["FDST", "PGAS", "NGLS", "HXMD", "VBLM"]) {
+      await authority.executeTrade({ playerId: profile.id, ticker, side: "BUY", quantity: 1 });
+    }
+
+    await expect(
+      authority.executeTrade({ playerId: profile.id, ticker: "ORRS", side: "BUY", quantity: 1 }),
+    ).rejects.toThrow("INVENTORY FULL");
   });
 
   it("replays the same outcome for 1000 seeds", async () => {

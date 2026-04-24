@@ -39,7 +39,7 @@ export default function IndexRoute() {
       } else if (phase === "terminal") {
         router.replace("/terminal");
       } else {
-        router.replace("/intro");
+        router.replace("/video-intro");
       }
     }, 250);
 

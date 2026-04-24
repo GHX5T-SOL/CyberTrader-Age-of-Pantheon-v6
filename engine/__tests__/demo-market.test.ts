@@ -1,6 +1,7 @@
 import {
   INITIAL_RESOURCES,
   applyMarketClockPulse,
+  applyLocationPriceModifiers,
   advancePrices,
   buyCommodity,
   canExecuteTrade,
@@ -78,8 +79,18 @@ describe("demo market loop", () => {
       3,
     );
 
-    expect(pulse.energySeconds).toBe(3030);
-    expect(pulse.heat).toBe(8);
+    expect(pulse.energySeconds).toBe(2970);
+    expect(pulse.heat).toBe(10);
     expect(pulse.integrity).toBe(82);
+  });
+
+  it("applies location price modifiers deterministically", () => {
+    const initial = createInitialPrices();
+    const techValley = applyLocationPriceModifiers(initial, "tech_valley");
+    const port = applyLocationPriceModifiers(initial, "the_port");
+
+    expect(techValley.FDST).toBeGreaterThan(initial.FDST ?? 0);
+    expect(port.PGAS).toBeGreaterThan(initial.PGAS ?? 0);
+    expect(port.VBLM).toBeLessThan(initial.VBLM ?? 0);
   });
 });

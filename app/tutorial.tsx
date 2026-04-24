@@ -13,6 +13,7 @@ const STEPS = [
   "HEAT ATTRACTS eAGENTS. HIGH HEAT = DANGER.",
   "0BOL IS YOUR TRADING CURRENCY. YOU START WITH 1,000,000.",
   "ENTER S1LKROAD TO TRADE COMMODITIES.",
+  "LOCATIONS CHANGE PRICES. TRAVEL OPENS ARBITRAGE, BUT YOU CANNOT TRADE WHILE MOVING.",
   "MAKE PROFITABLE TRADES TO EARN XP AND RANK UP.",
   "YOU ARE NOW READY. ENTER S1LKROAD AND MAKE YOUR FIRST TRADE.",
 ];
@@ -39,10 +40,10 @@ export default function TutorialRoute() {
       <View style={{ flex: 1, backgroundColor: terminalColors.tutorialBackdrop, justifyContent: "center", padding: 20 }}>
         <NeonBorder active style={{ alignSelf: "center", width: "100%", maxWidth: 360 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 10, marginBottom: 12 }}>
-            TUTORIAL STEP {step + 1}/7
+            TUTORIAL STEP {step + 1}/{STEPS.length}
           </Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 15, lineHeight: 23 }}>{STEPS[step]}</Text>
-          {step === 6 ? (
+          {step === STEPS.length - 1 ? (
             <View style={{ marginTop: 18 }}>
               <ActionButton variant="primary" label="[ ENTER ]" glowing onPress={complete} />
             </View>

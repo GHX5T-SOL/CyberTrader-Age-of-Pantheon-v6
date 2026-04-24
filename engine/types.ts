@@ -1,17 +1,13 @@
 /**
- * src/engine/types.ts — authoritative data model for the game engine.
+ * src/engine/types.ts - authoritative data model for the game engine.
  *
- * These interfaces are the contract shared by:
- *   - UI layer (read)
- *   - State layer (read/write through authority adapter)
- *   - Engine (pure functions over these)
- *   - Authority adapter (LocalAuthority + SupabaseAuthority)
- *
- * Never widen a type without coordinating with Backend/Web3 Agent.
+ * These interfaces are the contract shared by UI, state, engine, and
+ * authority adapters. Keep them serializable so save/restore remains simple.
  */
 
-export type OsTier = 'PIRATE' | 'AGENT' | 'PANTHEON';
-export type Faction = 'FREE_SPLINTERS' | 'BLACKWAKE' | 'NULL_CROWN' | 'ARCHIVISTS';
+export type OsTier = "PIRATE" | "AGENT" | "PANTHEON";
+export type Faction = "FREE_SPLINTERS" | "BLACKWAKE" | "NULL_CROWN" | "ARCHIVISTS";
+export type Currency = "0BOL" | "$OBOL";
 
 export interface PlayerProfile {
   id: string;
@@ -22,22 +18,25 @@ export interface PlayerProfile {
   rank: number;
   faction: Faction | null;
   createdAt: string;
+  currentLocationId?: string;
+  travelDestinationId?: string | null;
+  travelEndTime?: number | null;
 }
 
 export interface Resources {
-  energySeconds: number;      // remaining, 0 = Dormant Mode
-  heat: number;               // 0–100
-  integrity: number;          // 0–100, narrative health
-  stealth: number;            // 0–100, reduces Heat accrual slightly
-  influence: number;          // 0–100, faction clout
+  energySeconds: number;
+  heat: number;
+  integrity: number;
+  stealth: number;
+  influence: number;
 }
 
 export interface Commodity {
   ticker: string;
   name: string;
   basePrice: number;
-  volatility: 'very_low' | 'low' | 'med' | 'high' | 'very_high';
-  heatRisk: 'very_low' | 'low' | 'med' | 'high' | 'very_high';
+  volatility: "very_low" | "low" | "med" | "high" | "very_high";
+  heatRisk: "very_low" | "low" | "med" | "high" | "very_high";
   eventTags: readonly string[];
 }
 
@@ -55,24 +54,25 @@ export interface Position {
 export interface MarketNews {
   id: string;
   headline: string;
+  body?: string;
   affectedTickers: readonly string[];
-  credibility: number;           // 0–100; below some threshold = false
-  priceMultiplier: number;       // e.g., 1.15 = +15%
+  direction?: "up" | "down";
+  credibility: number;
+  priceMultiplier: number;
   tickPublished: number;
   tickExpires: number;
+  durationTicks?: number;
 }
 
-export type Currency = '0BOL' | '$OBOL';
-
 export interface WalletSession {
-  mode: 'dev_identity' | 'solana_android_mwa' | 'manual_external_wallet';
+  mode: "dev_identity" | "solana_android_mwa" | "manual_external_wallet";
   walletAddress: string | null;
-  cluster: 'mainnet-beta' | 'devnet' | 'testnet' | 'custom';
+  cluster: "mainnet-beta" | "devnet" | "testnet" | "custom";
   canSignTransactions: boolean;
 }
 
 export interface TokenBalance {
-  symbol: '$OBOL';
+  symbol: "$OBOL";
   mintAddress: string;
   rawAmount: string;
   uiAmount: string;
@@ -93,48 +93,81 @@ export interface Trade {
   id: string;
   playerId: string;
   ticker: string;
-  side: 'BUY' | 'SELL';
+  side: "BUY" | "SELL";
   quantity: number;
   price: number;
   heatDelta: number;
   executedAt: string;
 }
 
-/**
- * Authority adapter — the single interface both LocalAuthority and
- * SupabaseAuthority implement. UI + engine only call this.
- */
+export interface RankSnapshot {
+  rank: number;
+  level: number;
+  title: string;
+  xp: number;
+  xpRequired: number;
+  nextXpRequired: number | null;
+  inventorySlots: number;
+}
+
+export interface TradeResult {
+  trade: Trade;
+  position: Position;
+  ledger: LedgerEntry[];
+  resources: Resources;
+  positions: Position[];
+  rank: RankSnapshot;
+  xpGained: number;
+  realizedPnl: number;
+}
+
 export interface Authority {
-  // profile
   getProfile(playerId: string): Promise<PlayerProfile>;
-  createProfile(input: Omit<PlayerProfile, 'id' | 'createdAt'>): Promise<PlayerProfile>;
+  createProfile(input: Omit<PlayerProfile, "id" | "createdAt">): Promise<PlayerProfile>;
   getOpenPositions(playerId: string): Promise<Position[]>;
   getLedger(playerId: string): Promise<LedgerEntry[]>;
 
-  // market
   getMarket(): Promise<Commodity[]>;
   getTickPrices(tick: number): Promise<Record<string, number>>;
 
-  // trading
   executeTrade(input: {
     playerId: string;
     ticker: string;
-    side: 'BUY' | 'SELL';
+    side: "BUY" | "SELL";
     quantity: number;
-  }): Promise<{ trade: Trade; position: Position; ledger: LedgerEntry[] }>;
+    locationId?: string;
+  }): Promise<TradeResult>;
 
-  // resources
   getResources(playerId: string): Promise<Resources>;
   purchaseEnergy(playerId: string, seconds: number, currency: Currency): Promise<Resources>;
   advancePlayerClock?(playerId: string, tick: number): Promise<Resources>;
+  reduceHeat?(
+    playerId: string,
+    cost: number,
+    heatReduction: number,
+  ): Promise<{ resources: Resources; ledger: LedgerEntry[] }>;
+  transferPositionToShipment?(
+    playerId: string,
+    ticker: string,
+    quantity: number,
+    cost: number,
+  ): Promise<{ ledger: LedgerEntry[]; positions: Position[] }>;
+  claimShipment?(
+    playerId: string,
+    ticker: string,
+    quantity: number,
+    avgEntry: number,
+  ): Promise<Position[]>;
+  applyRaidLoss?(
+    playerId: string,
+    losses: Record<string, number>,
+  ): Promise<{ positions: Position[]; resources: Resources }>;
 
-  // news
   getActiveNews(tick: number): Promise<MarketNews[]>;
 
-  // rank
-  getRank(playerId: string): Promise<{ rank: number; xp: number }>;
+  getRank(playerId: string): Promise<RankSnapshot>;
+  updateXp(playerId: string, xpDelta: number, reason?: string): Promise<RankSnapshot>;
 
-  // wallet / token (feature-flagged)
   connectWallet?(): Promise<WalletSession>;
   disconnectWallet?(): Promise<void>;
   getObolBalance?(playerId: string): Promise<TokenBalance | null>;

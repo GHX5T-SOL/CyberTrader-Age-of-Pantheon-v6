@@ -1,9 +1,16 @@
 import type { LocalAuthoritySnapshot } from "@/authority/local-authority";
-import type { MarketNews, PlayerProfile, Position, Resources } from "@/engine/types";
+import type { MarketNews, PlayerProfile, Position, RankSnapshot, Resources } from "@/engine/types";
 import type { ChangeMap, PriceMap } from "@/engine/demo-market";
-import type { DemoPhase, TerminalView } from "@/state/demo-store";
+import type {
+  DemoPhase,
+  GameClockState,
+  GameNotification,
+  TerminalView,
+  WorldState,
+} from "@/state/demo-store";
+import type { LocationInventoryMap, TransitShipment } from "@/data/locations";
 
-const STORAGE_KEY = "cybertrader.phase1.terminal-frontend.v3";
+const STORAGE_KEY = "cybertrader.phase1.terminal-frontend.v4";
 
 interface PersistedDemoSession {
   phase: DemoPhase;
@@ -19,6 +26,12 @@ interface PersistedDemoSession {
   resources: Resources;
   positions: Record<string, Position>;
   activeNews: MarketNews[];
+  progression?: RankSnapshot;
+  clock?: GameClockState;
+  world?: WorldState;
+  notifications?: GameNotification[];
+  transitShipments?: TransitShipment[];
+  locationInventories?: LocationInventoryMap;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;

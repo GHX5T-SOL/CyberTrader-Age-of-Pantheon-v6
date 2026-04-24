@@ -6,7 +6,8 @@ import ChartSparkline from "@/components/chart-sparkline";
 import CommodityRow from "@/components/commodity-row";
 import ConfirmModal from "@/components/confirm-modal";
 import NeonBorder from "@/components/neon-border";
-import { DEMO_COMMODITIES, getStealthAdjustedHeatDelta, getTradeEnergyCost, roundCurrency } from "@/engine/demo-market";
+import { getLocation } from "@/data/locations";
+import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -24,14 +25,14 @@ export default function TerminalRoute() {
   const changes = useDemoStore((state) => state.changes);
   const priceHistory = useDemoStore((state) => state.priceHistory);
   const balance = useDemoStore((state) => state.balanceObol);
-  const resources = useDemoStore((state) => state.resources);
   const positions = useDemoStore((state) => state.positions);
   const activeNews = useDemoStore((state) => state.activeNews);
+  const world = useDemoStore((state) => state.world);
+  const clock = useDemoStore((state) => state.clock);
   const orderSize = useDemoStore((state) => state.orderSize);
   const setOrderSize = useDemoStore((state) => state.setOrderSize);
   const buySelected = useDemoStore((state) => state.buySelected);
   const sellSelected = useDemoStore((state) => state.sellSelected);
-  const advanceMarket = useDemoStore((state) => state.advanceMarket);
   const goHome = useDemoStore((state) => state.goHome);
   const isBusy = useDemoStore((state) => state.isBusy);
   const systemMessage = useDemoStore((state) => state.systemMessage);
@@ -46,11 +47,6 @@ export default function TerminalRoute() {
     }
   }, [params.ticker, selectTicker]);
 
-  React.useEffect(() => {
-    const timer = setInterval(() => void advanceMarket(), 3200);
-    return () => clearInterval(timer);
-  }, [advanceMarket]);
-
   const commodity = (DEMO_COMMODITIES.find((item) => item.ticker === selectedTicker) ?? DEMO_COMMODITIES[0])!;
   const price = prices[commodity.ticker] ?? commodity.basePrice;
   const position = positions[commodity.ticker];
@@ -58,8 +54,14 @@ export default function TerminalRoute() {
   const maxSell = position?.quantity ?? 0;
   const maxQty = side === "BUY" ? maxBuy : Math.max(1, maxSell);
   const cost = roundCurrency(price * orderSize);
-  const heatDelta = getStealthAdjustedHeatDelta(resources, commodity.ticker, side);
+  const heatDelta = getValueBasedTradeHeatDelta(commodity.ticker, cost);
   const energyCost = getTradeEnergyCost(side, orderSize);
+  const currentLocation = getLocation(world.currentLocationId);
+  const travelling = Boolean(world.travelDestinationId && world.travelEndTime && world.travelEndTime > clock.nowMs);
+  const destination = getLocation(world.travelDestinationId);
+  const remainingMs = world.travelEndTime ? Math.max(0, world.travelEndTime - clock.nowMs) : 0;
+  const etaMinutes = Math.floor(remainingMs / 60_000);
+  const etaSeconds = Math.floor((remainingMs % 60_000) / 1000);
 
   const execute = async () => {
     setConfirmVisible(false);
@@ -86,9 +88,20 @@ export default function TerminalRoute() {
         </Pressable>
         <View style={{ flex: 1, alignItems: "flex-end" }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.systemGreen, fontSize: 16 }}>S1LKROAD 4.0</Text>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>NODE: LOCALHOST</Text>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>NODE: {currentLocation.name.toUpperCase()}</Text>
         </View>
       </View>
+
+      {travelling ? (
+        <NeonBorder style={{ marginBottom: 12 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>
+            TRAVELLING TO {destination.name.toUpperCase()}... ETA {etaMinutes}m {etaSeconds}s
+          </Text>
+          <Text style={{ marginTop: 6, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            TRADING LOCKED UNTIL ARRIVAL
+          </Text>
+        </NeonBorder>
+      ) : null}
 
       <NeonBorder active style={{ padding: 0 }}>
         {DEMO_COMMODITIES.map((item, index) => {
@@ -151,7 +164,7 @@ export default function TerminalRoute() {
             variant="primary"
             glowing
             label="[ EXECUTE ]"
-            disabled={isBusy || (side === "SELL" && maxSell <= 0)}
+            disabled={travelling || isBusy || (side === "SELL" && maxSell <= 0)}
             onPress={() => setConfirmVisible(true)}
           />
         </View>
@@ -200,12 +213,12 @@ export default function TerminalRoute() {
         <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>NEWS FEED</Text>
         {(activeNews.length
           ? activeNews.slice(0, 5)
-          : [{ id: "quiet", headline: "NO SIGNALS. MARKET HUM IS CLEAN.", affectedTickers: [], credibility: 100, priceMultiplier: 1, tickPublished: 0, tickExpires: 0 }]
+          : [{ id: "quiet", headline: "NO SIGNALS. MARKET HUM IS CLEAN.", affectedTickers: [], credibility: 1, priceMultiplier: 1, tickPublished: 0, tickExpires: 0 }]
         ).map((news) => (
           <View key={news.id} style={{ marginTop: 10 }}>
             <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>{news.headline}</Text>
             <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-              {news.affectedTickers.join(" ")} // CRED {news.credibility}%
+              {news.affectedTickers.join(" ")} // CRED {Math.round(news.credibility * 100)}%
             </Text>
           </View>
         ))}

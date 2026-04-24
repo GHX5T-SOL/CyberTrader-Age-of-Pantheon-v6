@@ -6,6 +6,7 @@ import {
   roundCurrency,
   type PriceMap,
 } from "@/engine/demo-market";
+import { getRankSnapshot } from "@/engine/rank";
 import type {
   Authority,
   Commodity,
@@ -14,9 +15,11 @@ import type {
   MarketNews,
   PlayerProfile,
   Position,
+  RankSnapshot,
   Resources,
   TokenBalance,
   Trade,
+  TradeResult,
   WalletSession,
 } from "@/engine/types";
 import { OBOL_TOKEN_CONFIG } from "@/solana/obol-config";
@@ -247,7 +250,8 @@ export class SupabaseAuthority implements Authority {
     ticker: string;
     side: "BUY" | "SELL";
     quantity: number;
-  }): Promise<{ trade: Trade; position: Position; ledger: LedgerEntry[] }> {
+    locationId?: string;
+  }): Promise<TradeResult> {
     const commodity = getCommodity(input.ticker);
     if (!commodity) {
       throw new Error(`Unknown ticker: ${input.ticker}`);
@@ -268,13 +272,25 @@ export class SupabaseAuthority implements Authority {
       throw new Error(error?.message ?? "trade-execute returned incomplete data");
     }
 
-    const [trade, position, ledger] = await Promise.all([
+    const [trade, position, ledger, resources, positions, rank] = await Promise.all([
       this.getTrade(data.tradeId),
       this.getPosition(data.positionId),
       this.getLatestLedgerEntry(input.playerId),
+      this.getResources(input.playerId),
+      this.getOpenPositions(input.playerId),
+      this.getRank(input.playerId),
     ]);
 
-    return { trade, position, ledger: [ledger] };
+    return {
+      trade,
+      position,
+      ledger: [ledger],
+      resources,
+      positions,
+      rank,
+      xpGained: 0,
+      realizedPnl: position.realizedPnl,
+    };
   }
 
   async getResources(playerId: string): Promise<Resources> {
@@ -384,7 +400,7 @@ export class SupabaseAuthority implements Authority {
     }));
   }
 
-  async updateXp(playerId: string, xpDelta: number): Promise<number> {
+  async updateXp(playerId: string, xpDelta: number): Promise<RankSnapshot> {
     const client = await requireSupabase();
     const { error } = await client.rpc("add_xp", {
       p_player_id: playerId,
@@ -405,20 +421,20 @@ export class SupabaseAuthority implements Authority {
       throw new Error(rankError?.message ?? `Rank not found for player: ${playerId}`);
     }
 
-    const newRank = 1 + Math.floor(Number(data.xp) / 100);
+    const snapshot = getRankSnapshot(Number(data.xp ?? 0));
     const { error: updateError } = await client
       .from("players")
-      .update({ rank: newRank })
+      .update({ rank: snapshot.level })
       .eq("id", playerId);
 
     if (updateError) {
       throw new Error(updateError.message);
     }
 
-    return newRank;
+    return snapshot;
   }
 
-  async getRank(playerId: string): Promise<{ rank: number; xp: number }> {
+  async getRank(playerId: string): Promise<RankSnapshot> {
     const client = await requireSupabase();
     const { data, error } = await client
       .from("players")
@@ -430,10 +446,8 @@ export class SupabaseAuthority implements Authority {
       throw new Error(error?.message ?? `Rank not found for player: ${playerId}`);
     }
 
-    return {
-      rank: data.rank,
-      xp: Number(data.xp ?? Math.max(0, (data.rank - 1) * 100)),
-    };
+    const snapshot = getRankSnapshot(Number(data.xp ?? Math.max(0, (data.rank - 1) * 100)));
+    return { ...snapshot, rank: data.rank, level: data.rank };
   }
 
   async connectWallet(): Promise<WalletSession> {
