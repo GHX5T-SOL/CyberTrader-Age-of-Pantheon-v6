@@ -25,7 +25,7 @@ import {
   type PersistedDemoSession,
 } from "@/state/demo-storage";
 
-export type DemoPhase = "boot" | "handle" | "terminal";
+export type DemoPhase = "intro" | "login" | "boot" | "home" | "handle" | "terminal";
 export type TerminalView = "home" | "market";
 
 const INITIAL_PLAYER_RESOURCES: Resources = {
@@ -54,6 +54,8 @@ interface DemoStoreState {
   orderSize: number;
   lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
+  introSeen: boolean;
+  tutorialCompleted: boolean;
   systemMessage: string;
   isBusy: boolean;
   isHydrated: boolean;
@@ -62,6 +64,12 @@ interface DemoStoreState {
 interface DemoStoreActions {
   hydrateDemo: () => Promise<void>;
   moveToHandle: () => void;
+  setHandle: (rawHandle: string) => void;
+  markIntroSeen: () => void;
+  resetIntro: () => void;
+  completeBoot: () => Promise<void>;
+  completeTutorial: () => void;
+  resetTutorial: () => void;
   submitHandle: (rawHandle: string) => Promise<boolean>;
   openMarket: () => void;
   goHome: () => void;
@@ -71,6 +79,7 @@ interface DemoStoreActions {
   buySelected: () => Promise<void>;
   sellSelected: () => Promise<void>;
   purchaseEnergyHour: () => Promise<void>;
+  purchaseEnergyHours: (hours: number) => Promise<void>;
   resetDemo: () => Promise<void>;
 }
 
@@ -80,7 +89,7 @@ function buildInitialState(): DemoStoreState {
   const prices = createInitialPrices();
 
   return {
-    phase: "boot",
+    phase: "intro",
     activeView: "home",
     handle: "",
     profile: null,
@@ -97,6 +106,8 @@ function buildInitialState(): DemoStoreState {
     orderSize: DEFAULT_TRADE_QUANTITY,
     lastRealizedPnl: null,
     firstTradeComplete: false,
+    introSeen: false,
+    tutorialCompleted: false,
     systemMessage: "[sys] you are awake. the deck is not yours.",
     isBusy: false,
     isHydrated: false,
@@ -159,6 +170,8 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     orderSize: state.orderSize,
     lastRealizedPnl: state.lastRealizedPnl,
     firstTradeComplete: state.firstTradeComplete,
+    introSeen: state.introSeen,
+    tutorialCompleted: state.tutorialCompleted,
     systemMessage: state.systemMessage,
     authoritySnapshot: exportAuthoritySnapshot(),
   };
@@ -206,15 +219,102 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         activeNews: session.activeNews ?? [],
         orderSize: session.orderSize ?? DEFAULT_TRADE_QUANTITY,
         lastRealizedPnl: session.lastRealizedPnl ?? null,
+        introSeen: session.introSeen ?? false,
+        tutorialCompleted: session.tutorialCompleted ?? false,
         isBusy: false,
         isHydrated: true,
       });
     },
     moveToHandle: () => {
       commitState({
-        phase: "handle",
+        phase: "login",
         systemMessage: "[sys] claim a local handle. uplink optional.",
       });
+    },
+    setHandle: (rawHandle) => {
+      const handle = sanitizeHandle(rawHandle);
+      commitState({
+        handle,
+        phase: "boot",
+        systemMessage: handle
+          ? `[sys] handle locked // ${handle.toLowerCase()}`
+          : "[sys] handle required.",
+      });
+    },
+    markIntroSeen: () => {
+      commitState({ introSeen: true, phase: "login" });
+    },
+    resetIntro: () => {
+      commitState({ introSeen: false, phase: "intro" });
+    },
+    completeBoot: async () => {
+      const state = get();
+      if (state.profile || state.playerId) {
+        commitState({
+          phase: "home",
+          activeView: "home",
+          systemMessage: "[sys] market open. start small. low heat.",
+        });
+        return;
+      }
+
+      const handle = sanitizeHandle(state.handle || "ZORO");
+      set({ isBusy: true, handle, systemMessage: "[sys] provisioning local shard..." });
+
+      try {
+        const authority = getAuthority();
+        const profile = await authority.createProfile({
+          walletAddress: null,
+          devIdentity: handle.toLowerCase(),
+          eidolonHandle: handle,
+          osTier: "PIRATE",
+          rank: 1,
+          faction: null,
+        });
+
+        const [prices, resources, ledger, positions, activeNews] = await Promise.all([
+          authority.getTickPrices(0),
+          authority.getResources(profile.id),
+          authority.getLedger(profile.id),
+          authority.getOpenPositions(profile.id),
+          authority.getActiveNews(0),
+        ]);
+
+        set({
+          phase: "home",
+          handle: profile.eidolonHandle,
+          profile,
+          playerId: profile.id,
+          activeView: "home",
+          tick: 0,
+          prices,
+          changes: createInitialChanges(),
+          priceHistory: buildInitialPriceHistory(prices),
+          balanceObol: latestBalance(DEMO_STARTING_BALANCE, ledger),
+          resources,
+          positions: toPositionMap(positions),
+          activeNews,
+          isBusy: false,
+          isHydrated: true,
+          systemMessage: "[sys] market open. start small. low heat.",
+        });
+        await persistCurrentState();
+      } catch (error) {
+        set({
+          isBusy: false,
+          systemMessage:
+            error instanceof Error
+              ? `[sys] ${error.message.toLowerCase()}`
+              : "[sys] shell provisioning failed.",
+        });
+        await persistCurrentState();
+      }
+    },
+    completeTutorial: () => {
+      commitState({ tutorialCompleted: true, systemMessage: "[sys] tutorial complete." });
+    },
+    resetTutorial: () => {
+      commitState({ tutorialCompleted: false, systemMessage: "[sys] tutorial reset." });
     },
     submitHandle: async (rawHandle) => {
       const handle = sanitizeHandle(rawHandle);
@@ -280,10 +380,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
     },
     openMarket: () => {
-      commitState({ activeView: "market" });
+      commitState({ phase: "terminal", activeView: "market" });
     },
     goHome: () => {
-      commitState({ activeView: "home" });
+      commitState({ phase: "home", activeView: "home" });
     },
     selectTicker: (ticker) => {
       const commodity = getCommodity(ticker);
@@ -292,6 +392,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
 
       commitState({
+        phase: "terminal",
         activeView: "market",
         selectedTicker: ticker,
         systemMessage: `[scan] ${ticker} locked // ${commodity.name.toLowerCase()}`,
@@ -437,6 +538,9 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
     },
     purchaseEnergyHour: async () => {
+      await get().purchaseEnergyHours(1);
+    },
+    purchaseEnergyHours: async (hours) => {
       const state = get();
       if (!state.playerId || state.isBusy) {
         return;
@@ -446,14 +550,15 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
       try {
         const authority = getAuthority();
-        const resources = await authority.purchaseEnergy(state.playerId, 3600, "0BOL");
+        const energySeconds = Math.max(1, Math.min(24, Math.floor(hours))) * 3600;
+        const resources = await authority.purchaseEnergy(state.playerId, energySeconds, "0BOL");
         const ledger = await authority.getLedger(state.playerId);
 
         set({
           resources,
           balanceObol: latestBalance(state.balanceObol, ledger),
           isBusy: false,
-          systemMessage: "[energy] one hour purchased // shell stabilized",
+          systemMessage: `[energy] ${Math.floor(energySeconds / 3600)}h purchased // shell stabilized`,
         });
         await persistCurrentState();
       } catch (error) {

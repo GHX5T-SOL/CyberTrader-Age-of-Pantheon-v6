@@ -3,7 +3,15 @@ import type { DemoPhase, TerminalView } from "@/state/demo-store";
 export function getDemoHref(
   phase: DemoPhase,
   activeView: TerminalView,
-): "/boot" | "/handle" | "/terminal" | "/market" {
+): "/intro" | "/login" | "/boot" | "/handle" | "/home" | "/terminal" {
+  if (phase === "intro") {
+    return "/intro";
+  }
+
+  if (phase === "login") {
+    return "/login";
+  }
+
   if (phase === "boot") {
     return "/boot";
   }
@@ -12,5 +20,9 @@ export function getDemoHref(
     return "/handle";
   }
 
-  return activeView === "market" ? "/market" : "/terminal";
+  if (phase === "home") {
+    return "/home";
+  }
+
+  return "/terminal";
 }

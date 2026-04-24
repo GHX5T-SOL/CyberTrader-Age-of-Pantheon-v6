@@ -1,0 +1,27 @@
+export const terminalColors = {
+  background: "#0B0C10",
+  panel: "#0F0F0F",
+  panelAlt: "#111115",
+  panelEven: "#0D0D0F",
+  border: "#2A2A2A",
+  borderDim: "#1A1A1A",
+  text: "#C8D6E5",
+  muted: "#8395A7",
+  dim: "#3A3A3A",
+  cyan: "#00F0FF",
+  cyanDark: "#00A0CC",
+  green: "#39FF14",
+  amber: "#FFB800",
+  red: "#FF3131",
+  systemGreen: "#20C20E",
+  overlay: "rgba(10,10,10,0.95)",
+  modalBackdrop: "rgba(0,0,0,0.8)",
+  status: "rgba(10,10,10,0.9)",
+  scanline: "rgba(255,255,255,0.03)",
+  scanlineStrong: "rgba(255,255,255,0.04)",
+  cyanFill: "rgba(0,240,255,0.15)",
+  cyanClear: "rgba(0,240,255,0)",
+  vignette: "rgba(0,0,0,0.4)",
+} as const;
+
+export const terminalFont = "JetBrains Mono";

@@ -3,7 +3,7 @@ import type { MarketNews, PlayerProfile, Position, Resources } from "@/engine/ty
 import type { ChangeMap, PriceMap } from "@/engine/demo-market";
 import type { DemoPhase, TerminalView } from "@/state/demo-store";
 
-const STORAGE_KEY = "cybertrader.phase1.mobile-demo.v2";
+const STORAGE_KEY = "cybertrader.phase1.terminal-frontend.v3";
 
 interface PersistedDemoSession {
   phase: DemoPhase;
@@ -23,6 +23,8 @@ interface PersistedDemoSession {
   orderSize: number;
   lastRealizedPnl: number | null;
   firstTradeComplete: boolean;
+  introSeen: boolean;
+  tutorialCompleted: boolean;
   systemMessage: string;
   authoritySnapshot: LocalAuthoritySnapshot | null;
 }

@@ -1,176 +1,92 @@
+import * as React from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { commodityArt } from "@/assets/commodity-art";
-import type { Commodity } from "@/engine/types";
-import { formatDelta } from "@/engine/demo-market";
-import { palette } from "@/theme/colors";
+import { terminalColors, terminalFont } from "@/theme/terminal";
 
-const monoFamily = process.env.EXPO_OS === "ios" ? "Menlo" : "monospace";
+export const COMMODITY_ICON_MAP: Record<string, any> = {
+  FDST: require("../assets/commodities/fractal_dust.png"),
+  PGAS: require("../assets/commodities/plutonion_gas.png"),
+  NGLS: require("../assets/commodities/neon_glass.png"),
+  HXMD: require("../assets/commodities/helix_mud.png"),
+  VBLM: require("../assets/commodities/void_bloom.png"),
+  ORRS: require("../assets/commodities/oracle_resin.png"),
+  SNPS: require("../assets/commodities/synapse_silk.png"),
+  MTRX: require("../assets/commodities/matrix_salt.png"),
+  AETH: require("../assets/commodities/aether_tabs.png"),
+  BLCK: require("../assets/commodities/blacklight_serum.png"),
+};
 
 interface CommodityRowProps {
-  commodity: Commodity;
+  ticker: string;
+  name: string;
   price: number;
-  change: number;
-  ownedQuantity?: number;
-  selected: boolean;
-  compact?: boolean;
+  changePercent: number;
+  iconSource?: any;
   onPress: () => void;
+  isSelected?: boolean;
+  index?: number;
 }
 
-export function CommodityRow({
-  commodity,
+export default function CommodityRow({
+  ticker,
+  name,
   price,
-  change,
-  ownedQuantity,
-  selected,
-  compact = false,
+  changePercent,
+  iconSource,
   onPress,
+  isSelected = false,
+  index = 0,
 }: CommodityRowProps) {
-  const art = commodityArt[commodity.ticker];
-  const changeTone =
-    change > 0
-      ? palette.accent.acidGreen
-      : change < 0
-        ? palette.danger.heat
-        : palette.warn.amber;
+  const [pressed, setPressed] = React.useState(false);
+  const isPositive = changePercent > 0;
+  const isNegative = changePercent < 0;
+  const prefix = isPositive ? "▲" : isNegative ? "▼" : "─";
+  const color = isPositive
+    ? terminalColors.green
+    : isNegative
+      ? terminalColors.red
+      : terminalColors.muted;
 
   return (
     <Pressable
       onPress={onPress}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setTimeout(() => setPressed(false), 100)}
       style={{
-        gap: 10,
-        borderWidth: 1,
-        borderColor: selected ? `${palette.accent.cyan}88` : `${palette.fg.muted}22`,
-        borderRadius: 20,
-        borderCurve: "continuous",
-        backgroundColor: selected ? palette.bg.deepGreenBlack : palette.bg.terminal,
-        padding: 14,
+        height: 48,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: pressed
+          ? "rgba(0,240,255,0.2)"
+          : index % 2 === 0
+            ? terminalColors.panelEven
+            : terminalColors.panelAlt,
+        borderBottomWidth: 1,
+        borderBottomColor: terminalColors.borderDim,
+        borderLeftWidth: isSelected ? 1 : 0,
+        borderLeftColor: terminalColors.cyan,
+        paddingHorizontal: 8,
       }}
     >
-      <View
-        style={{
-          flexDirection: compact ? "column" : "row",
-          justifyContent: "space-between",
-          alignItems: compact ? "flex-start" : "center",
-          gap: 8,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-          <View
-            style={{
-              width: 62,
-              height: 62,
-              alignItems: "center",
-              justifyContent: "center",
-              borderWidth: 1,
-              borderColor: `${selected ? palette.accent.cyan : palette.fg.muted}33`,
-              borderRadius: 18,
-              borderCurve: "continuous",
-              backgroundColor: palette.bg.deepGreenBlack,
-              overflow: "hidden",
-            }}
-          >
-            {art ? (
-              <Image
-                source={art}
-                resizeMode="contain"
-                style={{ width: 54, height: 54 }}
-              />
-            ) : null}
-          </View>
-          <View style={{ gap: 4, flex: 1 }}>
-            <Text
-              selectable
-              style={{
-                color: palette.accent.cyan,
-                fontSize: 17,
-                fontWeight: "700",
-                fontFamily: monoFamily,
-              }}
-            >
-              {commodity.ticker}
-            </Text>
-            <Text selectable style={{ color: palette.fg.primary, fontSize: 15 }}>
-              {commodity.name}
-            </Text>
-          </View>
-        </View>
-        <View style={{ alignItems: compact ? "flex-start" : "flex-end", gap: 4 }}>
-          <Text
-            selectable
-            style={{
-              color: palette.fg.primary,
-              fontSize: 20,
-              fontWeight: "700",
-              fontFamily: monoFamily,
-              fontVariant: ["tabular-nums"],
-            }}
-          >
-            {price.toFixed(2)}
-          </Text>
-          <Text
-            selectable
-            style={{
-              color: changeTone,
-              fontSize: 12,
-              fontFamily: monoFamily,
-              fontVariant: ["tabular-nums"],
-            }}
-          >
-            {formatDelta(change)}
-          </Text>
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 8,
-        }}
-      >
-        <Pill label={commodity.heatRisk.replace("_", " ")} tone="heat" />
-        <Pill label={commodity.volatility.replace("_", " ")} tone="amber" />
-        {ownedQuantity ? <Pill label={`held ${ownedQuantity}`} tone="acid" /> : null}
-      </View>
+      <Image
+        source={iconSource ?? COMMODITY_ICON_MAP[ticker]}
+        resizeMode="contain"
+        style={{ width: 28, height: 28, marginRight: 8 }}
+      />
+      <Text style={{ width: 60, fontFamily: terminalFont, fontSize: 14, fontWeight: "700", color: terminalColors.cyan }}>
+        {ticker}
+      </Text>
+      <Text numberOfLines={1} style={{ flex: 1, fontFamily: terminalFont, fontSize: 12, color: terminalColors.muted }}>
+        {name}
+      </Text>
+      <Text style={{ width: 100, textAlign: "right", fontFamily: terminalFont, fontSize: 16, color: terminalColors.text }}>
+        {price.toFixed(2)}
+      </Text>
+      <Text style={{ width: 80, textAlign: "right", fontFamily: terminalFont, fontSize: 13, color }}>
+        {prefix} {Math.abs(changePercent).toFixed(1)}%
+      </Text>
     </Pressable>
   );
 }
 
-function Pill({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "acid" | "amber" | "heat";
-}) {
-  const color =
-    tone === "acid"
-      ? palette.accent.acidGreen
-      : tone === "heat"
-        ? palette.danger.heat
-        : palette.warn.amber;
+export { CommodityRow };
 
-  return (
-    <View
-      style={{
-        borderWidth: 1,
-        borderColor: `${color}44`,
-        borderRadius: 999,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-      }}
-    >
-      <Text
-        selectable
-        style={{
-          color,
-          fontSize: 10,
-          fontFamily: monoFamily,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
