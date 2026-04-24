@@ -2,7 +2,7 @@ import { create } from "zustand";
 import {
   exportAuthoritySnapshot,
   getAuthority,
-  resetAuthority,
+  resetConfiguredAuthority,
   restoreLocalAuthority,
 } from "@/authority";
 import {
@@ -156,7 +156,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
       const session = await loadDemoSession();
       if (!session) {
-        resetAuthority();
+        resetConfiguredAuthority();
         set({
           ...buildInitialState(),
           isHydrated: true,
@@ -374,7 +374,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       }
     },
     resetDemo: async () => {
-      resetAuthority();
+      resetConfiguredAuthority();
       await clearDemoSession();
       set({
         ...buildInitialState(),
