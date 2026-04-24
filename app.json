@@ -30,6 +30,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "USE_SUPABASE": false,
+      "supabaseUrl": "https://your-project.supabase.co",
+      "supabaseAnonKey": "your-anon-key"
     }
   }
 }

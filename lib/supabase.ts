@@ -3,9 +3,12 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { MMKV } from "react-native-mmkv";
 
 const rawUseSupabase =
-  process.env.EXPO_PUBLIC_USE_SUPABASE_AUTHORITY ?? process.env.USE_SUPABASE;
+  process.env.EXPO_PUBLIC_USE_SUPABASE_AUTHORITY ??
+  process.env.EXPO_PUBLIC_USE_SUPABASE ??
+  process.env.USE_SUPABASE;
 
-export const USE_SUPABASE_AUTHORITY = rawUseSupabase === "true";
+export const USE_SUPABASE = rawUseSupabase === "true";
+export const USE_SUPABASE_AUTHORITY = USE_SUPABASE;
 
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() ??
@@ -17,30 +20,46 @@ const supabaseAnonKey =
   process.env.SUPABASE_ANON_KEY?.trim() ??
   "";
 
+export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
+
 const nativeStorage = (() => {
   if (Platform.OS === "web") {
     return undefined;
   }
 
-  const storage = new MMKV({ id: "cybertrader.supabase-session" });
+  const storage = new MMKV({ id: "supabase-session" });
 
   return {
-    getItem: (key: string) => Promise.resolve(storage.getString(key) ?? null),
+    getItem: (key: string) => {
+      try {
+        return Promise.resolve(storage.getString(key) ?? null);
+      } catch {
+        return Promise.resolve(null);
+      }
+    },
     setItem: (key: string, value: string) => {
-      storage.set(key, value);
+      try {
+        storage.set(key, value);
+      } catch {
+        return Promise.resolve();
+      }
+
       return Promise.resolve();
     },
     removeItem: (key: string) => {
-      storage.delete(key);
+      try {
+        storage.delete(key);
+      } catch {
+        return Promise.resolve();
+      }
+
       return Promise.resolve();
     },
   };
 })();
 
-export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
-
 export const supabase: SupabaseClient | null =
-  USE_SUPABASE_AUTHORITY && hasSupabaseConfig
+  USE_SUPABASE && hasSupabaseConfig
     ? createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
@@ -54,7 +73,7 @@ export const supabase: SupabaseClient | null =
 export async function requireSupabase(): Promise<SupabaseClient> {
   if (!supabase) {
     throw new Error(
-      "Supabase is not configured. Set EXPO_PUBLIC_USE_SUPABASE_AUTHORITY=true, EXPO_PUBLIC_SUPABASE_URL, and EXPO_PUBLIC_SUPABASE_ANON_KEY.",
+      "Supabase is not configured. Set USE_SUPABASE=true, EXPO_PUBLIC_SUPABASE_URL, and EXPO_PUBLIC_SUPABASE_ANON_KEY.",
     );
   }
 
