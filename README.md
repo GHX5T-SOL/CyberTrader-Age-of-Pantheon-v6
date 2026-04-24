@@ -6,9 +6,9 @@ Phase 1 now has a real routed playable slice:
 - `terminal`
 - `market`
 
-The app is no longer a single-screen placeholder. It persists the local demo
-session, hydrates on reload, and runs the first trade loop through
-`LocalAuthority`.
+The app now starts like a mobile game: cinematic intro, local login, command
+dashboard, then the S1LKROAD market dashboard. It persists the local demo
+session, hydrates on reload, and runs the first trade loop through `LocalAuthority`.
 
 ## Structure
 
@@ -61,14 +61,14 @@ npm run build:mobile:web
 ## Current slice
 
 The current working demo proves:
-- BIOS boot screen to terminal transition
-- local handle claim
+- cinematic intro video to login transition
+- mobile-first local handle claim
+- dashboard with Game, Tutorials, and Settings entry points
 - deterministic ticking market
 - authority-backed buy/sell loop
 - local persistence across reload
 - commodity art rendering in the market
-- Eidolon shard centerpiece rendering in boot and hydration
-- guided first-trade objective panel
+- S1LKROAD dashboard styled after the approved Pirate OS mobile concept
 - open-position visibility with live unrealized PnL
 - authority-fed market rumor panel
 - selected ticker mini price chart

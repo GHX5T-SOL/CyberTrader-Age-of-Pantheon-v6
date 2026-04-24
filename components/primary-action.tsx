@@ -7,18 +7,22 @@ export function PrimaryAction({
   label,
   tone,
   compact = false,
+  large = false,
   disabled = false,
   onPress,
 }: {
   label: string;
-  tone: "cyan" | "acid" | "heat";
+  tone: "cyan" | "acid" | "heat" | "magenta";
   compact?: boolean;
+  large?: boolean;
   disabled?: boolean;
   onPress: () => void;
 }) {
   const color =
     tone === "acid"
       ? palette.accent.acidGreen
+      : tone === "magenta"
+        ? palette.accent.magenta
       : tone === "heat"
         ? palette.danger.heat
         : palette.accent.cyan;
@@ -31,11 +35,17 @@ export function PrimaryAction({
         flex: compact ? 1 : undefined,
         alignItems: "center",
         borderWidth: 1,
-        borderColor: disabled ? `${palette.fg.muted}22` : `${color}55`,
+        borderColor: disabled ? palette.alpha.white10 : color,
         borderRadius: 18,
         borderCurve: "continuous",
-        backgroundColor: disabled ? `${palette.fg.muted}08` : `${color}12`,
-        paddingVertical: 14,
+        backgroundColor: disabled
+          ? palette.alpha.white06
+          : tone === "magenta"
+            ? palette.alpha.magenta35
+            : tone === "cyan"
+              ? palette.alpha.cyan18
+              : palette.alpha.white06,
+        paddingVertical: large ? 18 : 14,
         paddingHorizontal: 16,
       }}
     >
@@ -43,10 +53,10 @@ export function PrimaryAction({
         selectable
         style={{
           color: disabled ? palette.fg.muted : color,
-          fontSize: 13,
+          fontSize: large ? 15 : 13,
           fontWeight: "700",
           textTransform: "uppercase",
-          letterSpacing: 1.3,
+          letterSpacing: large ? 1.8 : 1.3,
           fontFamily: monoFamily,
         }}
       >

@@ -4,22 +4,24 @@ import { palette } from "@/theme/colors";
 
 interface PriceSparklineProps {
   values: number[];
-  tone?: "cyan" | "acid" | "heat";
+  tone?: "cyan" | "acid" | "heat" | "magenta";
+  compact?: boolean;
 }
 
 const TONES = {
   cyan: palette.accent.cyan,
   acid: palette.accent.acidGreen,
   heat: palette.danger.heat,
+  magenta: palette.accent.magenta,
 } as const;
 
-export function PriceSparkline({ values, tone = "cyan" }: PriceSparklineProps) {
+export function PriceSparkline({ values, tone = "cyan", compact = false }: PriceSparklineProps) {
   const samples = values.length > 1 ? values : [values[0] ?? 0, values[0] ?? 0];
   const min = Math.min(...samples);
   const max = Math.max(...samples);
   const range = max - min || 1;
   const width = 160;
-  const height = 46;
+  const height = compact ? 20 : 46;
   const points = samples
     .map((value, index) => {
       const x = (index / Math.max(1, samples.length - 1)) * width;
@@ -32,10 +34,10 @@ export function PriceSparkline({ values, tone = "cyan" }: PriceSparklineProps) {
     <View
       style={{
         borderWidth: 1,
-        borderColor: `${TONES[tone]}30`,
+        borderColor: tone === "magenta" ? palette.alpha.magenta35 : palette.alpha.cyan35,
         borderRadius: 12,
         backgroundColor: palette.bg.deepGreenBlack,
-        padding: 8,
+        padding: compact ? 4 : 8,
       }}
     >
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>

@@ -3,7 +3,7 @@ import type { MarketNews, PlayerProfile, Position, Resources } from "@/engine/ty
 import type { ChangeMap, PriceMap } from "@/engine/demo-market";
 import type { DemoPhase, TerminalView } from "@/state/demo-store";
 
-const STORAGE_KEY = "cybertrader.phase1.demo-session";
+const STORAGE_KEY = "cybertrader.phase1.mobile-demo.v2";
 
 interface PersistedDemoSession {
   phase: DemoPhase;
