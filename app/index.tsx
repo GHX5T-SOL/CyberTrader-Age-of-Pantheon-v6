@@ -9,12 +9,15 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
+import { getDemoHref } from "@/state/demo-routes";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function IndexRoute() {
   const isHydrated = useDemoBootstrap();
   const phase = useDemoStore((state) => state.phase);
+  const activeView = useDemoStore((state) => state.activeView);
+  const introSeen = useDemoStore((state) => state.introSeen);
   const opacity = useSharedValue(1);
 
   React.useEffect(() => {
@@ -30,21 +33,11 @@ export default function IndexRoute() {
     }
 
     const timeout = setTimeout(() => {
-      if (phase === "boot") {
-        router.replace("/boot");
-      } else if (phase === "home") {
-        router.replace("/home");
-      } else if (phase === "handle" || phase === "login") {
-        router.replace("/login");
-      } else if (phase === "terminal") {
-        router.replace("/terminal");
-      } else {
-        router.replace("/video-intro");
-      }
+      router.replace(getDemoHref(phase, activeView, introSeen));
     }, 250);
 
     return () => clearTimeout(timeout);
-  }, [isHydrated, phase]);
+  }, [activeView, introSeen, isHydrated, phase]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 

@@ -12,13 +12,14 @@ import LocationBanner from "@/components/location-banner";
 import MetricChip from "@/components/metric-chip";
 import MissionBanner from "@/components/mission-banner";
 import PulsingDot from "@/components/pulsing-dot";
+import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import StreakDisplay from "@/components/streak-display";
 import { BurgerTrigger } from "@/components/burger-menu";
 import { useMenu } from "@/context/menu-context";
 import { getLocation, getUnlockedLocations } from "@/data/locations";
 import { getActiveDistrictState } from "@/engine/district-state";
 import { DEMO_COMMODITIES, formatObol } from "@/engine/demo-market";
-import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
+import { useDemoRouteGuard } from "@/hooks/use-demo-route-guard";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -34,7 +35,7 @@ function truncateHandle(handle: string) {
 }
 
 export default function HomeRoute() {
-  useDemoBootstrap();
+  const routeReady = useDemoRouteGuard();
   const menu = useMenu();
   const handle = useDemoStore((state) => state.handle);
   const resources = useDemoStore((state) => state.resources);
@@ -98,6 +99,10 @@ export default function HomeRoute() {
   const nextXp = progression.nextXpRequired === null
     ? 0
     : Math.max(0, progression.nextXpRequired - progression.xp);
+
+  if (!routeReady) {
+    return <RouteRecoveryScreen title="RECOVERING HOME ROUTE" />;
+  }
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 34, backgroundColor: terminalColors.background }}>

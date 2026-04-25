@@ -1,18 +1,19 @@
 import * as React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { BackHandler, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import ActionButton from "@/components/action-button";
 import AnimatedNumber from "@/components/animated-number";
 import ChartSparkline from "@/components/chart-sparkline";
 import CommodityRow from "@/components/commodity-row";
 import ConfirmModal from "@/components/confirm-modal";
 import NeonBorder from "@/components/neon-border";
+import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import { getLocation } from "@/data/locations";
 import { getActiveDistrictState, isDistrictBuyRestricted, isDistrictSellRestricted } from "@/engine/district-state";
 import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
 import { isTradingBlockedByFlash } from "@/engine/flash-events";
-import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
+import { useDemoRouteGuard } from "@/hooks/use-demo-route-guard";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -21,7 +22,7 @@ function pct(change: number, price: number) {
 }
 
 export default function TerminalRoute() {
-  useDemoBootstrap();
+  const routeReady = useDemoRouteGuard();
   const params = useLocalSearchParams<{ ticker?: string }>();
   const selectedTicker = useDemoStore((state) => state.selectedTicker);
   const selectTicker = useDemoStore((state) => state.selectTicker);
@@ -49,6 +50,20 @@ export default function TerminalRoute() {
   const [confirmVisible, setConfirmVisible] = React.useState(false);
   const [positionsOpen, setPositionsOpen] = React.useState(true);
   const [flash, setFlash] = React.useState<"success" | "failure" | null>(null);
+
+  React.useEffect(() => {
+    if (!routeReady || Platform.OS !== "android") {
+      return undefined;
+    }
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      goHome();
+      router.replace("/home");
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [goHome, routeReady]);
 
   React.useEffect(() => {
     if (params.ticker) {
@@ -109,6 +124,10 @@ export default function TerminalRoute() {
     setFlash("success");
     setTimeout(() => setFlash(null), 700);
   };
+
+  if (!routeReady) {
+    return <RouteRecoveryScreen title="RECOVERING TERMINAL ROUTE" />;
+  }
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16, paddingBottom: 40, backgroundColor: terminalColors.background }}>
