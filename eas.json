@@ -28,13 +28,24 @@
     },
     "internal": {
       "extends": "base",
+      "distribution": "internal",
       "environment": "preview",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "store": {
+      "extends": "base",
+      "distribution": "store",
+      "environment": "production",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
     },
     "production": {
-      "extends": "base",
-      "environment": "production",
-      "autoIncrement": true
+      "extends": "store"
     }
   }
 }

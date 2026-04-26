@@ -5,7 +5,7 @@ Owner: Rune
 
 ## Scope
 
-Added EAS Build profiles for preview install testing, iOS simulator validation, internal store-track candidates, and production store candidates.
+Added EAS Build profiles for preview install testing, iOS simulator validation, internal distribution, and store candidates.
 
 ## Profiles
 
@@ -13,13 +13,14 @@ Added EAS Build profiles for preview install testing, iOS simulator validation, 
 | --- | --- | --- |
 | `preview` | Internal distribution build for QA devices. Android emits an APK for emulator/device install. | `npx eas-cli@latest build --profile preview --platform android` |
 | `preview-simulator` | Standalone iOS Simulator build for native smoke testing without TestFlight. | `npx eas-cli@latest build --profile preview-simulator --platform ios` |
-| `internal` | Store-signed internal candidate for TestFlight / Play Internal Testing dry runs. | `npx eas-cli@latest build --profile internal --platform ios` and `--platform android` |
-| `production` | Store-candidate profile for final App Store / Play Store builds. | `npx eas-cli@latest build --profile production --platform ios` and `--platform android` |
+| `internal` | Team/stakeholder internal distribution build. Android emits an installable APK. | `npx eas-cli@latest build --profile internal --platform ios` and `--platform android` |
+| `store` | Store-candidate profile for TestFlight / Play Internal Testing builds. | `npx eas-cli@latest build --profile store --platform ios` and `--platform android` |
+| `production` | EAS default alias for store-candidate builds. | `npx eas-cli@latest build --profile production --platform ios` and `--platform android` |
 
 ## App Identifiers
 
 - Expo slug: `cybertrader-age-of-pantheon`
-- Expo owner: `ghxstxbt`
+- Expo project: `@ghxstxbt/cybertrader-age-of-pantheon`
 - EAS project ID: `b024b715-6718-4854-b318-c6afbb8788e6`
 - URL scheme: `cybertrader`
 - iOS bundle identifier: `ai.cybertrader.app`
@@ -35,12 +36,20 @@ Added EAS Build profiles for preview install testing, iOS simulator validation, 
 ## Validation
 
 - `node -e "JSON.parse(require('fs').readFileSync('eas.json', 'utf8'))"`
+- `npx eas-cli config --profile preview --platform ios --non-interactive --json`
+- `npx eas-cli config --profile preview --platform android --non-interactive --json`
+- `npx eas-cli config --profile preview-simulator --platform ios --non-interactive --json`
+- `npx eas-cli config --profile internal --platform ios --non-interactive --json`
+- `npx eas-cli config --profile internal --platform android --non-interactive --json`
+- `npx eas-cli config --profile store --platform ios --non-interactive --json`
+- `npx eas-cli config --profile store --platform android --non-interactive --json`
+- `npx eas-cli config --profile production --platform ios --non-interactive --json`
+- `npx eas-cli config --profile production --platform android --non-interactive --json`
 - `npm run typecheck`
 - `npm test -- --runInBand`
 - `npx expo export --platform web`
 
 ## Remaining Work
 
-- Confirm `ghxstxbt` account access before the first remote build.
 - Configure Apple and Google Play credentials through EAS credentials before store submission.
 - Run the first iOS simulator and Android emulator smoke builds under Axiom/Rune QA.
