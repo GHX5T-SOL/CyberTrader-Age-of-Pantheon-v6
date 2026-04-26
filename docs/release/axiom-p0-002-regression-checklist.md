@@ -161,7 +161,7 @@ Goal: the App Store and Play Store listings are complete, accurate, and policy-s
 ### 3.3 Copy
 
 - [ ] Store name, subtitle, and short description are final and reviewed by Zoro.
-- [ ] Long description avoids real-money or guaranteed-return language (`cipher-p0-002`).
+- [ ] Long description avoids real-money, token-earning, cash-out, investment, or guaranteed-return language (`cipher-p0-002`, see `docs/release/cipher-p0-002-policy-risk-matrix.md`).
 - [ ] Keywords are within length limits and avoid policy traps.
 - [ ] Support URL is live and routes to a functioning channel.
 - [ ] Privacy policy URL is live and reflects actual data handling.
@@ -169,12 +169,12 @@ Goal: the App Store and Play Store listings are complete, accurate, and policy-s
 
 ### 3.4 Age rating and policy
 
-- [ ] Age rating questionnaire reviewed; simulated trading, fictional violence, and fictional drug or black-market language are flagged honestly.
+- [ ] Age rating questionnaire reviewed; simulated trading, fictional violence, fictional crime/black-market language, and any future tokenized/chance-based features are flagged honestly (`cipher-p0-002`).
 - [ ] Apple App Privacy disclosures align with the data-flow documented in `docs/release/kite-p0-001-supabase-authority.md`: SupabaseAuthority is off by default; LocalAuthority does not transmit identifiable player data.
 - [ ] Google Data Safety form aligns with the same data flow.
 - [ ] Google Play target audience/app content declarations state the intended non-child audience honestly and do not rely on children-directed imagery or copy (`cipher-p0-001`).
 - [ ] Google Play IARC content rating answers cover simulated trading, fictional crime/black-market framing, and any future chance-based mechanics (`cipher-p0-001`).
-- [ ] Wallet flag stays off; on-chain `0BOL` text avoids real-money or investment claims (`kite-p1-004`).
+- [ ] Wallet flag stays off; `0BOL`/`$OBOL` text avoids real-money, redeemability, investment, earning, staking, or withdrawal claims (`cipher-p0-002`, `kite-p1-004`).
 - [ ] Loot-box and gambling-adjacent surfaces are explicitly absent or feature-flagged off.
 
 ### 3.5 Account and recovery copy
@@ -206,4 +206,4 @@ This checklist is a documentation-only deliverable for `axiom-p0-002`. Required 
 - `rune-p0-003`: complete native cold-launch persistence validation referenced in section 2.6.
 - `rune-p1-005`: add crash/log capture so checklist failures attach actionable session context.
 - `palette-p1-003`, `reel-p0-001`, `zoro-p0-002`: produce store screenshots and preview video to bind section 3.2.
-- `cipher-p0-001`, `cipher-p0-002`, `kite-p0-002`, `kite-p1-004`: finalize privacy, policy, identity, and legal copy bound by sections 3.3-3.5.
+- `kite-p0-002`, `kite-p1-004`: finalize account-recovery and legal/security copy using the `cipher-p0-002` policy matrix as the store-risk baseline.
