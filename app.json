@@ -8,22 +8,27 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050608",
     "newArchEnabled": true,
+    "icon": "./assets/brand/icon.png",
     "splash": {
+      "image": "./assets/brand/splash.png",
       "backgroundColor": "#050608",
       "resizeMode": "contain"
     },
     "ios": {
+      "icon": "./assets/brand/icon.png",
       "supportsTablet": false,
       "bundleIdentifier": "ai.cybertrader.app"
     },
     "android": {
       "package": "ai.cybertrader.app",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-icon.png",
         "backgroundColor": "#050608"
       }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/brand/favicon.png"
     },
     "plugins": [
       "expo-router"
