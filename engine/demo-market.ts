@@ -208,13 +208,14 @@ export function canExecuteTrade(input: {
   return { ok: true };
 }
 
-export function advancePrices(currentPrices: PriceMap, tick: number): { prices: PriceMap; changes: ChangeMap } {
+export function advancePrices(currentPrices: PriceMap, tick: number, seed?: string): { prices: PriceMap; changes: ChangeMap } {
   const nextPrices: PriceMap = {};
   const changes: ChangeMap = {};
 
   for (const commodity of DEMO_COMMODITIES) {
     const current = currentPrices[commodity.ticker] ?? commodity.basePrice;
-    const stream = seededStream(`${commodity.ticker}:${tick}:market`);
+    const streamKey = seed ? `${seed}:${commodity.ticker}:${tick}:market` : `${commodity.ticker}:${tick}:market`;
+    const stream = seededStream(streamKey);
     const noise = (stream() - 0.5) * 2;
     const drift = DRIFT_BIAS[commodity.ticker] ?? 0;
     const swing = noise * VOLATILITY_FACTOR[commodity.volatility];
