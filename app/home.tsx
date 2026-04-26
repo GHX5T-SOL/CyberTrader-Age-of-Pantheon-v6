@@ -8,6 +8,7 @@ import AwayReportPanel from "@/components/away-report";
 import CommodityRow from "@/components/commodity-row";
 import DailyChallengesPanel from "@/components/daily-challenges-panel";
 import FlashEventBanner from "@/components/flash-event-banner";
+import { FirstSessionCue } from "@/components/first-session-cue";
 import LocationBanner from "@/components/location-banner";
 import MetricChip from "@/components/metric-chip";
 import MissionBanner from "@/components/mission-banner";
@@ -42,6 +43,9 @@ export default function HomeRoute() {
   const prices = useDemoStore((state) => state.prices);
   const changes = useDemoStore((state) => state.changes);
   const balance = useDemoStore((state) => state.balanceObol);
+  const positions = useDemoStore((state) => state.positions);
+  const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
+  const selectedTicker = useDemoStore((state) => state.selectedTicker);
   const activeNews = useDemoStore((state) => state.activeNews);
   const progression = useDemoStore((state) => state.progression);
   const clock = useDemoStore((state) => state.clock);
@@ -192,6 +196,15 @@ export default function HomeRoute() {
       ) : null}
       <StreakDisplay streak={streak} nowMs={clock.nowMs} />
       <DailyChallengesPanel challenges={dailyChallenges} onClaim={(id) => void claimDailyChallenge(id)} />
+
+      <View style={{ marginTop: 14, marginHorizontal: 12 }}>
+        <FirstSessionCue
+          surface="home"
+          positions={positions}
+          firstTradeComplete={firstTradeComplete}
+          selectedTicker={selectedTicker}
+        />
+      </View>
 
       {heatWarning && clock.nowMs - heatWarning.createdAt < 2500 ? (
         <View style={{ marginTop: 12, marginHorizontal: 12, borderWidth: 1, borderColor: terminalColors.red, padding: 10 }}>

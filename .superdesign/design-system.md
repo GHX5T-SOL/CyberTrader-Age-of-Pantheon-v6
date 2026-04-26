@@ -1,0 +1,61 @@
+# CyberTrader v6 Design System
+
+Generated: 2026-04-26
+Scope: Expo Router app in `CyberTrader-Age-of-Pantheon-v6`.
+
+## Product Frame
+
+CyberTrader: Age of Pantheon is a portrait-first mobile trading game presented as a pirated cyberdeck terminal. The active first-session journey is:
+
+1. `/` hydrates and redirects.
+2. `/video-intro` and `/intro` establish Pantheon/Eidolon lore.
+3. `/login` claims a local handle without wallet requirements.
+4. `/boot` runs AG3NT_0S boot text.
+5. `/home` opens the deck dashboard and pushes `/tutorial` until complete.
+6. `/terminal` hosts the S1LKROAD 4.0 buy/sell loop.
+
+## Visual Language
+
+- Direction: diegetic terminal, CRT scanline overlay, cyberdeck HUD, compact mobile control surface.
+- Avoid: generic SaaS dashboard language, marketing-card composition, oversized explanatory copy, decorative gradients that do not feel like terminal light.
+- Primary surfaces: dark terminal background, 1 px neon borders, mono type, dense but readable metrics, command labels in brackets.
+- Brand signal: `CYBERTRADER: AGE OF PANTHEON`, `AG3NT_0S//pIRAT3`, `S1LKROAD 4.0`, Eidolon identity copy, local demo/no-wallet clarity.
+
+## Current Tokens
+
+Terminal tokens in `theme/terminal.ts`:
+
+- Background `#0B0C10`, panels `#0F0F0F`, `#111115`, `#0D0D0F`.
+- Borders `#2A2A2A`, dim borders `#1A1A1A`.
+- Text `#C8D6E5`, muted `#8395A7`, dim `#3A3A3A`.
+- Accents: cyan `#00F0FF`, cyan dark `#00A0CC`, green `#39FF14`, amber `#FFB800`, red `#FF3131`, system green `#20C20E`.
+- Overlays: modal `rgba(0,0,0,0.8)`, status `rgba(10,10,10,0.9)`, scanline `rgba(255,255,255,0.03)`.
+- Typeface: `JetBrains Mono` for routed terminal screens.
+
+Legacy first-playable tokens in `theme/colors.ts` still exist for unused `screens/first-playable/*` components. Do not treat these as the current routed surface unless those screens are reactivated.
+
+## Component Patterns
+
+- `TerminalShell`: global status strip, scanlines, vignette, content wrapper.
+- `ActionButton`: 52 px full-width command button, uppercase bracket labels, pulsing cyan for primary calls to action.
+- `NeonBorder`: 1 px terminal panel with optional cyan glow.
+- `MetricChip`: two-column mobile metrics with optional progress bar and two-line value cap.
+- `CommodityRow`: 48 px market row with commodity icon, ticker, name, price, and change indicator.
+- `BurgerMenu`: full-screen terminal overlay navigation from the home route.
+- `Scanlines`: repeated CRT line treatment over dark surfaces.
+
+## Motion And Interaction
+
+- Intro text types one character every 45 ms; skip appears after 4 seconds.
+- Boot text appears in sequenced lines, then flashes/static before `/home`.
+- Primary buttons pulse rather than using broad decorative animation.
+- Trade feedback appears as temporary `tradeJuice`, heat warning borders, haptics on native, and system message copy.
+- Android back is owned by route hardening and should never pop to an empty stack.
+
+## First-Session UX Requirements
+
+- The player must understand the identity stakes: they are an illegal Eidolon shard booting through a pirated OS.
+- Wallet and real-money expectations must stay off the first flow; LocalAuthority/local demo copy must remain visible.
+- The first trade needs an obvious low-risk path: start with `VBLM`, buy a small lot, wait for a tick, sell when green.
+- Energy, Heat, 0BOL balance, selected ticker, and owned inventory must remain scannable on small phones.
+- Any required copy should be in-world and operational, not explanatory marketing text.

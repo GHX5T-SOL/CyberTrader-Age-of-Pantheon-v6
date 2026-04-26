@@ -7,6 +7,7 @@ import AnimatedNumber from "@/components/animated-number";
 import ChartSparkline from "@/components/chart-sparkline";
 import CommodityRow from "@/components/commodity-row";
 import ConfirmModal from "@/components/confirm-modal";
+import { FirstSessionCue } from "@/components/first-session-cue";
 import NeonBorder from "@/components/neon-border";
 import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import { getLocation } from "@/data/locations";
@@ -31,6 +32,7 @@ export default function TerminalRoute() {
   const priceHistory = useDemoStore((state) => state.priceHistory);
   const balance = useDemoStore((state) => state.balanceObol);
   const positions = useDemoStore((state) => state.positions);
+  const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const activeNews = useDemoStore((state) => state.activeNews);
   const world = useDemoStore((state) => state.world);
   const clock = useDemoStore((state) => state.clock);
@@ -43,6 +45,7 @@ export default function TerminalRoute() {
   const setOrderSize = useDemoStore((state) => state.setOrderSize);
   const buySelected = useDemoStore((state) => state.buySelected);
   const sellSelected = useDemoStore((state) => state.sellSelected);
+  const advanceMarket = useDemoStore((state) => state.advanceMarket);
   const goHome = useDemoStore((state) => state.goHome);
   const isBusy = useDemoStore((state) => state.isBusy);
   const systemMessage = useDemoStore((state) => state.systemMessage);
@@ -175,6 +178,15 @@ export default function TerminalRoute() {
         </NeonBorder>
       ) : null}
 
+      <View style={{ marginBottom: 12 }}>
+        <FirstSessionCue
+          surface="terminal"
+          positions={positions}
+          firstTradeComplete={firstTradeComplete}
+          selectedTicker={commodity.ticker}
+        />
+      </View>
+
       <NeonBorder active style={{ padding: 0 }}>
         {DEMO_COMMODITIES.map((item, index) => {
           const itemPrice = prices[item.ticker] ?? item.basePrice;
@@ -254,6 +266,16 @@ export default function TerminalRoute() {
             label="[ EXECUTE ]"
             disabled={tradeBlocked || isBusy || (side === "SELL" && maxSell <= 0)}
             onPress={() => setConfirmVisible(true)}
+          />
+        </View>
+        <View style={{ marginTop: 10 }}>
+          <ActionButton
+            variant="amber"
+            label="[ WAIT MARKET TICK ]"
+            disabled={isBusy}
+            onPress={() => {
+              void advanceMarket();
+            }}
           />
         </View>
       </NeonBorder>
