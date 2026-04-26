@@ -2,13 +2,18 @@ import { Platform } from "react-native";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { MMKV } from "react-native-mmkv";
 
-const rawUseSupabase =
+const rawUseSupabaseAuthority =
   process.env.EXPO_PUBLIC_USE_SUPABASE_AUTHORITY ??
+  process.env.USE_SUPABASE_AUTHORITY;
+const rawUseSupabase =
   process.env.EXPO_PUBLIC_USE_SUPABASE ??
   process.env.USE_SUPABASE;
 
-export const USE_SUPABASE = rawUseSupabase === "true";
-export const USE_SUPABASE_AUTHORITY = USE_SUPABASE;
+export const USE_SUPABASE =
+  rawUseSupabase === "true" || rawUseSupabaseAuthority === "true";
+export const USE_SUPABASE_AUTHORITY =
+  rawUseSupabaseAuthority === "true" ||
+  (rawUseSupabaseAuthority === undefined && USE_SUPABASE);
 
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() ??
