@@ -19,7 +19,8 @@
     "tuning:launch": "ORACLE_LAUNCH_TUNING_LOG=1 jest engine/__tests__/launch-tuning.test.ts --runInBand",
     "stress:economy": "ORACLE_STRESS_LOG=1 jest engine/__tests__/economy-stress.test.ts --runInBand",
     "optimize:assets": "node scripts/optimize-assets.mjs",
-    "optimize:assets:apply": "node scripts/optimize-assets.mjs --apply"
+    "optimize:assets:apply": "node scripts/optimize-assets.mjs --apply",
+    "endurance:economy": "ORACLE_ENDURANCE_LOG=1 jest engine/__tests__/economy-endurance.test.ts --runInBand"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
