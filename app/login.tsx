@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, w
 import ActionButton from "@/components/action-button";
 import AsciiDivider from "@/components/ascii-divider";
 import Scanlines from "@/components/scanlines";
+import SystemStatePanel from "@/components/system-state-panel";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -94,7 +95,16 @@ export default function LoginRoute() {
           />
           <Animated.View style={[{ width: 7, height: 18, backgroundColor: terminalColors.cyan }, cursorStyle]} />
         </View>
-        {error ? <Text style={{ fontFamily: terminalFont, color: terminalColors.red, fontSize: 11, marginTop: 8 }}>{error}</Text> : null}
+        {error ? (
+          <SystemStatePanel
+            kind="error"
+            compact
+            title="HANDLE REJECTED"
+            message={error}
+            detail="USE 3-20 LETTERS, NUMBERS, OR UNDERSCORES"
+            style={{ marginTop: 10 }}
+          />
+        ) : null}
         <View style={{ marginTop: 24 }}>
           <ActionButton variant="primary" label="[ ENTER LOCAL DEMO ]" glowing onPress={enter} />
         </View>

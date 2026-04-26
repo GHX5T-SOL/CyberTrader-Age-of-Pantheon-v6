@@ -10,6 +10,7 @@ import ConfirmModal from "@/components/confirm-modal";
 import { FirstSessionCue } from "@/components/first-session-cue";
 import NeonBorder from "@/components/neon-border";
 import RouteRecoveryScreen from "@/components/route-recovery-screen";
+import SystemStatePanel from "@/components/system-state-panel";
 import { getLocation } from "@/data/locations";
 import { getActiveDistrictState, isDistrictBuyRestricted, isDistrictSellRestricted } from "@/engine/district-state";
 import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
@@ -230,25 +231,25 @@ export default function TerminalRoute() {
       </View>
 
       {travelling ? (
-        <NeonBorder style={{ marginBottom: 12 }}>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>
-            TRAVELLING TO {destination.name.toUpperCase()}... ETA {etaMinutes}m {etaSeconds}s
-          </Text>
-          <Text style={{ marginTop: 6, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-            TRADING LOCKED UNTIL ARRIVAL
-          </Text>
-        </NeonBorder>
+        <SystemStatePanel
+          kind="offline"
+          title="MARKET LINK IN TRANSIT"
+          message={`S1LKROAD packets are parked until arrival at ${destination.name}.`}
+          detail={`ETA ${etaMinutes}m ${etaSeconds}s // TRADING LOCKED`}
+          compact
+          style={{ marginBottom: 12 }}
+        />
       ) : null}
 
       {districtBlocked || flashBlocked ? (
-        <NeonBorder style={{ marginBottom: 12 }}>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.red, fontSize: 12 }}>
-            MARKET LOCKED // {flashBlocked ? "DISTRICT BLACKOUT" : district.state}
-          </Text>
-          <Text style={{ marginTop: 6, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-            TRAVEL AWAY OR WAIT FOR STATE CLEARANCE
-          </Text>
-        </NeonBorder>
+        <SystemStatePanel
+          kind="offline"
+          title={`MARKET LOCKED // ${flashBlocked ? "DISTRICT BLACKOUT" : district.state}`}
+          message="This channel is sealed before the order reaches the tape."
+          detail="TRAVEL AWAY OR WAIT FOR STATE CLEARANCE"
+          compact
+          style={{ marginBottom: 12, borderColor: terminalColors.red }}
+        />
       ) : null}
 
       <View style={{ marginBottom: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
@@ -439,24 +440,41 @@ export default function TerminalRoute() {
               );
             })
           ) : (
-            <Text style={{ marginTop: 10, fontFamily: terminalFont, color: terminalColors.dim, fontSize: 11 }}>NO OPEN POSITIONS</Text>
+            <SystemStatePanel
+              kind="empty"
+              framed={false}
+              compact
+              title="NO OPEN POSITIONS"
+              message="Buy one starter lot, wait for green tape, then sell to close the first loop."
+              detail="SELECT VBLM IF YOU WANT THE LOW-RISK PATH"
+              style={{ marginTop: 10 }}
+            />
           )
         ) : null}
       </NeonBorder>
 
       <NeonBorder style={{ marginTop: 16 }}>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>NEWS FEED</Text>
-        {(activeNews.length
-          ? activeNews.slice(0, 5)
-          : [{ id: "quiet", headline: "NO SIGNALS. MARKET HUM IS CLEAN.", affectedTickers: [], credibility: 1, priceMultiplier: 1, tickPublished: 0, tickExpires: 0 }]
-        ).map((news) => (
-          <View key={news.id} style={{ marginTop: 10 }}>
-            <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>{news.headline}</Text>
-            <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-              {news.affectedTickers.join(" ")} // CRED {Math.round(news.credibility * 100)}%
-            </Text>
-          </View>
-        ))}
+        {activeNews.length ? (
+          activeNews.slice(0, 5).map((news) => (
+            <View key={news.id} style={{ marginTop: 10 }}>
+              <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 12 }}>{news.headline}</Text>
+              <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+                {news.affectedTickers.join(" ")} // CRED {Math.round(news.credibility * 100)}%
+              </Text>
+            </View>
+          ))
+        ) : (
+          <SystemStatePanel
+            kind="empty"
+            framed={false}
+            compact
+            title="NO CLEAN RUMORS"
+            message="The tape is moving on raw flow. Wait a market tick for new signals."
+            detail="DATA_STREAM QUIET"
+            style={{ marginTop: 10 }}
+          />
+        )}
       </NeonBorder>
 
       <ConfirmModal

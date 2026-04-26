@@ -81,3 +81,15 @@ Superdesign project: `CyberTrader v6 responsive viewport pass`
 - Web exports must set `html`, `body`, and `#root` to the terminal background `#0B0C10` so short pages never reveal default browser white outside the cyberdeck frame.
 - `npm run qa:responsive` exercises the exported web build through Playwright, creates home/terminal captures, checks for horizontal overflow, verifies the first trade navigation path remains reachable, and fails on browser console/page errors.
 - Routine reruns write to ignored `test-results/vex-p0-002-responsive-captures/`; release evidence for `vex-p0-002` is committed under `docs/release/vex-p0-002-responsive-captures/` by setting `CYBERTRADER_RESPONSIVE_CAPTURE_DIR`.
+
+## Vex P1 System State Pass
+
+SuperDesign project: `CyberTrader v6 responsive viewport pass`
+
+- State-system draft: `a8801f62-1aae-42ed-8704-a78044beae08`.
+- Preview URL: `https://p.superdesign.dev/draft/a8801f62-1aae-42ed-8704-a78044beae08`.
+- `SystemStatePanel` is the shared component for `loading`, `empty`, `offline`, and `error` states.
+- Loading states should describe local hydration or packet stitching, never generic spinners.
+- Empty states should tell the player whether to buy, wait a tick, change surface, or keep trading.
+- Offline states should make LocalAuthority/no-wallet mode explicit and should explain route, travel, or market-lock causes without implying a broken app.
+- Error states should use player-safe recovery copy; raw exception, backend, SQL, RPC, URL, or secret-like text must not be echoed into `systemMessage`.

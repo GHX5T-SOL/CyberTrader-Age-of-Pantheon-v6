@@ -97,6 +97,7 @@ import {
   saveDemoSession,
   type PersistedDemoSession,
 } from "@/state/demo-storage";
+import { getSafeFailureMessage } from "@/state/system-messages";
 
 export type DemoPhase = "intro" | "login" | "boot" | "home" | "handle" | "terminal";
 export type TerminalView = "home" | "market";
@@ -782,13 +783,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: "[sys] market open. start small. low heat.",
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message.toLowerCase()}`
-              : "[sys] shell provisioning failed.",
+          systemMessage: getSafeFailureMessage("provision"),
         });
         await persistCurrentState();
       }
@@ -885,13 +883,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         });
         await persistCurrentState();
         return true;
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message.toLowerCase()}`
-              : "[sys] shell provisioning failed.",
+          systemMessage: getSafeFailureMessage("provision"),
         });
         await persistCurrentState();
         return false;
@@ -1356,13 +1351,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[trade] buy committed // ${state.selectedTicker} x${state.orderSize} @ ${price.toFixed(2)}`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] trade rejected.",
+          systemMessage: getSafeFailureMessage("trade-buy"),
         });
         await persistCurrentState();
       }
@@ -1461,13 +1453,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[trade] sell executed // ${state.selectedTicker} ${formatDelta(result.realizedPnl)} 0BOL`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] sell failed.",
+          systemMessage: getSafeFailureMessage("trade-sell"),
         });
         await persistCurrentState();
       }
@@ -1496,13 +1485,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[energy] ${Math.floor(energySeconds / 3600)}h purchased // shell stabilized`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message.toLowerCase()}`
-              : "[sys] energy purchase failed.",
+          systemMessage: getSafeFailureMessage("energy"),
         });
         await persistCurrentState();
       }
@@ -1565,13 +1551,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[heat] bribe accepted // -${reduction}`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] bribe failed.",
+          systemMessage: getSafeFailureMessage("heat"),
         });
         await persistCurrentState();
       }
@@ -1660,13 +1643,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[courier] ${ticker} dispatched via ${courier.name}`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] courier failed.",
+          systemMessage: getSafeFailureMessage("courier"),
         });
         await persistCurrentState();
       }
@@ -1711,13 +1691,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[courier] ${shipment.ticker} claimed`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] claim failed.",
+          systemMessage: getSafeFailureMessage("shipment"),
         });
         await persistCurrentState();
       }
@@ -1813,13 +1790,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           systemMessage: `[challenge] claimed // ${claimed.rewardObol} 0BOL`,
         });
         await persistCurrentState();
-      } catch (error) {
+      } catch {
         set({
           isBusy: false,
-          systemMessage:
-            error instanceof Error
-              ? `[sys] ${error.message}`
-              : "[sys] challenge claim failed.",
+          systemMessage: getSafeFailureMessage("challenge"),
         });
         await persistCurrentState();
       }

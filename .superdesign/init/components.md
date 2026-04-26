@@ -12,6 +12,7 @@ Generated: 2026-04-26
 - `components/burger-menu.tsx`: overlay navigation and hamburger trigger. Current menu includes profile, settings, inventory, missions, progression, rank, rewards, notifications, help, and legal.
 - `components/scanlines.tsx`: CRT line overlay used on intro/login and through `TerminalShell`.
 - `components/route-recovery-screen.tsx`: route recovery fallback for guarded player routes.
+- `components/system-state-panel.tsx`: diegetic loading, empty, offline, and error state panel used by route recovery, login, terminal, settings, and notifications.
 - `components/animated-number.tsx`: animated numeric display used for 0BOL and price feedback.
 - `components/chart-sparkline.tsx`: terminal chart line for the selected commodity.
 - `components/confirm-modal.tsx`: confirmation overlay for trades.

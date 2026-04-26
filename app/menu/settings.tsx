@@ -5,6 +5,7 @@ import ActionButton from "@/components/action-button";
 import ConfirmModal from "@/components/confirm-modal";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import SystemStatePanel from "@/components/system-state-panel";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -39,6 +40,14 @@ export default function SettingsMenuRoute() {
           <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11 }}>SOLANA TOKEN MODE: DESIGN STAGE</Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 11 }}>APP VERSION: v0.1.3</Text>
         </View>
+        <SystemStatePanel
+          kind="offline"
+          framed={false}
+          compact
+          title="LOCAL LOOP ACTIVE"
+          message="Progress, inventory, and 0BOL stay on this device while live authority is sealed."
+          detail="NO WALLET REQUIRED // SUPABASE AUTHORITY OFF"
+        />
       </NeonBorder>
       <ConfirmModal
         visible={confirm}
@@ -52,4 +61,3 @@ export default function SettingsMenuRoute() {
     </MenuScreen>
   );
 }
-

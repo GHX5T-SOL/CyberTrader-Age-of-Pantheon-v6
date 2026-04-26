@@ -18,6 +18,7 @@ Generated: 2026-04-26
 - `components/action-button.tsx`
 - `components/ascii-divider.tsx`
 - `components/scanlines.tsx`
+- `components/system-state-panel.tsx`
 - `hooks/use-demo-bootstrap.ts`
 - `state/demo-store.ts`
 - `theme/terminal.ts`
@@ -74,6 +75,7 @@ Generated: 2026-04-26
 - `components/first-session-cue.tsx`
 - `components/neon-border.tsx`
 - `components/route-recovery-screen.tsx`
+- `components/system-state-panel.tsx`
 - `data/locations.ts`
 - `engine/demo-market.ts`
 - `engine/district-state.ts`
@@ -87,3 +89,4 @@ Generated: 2026-04-26
 - The current routed first-session path has a strong intro and login identity, and `components/first-session-cue.tsx` now surfaces the first-loop objective in active `/home` and `/terminal` routes.
 - `/home` provides many systems at once after tutorial completion. This is rich, but the first trade task can compete with flash events, missions, daily challenges, shipments, travel, and rank panels.
 - `/terminal` has the strongest actionable trade loop, especially with selected `VBLM`, price chart, buy/sell tabs, lot size, heat, Energy, manual market tick, and confirmation.
+- Error, empty, offline, and loading states now share `SystemStatePanel` so recovery, quiet panels, lockouts, and local-loop disclosures remain in-world and App Store-safe.

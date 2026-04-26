@@ -1,5 +1,6 @@
-import { Text, View } from "react-native";
-import { terminalColors, terminalFont } from "@/theme/terminal";
+import { View } from "react-native";
+import SystemStatePanel from "@/components/system-state-panel";
+import { terminalColors } from "@/theme/terminal";
 
 interface RouteRecoveryScreenProps {
   title?: string;
@@ -16,12 +17,13 @@ export default function RouteRecoveryScreen({ title = "RECOVERING ROUTE" }: Rout
         backgroundColor: terminalColors.background,
       }}
     >
-      <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>
-        {title}
-      </Text>
-      <Text style={{ marginTop: 8, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-        STITCHING SESSION VECTOR...
-      </Text>
+      <SystemStatePanel
+        kind="loading"
+        title={title}
+        message="Stitching the local session vector before opening this surface."
+        detail="NO PLAYER DATA LEAVES THIS DEVICE"
+        style={{ width: "100%", maxWidth: 360 }}
+      />
     </View>
   );
 }

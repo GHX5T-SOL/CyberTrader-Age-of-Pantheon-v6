@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import SystemStatePanel from "@/components/system-state-panel";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -37,7 +38,14 @@ export default function NotificationsMenuRoute() {
             );
           })
         ) : (
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 12 }}>NO NOTIFICATIONS</Text>
+          <SystemStatePanel
+            kind="empty"
+            framed={false}
+            compact
+            title="NO NOTIFICATIONS"
+            message="The deck has no queued alerts. Keep trading or wait for the next tick."
+            detail="INBOX BUFFER CLEAN"
+          />
         )}
       </NeonBorder>
     </MenuScreen>

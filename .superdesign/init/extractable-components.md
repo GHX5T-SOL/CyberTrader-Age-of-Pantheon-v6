@@ -34,6 +34,14 @@ Generated: 2026-04-26
 - Extractable props: `surface`, `firstTradeComplete`, `selectedTicker`
 - Hardcoded: cue state copy, terminal colors, step number layout.
 
+## SystemStatePanel
+
+- Source: `components/system-state-panel.tsx`
+- Category: state
+- Description: Diegetic terminal state panel for loading, empty, offline, and error surfaces.
+- Extractable props: `kind`, `title`, `message`, `detail`, `actionLabel`, `compact`, `framed`
+- Hardcoded: terminal palette, mono type scale, state-to-accent mapping, default App Store-safe state copy.
+
 ## MetricChip
 
 - Source: `components/metric-chip.tsx`
