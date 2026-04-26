@@ -16,7 +16,7 @@ Superdesign references:
 
 ## Implementation
 
-- Added `npm run qa:responsive`, backed by `qa/responsive-captures.spec.ts`.
+- Added `npm run qa:responsive`, backed by `qa/responsive-captures.spec.ts`; the command now builds the exported web shell before starting Playwright so a clean checkout does not depend on a pre-existing `dist/`.
 - Added Playwright as a pinned dev dependency for repeatable web viewport QA.
 - Set the exported web document, body, and root backgrounds to the terminal background and clear the default body margin so wide desktop captures do not expose browser chrome whitespace around the app shell.
 - The responsive spec serves the exported `dist/` build locally, enters a fresh local demo session, completes tutorial setup, and checks `/home` then `/terminal`.
@@ -53,7 +53,7 @@ Current local results:
 
 - TypeScript passes.
 - Jest passes: 59 tests in 20 suites.
-- Expo web export passes.
+- Expo web export passes through the responsive QA command.
 - Responsive QA passes: 4 Playwright viewport tests.
 
 Known unchanged blocker:

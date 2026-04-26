@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "build:web": "expo export --platform web",
     "health:live": "node scripts/check-live-deployment.mjs",
-    "qa:responsive": "playwright test qa/responsive-captures.spec.ts --browser=chromium --reporter=line",
+    "qa:responsive": "npm run build:web && playwright test qa/responsive-captures.spec.ts --browser=chromium --reporter=line",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "replay:economy": "ORACLE_REPLAY_LOG=1 jest engine/__tests__/economy-replay.test.ts --runInBand",
