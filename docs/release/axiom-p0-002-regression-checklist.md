@@ -143,6 +143,9 @@ Goal: the App Store and Play Store listings are complete, accurate, and policy-s
 - [ ] URL scheme `cybertrader` is registered in `app.json`.
 - [ ] App version and build number are bumped per release.
 - [ ] Expo SDK 52 toolchain matches what `rune-p0-004` profiles target (Node 20.18.1 on EAS).
+- [ ] iOS store-candidate uploads on or after 2026-04-28 are built with Xcode 26 or later and the iOS 26 SDK or later (`cipher-p0-001`).
+- [ ] Android store-candidate artifacts target Android 15 / API level 35 or higher (`cipher-p0-001`).
+- [ ] Expo SDK 52's default Android target SDK 34 is either removed by a planned SDK upgrade or overridden with verified native build-property evidence before Google Play submission (`cipher-p0-001`).
 - [ ] EAS project id `b024b715-6718-4854-b318-c6afbb8788e6` is the only id referenced by build profiles.
 
 ### 3.2 Visual assets
@@ -150,9 +153,10 @@ Goal: the App Store and Play Store listings are complete, accurate, and policy-s
 - [ ] App icon is present at all required iOS sizes.
 - [ ] Adaptive icon and adaptive icon background `#050608` are present for Android (matches `app.json`).
 - [ ] Splash background `#050608` matches `app.json` and brand guidelines.
-- [ ] Five iPhone screenshots, plus iPad screenshots if `supportsTablet` becomes `true`, plus five Android phone screenshots are staged per `palette-p1-003`.
+- [ ] Apple screenshots follow the current App Store Connect screenshot specifications: one to ten screenshots, iPhone-first for current `supportsTablet: false`, plus iPad screenshots if that setting changes (`cipher-p0-001`, `palette-p1-003`).
+- [ ] Google Play preview assets include a 512 x 512 32-bit PNG icon under 1024 KB, a short description under 80 characters, and screenshot/feature/video assets that avoid misleading ranking, pricing, or call-to-action copy (`cipher-p0-001`).
 - [ ] Screenshot scenes contain no debug UI, no placeholder copy, and no out-of-brand colors.
-- [ ] Preview video meets store length and aspect requirements (storyboard owned by `reel-p0-001`, capture plan signed off by Zoro per `zoro-p0-002`).
+- [ ] Apple preview video is 15-30 seconds, app-capture based, and uses accepted `.mov`, `.m4v`, or `.mp4` specs with no misleading footage (`cipher-p0-001`, storyboard owned by `reel-p0-001`, capture plan signed off by Zoro per `zoro-p0-002`).
 
 ### 3.3 Copy
 
@@ -168,6 +172,8 @@ Goal: the App Store and Play Store listings are complete, accurate, and policy-s
 - [ ] Age rating questionnaire reviewed; simulated trading, fictional violence, and fictional drug or black-market language are flagged honestly.
 - [ ] Apple App Privacy disclosures align with the data-flow documented in `docs/release/kite-p0-001-supabase-authority.md`: SupabaseAuthority is off by default; LocalAuthority does not transmit identifiable player data.
 - [ ] Google Data Safety form aligns with the same data flow.
+- [ ] Google Play target audience/app content declarations state the intended non-child audience honestly and do not rely on children-directed imagery or copy (`cipher-p0-001`).
+- [ ] Google Play IARC content rating answers cover simulated trading, fictional crime/black-market framing, and any future chance-based mechanics (`cipher-p0-001`).
 - [ ] Wallet flag stays off; on-chain `0BOL` text avoids real-money or investment claims (`kite-p1-004`).
 - [ ] Loot-box and gambling-adjacent surfaces are explicitly absent or feature-flagged off.
 
