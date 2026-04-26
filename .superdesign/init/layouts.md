@@ -7,6 +7,7 @@ Generated: 2026-04-26
 `app/_layout.tsx` wraps the entire app in:
 
 - `GestureHandlerRootView` with `terminalColors.background`.
+- On web, `html`, `body`, and `#root` are pinned to `terminalColors.background` so short routes do not reveal browser-default white below the terminal frame.
 - Expo `StatusBar` in light mode.
 - `MenuContext.Provider` for hamburger menu open/close.
 - `TerminalShell`, then an Expo Router `Stack` with hidden headers and fade animation.

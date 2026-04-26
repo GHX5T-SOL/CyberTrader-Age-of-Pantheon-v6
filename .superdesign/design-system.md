@@ -70,3 +70,14 @@ Superdesign project: `CyberTrader v6 HUD readability pass`
 - `MetricChip`, `CommodityRow`, and `ActionButton` must scale or truncate text explicitly instead of allowing critical labels, prices, or commands to clip.
 - Terminal trade controls must remain thumb-sized: segmented BUY/SELL controls are at least 52 px tall, quantity presets are at least 44 px tall, and command buttons keep the 52 px `ActionButton` height.
 - Terminal trade screens should surface Energy, Heat, owned quantity, and 0BOL near the ticket so a player does not need to scroll back to understand whether the next action is safe.
+
+## Vex P0 Responsive Viewport Pass
+
+Superdesign project: `CyberTrader v6 responsive viewport pass`
+
+- Baseline draft: `1cfa9101-1369-4cb8-8f42-1e48e45b0d87`.
+- The responsive evidence pass checks Web desktop `1440x900`, small phone `375x667`, large phone `430x932`, and tablet portrait `834x1112`.
+- `/home` and `/terminal` must remain navigable at each viewport with no horizontal page overflow and visible first-trade controls.
+- Web exports must set `html`, `body`, and `#root` to the terminal background `#0B0C10` so short pages never reveal default browser white outside the cyberdeck frame.
+- `npm run qa:responsive` exercises the exported web build through Playwright, creates home/terminal captures, checks for horizontal overflow, verifies the first trade navigation path remains reachable, and fails on browser console/page errors.
+- Routine reruns write to ignored `test-results/vex-p0-002-responsive-captures/`; release evidence for `vex-p0-002` is committed under `docs/release/vex-p0-002-responsive-captures/` by setting `CYBERTRADER_RESPONSIVE_CAPTURE_DIR`.

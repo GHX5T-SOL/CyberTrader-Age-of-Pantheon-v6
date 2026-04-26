@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BurgerMenu } from "@/components/burger-menu";
 import { TerminalShell } from "@/components/terminal-shell";
@@ -13,6 +14,37 @@ export default function RootLayout() {
   const [menuVisible, setMenuVisible] = React.useState(false);
   useDemoBootstrap();
   useGameLoop();
+
+  React.useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const root = document.getElementById("root");
+    const previousHtmlBackground = document.documentElement.style.backgroundColor;
+    const previousBodyBackground = document.body.style.backgroundColor;
+    const previousBodyMargin = document.body.style.margin;
+    const previousRootBackground = root?.style.backgroundColor;
+    const previousRootMinHeight = root?.style.minHeight;
+
+    document.documentElement.style.backgroundColor = terminalColors.background;
+    document.body.style.backgroundColor = terminalColors.background;
+    document.body.style.margin = "0";
+    if (root) {
+      root.style.backgroundColor = terminalColors.background;
+      root.style.minHeight = "100%";
+    }
+
+    return () => {
+      document.documentElement.style.backgroundColor = previousHtmlBackground;
+      document.body.style.backgroundColor = previousBodyBackground;
+      document.body.style.margin = previousBodyMargin;
+      if (root) {
+        root.style.backgroundColor = previousRootBackground ?? "";
+        root.style.minHeight = previousRootMinHeight ?? "";
+      }
+    };
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: terminalColors.background }}>
