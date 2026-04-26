@@ -23,7 +23,8 @@
     "optimize:assets": "node scripts/optimize-assets.mjs",
     "optimize:assets:apply": "node scripts/optimize-assets.mjs --apply",
     "endurance:economy": "ORACLE_ENDURANCE_LOG=1 jest engine/__tests__/economy-endurance.test.ts --runInBand",
-    "archetypes:report": "ORACLE_ARCHETYPES_LOG=1 jest engine/__tests__/player-archetypes.test.ts --runInBand"
+    "archetypes:report": "ORACLE_ARCHETYPES_LOG=1 jest engine/__tests__/player-archetypes.test.ts --runInBand",
+    "tuning:beta": "ORACLE_BETA_TUNING_LOG=1 jest engine/__tests__/beta-tuning.test.ts --runInBand"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
