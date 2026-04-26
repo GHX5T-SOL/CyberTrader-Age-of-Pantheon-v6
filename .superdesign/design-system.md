@@ -93,3 +93,14 @@ SuperDesign project: `CyberTrader v6 responsive viewport pass`
 - Empty states should tell the player whether to buy, wait a tick, change surface, or keep trading.
 - Offline states should make LocalAuthority/no-wallet mode explicit and should explain route, travel, or market-lock causes without implying a broken app.
 - Error states should use player-safe recovery copy; raw exception, backend, SQL, RPC, URL, or secret-like text must not be echoed into `systemMessage`.
+
+## Palette P0 Asset Audit
+
+Release note: `docs/release/palette-p0-001-asset-audit.md`.
+
+- Current commodity icons are all `1254 x 1254` and resolution-safe for in-app rows and internal capture staging.
+- `assets/ui/eidolon_shard_core.png` is the current identity art for Signal Core and Remotion teaser material.
+- `assets/media/intro-cinematic.mp4` is `1920 x 1080`, `15.042s`, and should be treated as a short hook rather than the main portrait preview source.
+- `assets/media/silkroad-dashboard-reference.jpg` is legacy first-playable reference art and is not approved for final store screenshots.
+- App icon, adaptive icon foreground, and splash source art are missing from `app.json`; these remain Palette follow-up work before store submission.
+- The repo currently lacks source/license/provenance metadata for visible image and video assets. Use existing assets for internal QA and capture planning only until Palette attaches ownership notes for final App Store / Play Store use.

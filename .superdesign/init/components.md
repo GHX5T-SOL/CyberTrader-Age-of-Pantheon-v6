@@ -26,6 +26,9 @@ Generated: 2026-04-26
 
 ## Assets
 
-- Commodity icons live in `assets/commodities/*.png` and are mapped in `components/commodity-row.tsx`.
-- `assets/media/intro-cinematic.mp4` and `app/video-intro.tsx` provide the cinematic entry point.
-- `assets/media/silkroad-dashboard-reference.jpg` is used by legacy first-playable market screen, not the routed terminal.
+- Commodity icons live in `assets/commodities/*.png`, are mapped in `components/commodity-row.tsx` and `assets/commodity-art.ts`, and are all `1254 x 1254`.
+- `assets/ui/eidolon_shard_core.png` is active identity art for `components/signal-core.tsx` and Remotion teaser material.
+- `assets/media/intro-cinematic.mp4` and `app/video-intro.tsx` provide the cinematic entry point; the file is `1920 x 1080`, `15.042s`, and landscape.
+- `assets/media/silkroad-dashboard-reference.jpg` is used by legacy first-playable market screen, not the routed terminal, and is not approved for final store screenshots.
+- `app.json` currently has no explicit icon, adaptive icon foreground, or splash image path.
+- Palette audit note: `docs/release/palette-p0-001-asset-audit.md`. Existing visible assets are resolution-safe for internal staging, but final store screenshots and preview video need source/license/provenance sign-off.
