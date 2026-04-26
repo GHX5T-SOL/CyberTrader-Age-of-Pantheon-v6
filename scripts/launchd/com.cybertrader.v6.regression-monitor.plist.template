@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent template for automated post-push regression detection.
+  talon-p1-004 — CyberTrader v6
+
+  Installation (Mac mini, once):
+    1. Copy this file to ~/Library/LaunchAgents/ without the .template suffix.
+    2. Replace REPLACE_NODE_PATH below with the output of: which node
+    3. Replace REPLACE_REPO_ROOT with the absolute path to the v6 repo checkout.
+    4. Replace REPLACE_LOG_DIR with an absolute path for log files (e.g. ~/Library/Logs/cybertrader).
+    5. mkdir -p REPLACE_LOG_DIR
+    6. launchctl load ~/Library/LaunchAgents/com.cybertrader.v6.regression-monitor.plist
+
+  To unload:
+    launchctl unload ~/Library/LaunchAgents/com.cybertrader.v6.regression-monitor.plist
+
+  To run immediately:
+    launchctl start com.cybertrader.v6.regression-monitor
+
+  Interval: every 900 seconds (15 minutes).
+  Exit 0 = pass or skip (no new commits since last check).
+  Exit 1 = regression detected or upstream fetch error — check stdout log.
+-->
+<plist version="1.0">
+<dict>
+
+  <key>Label</key>
+  <string>com.cybertrader.v6.regression-monitor</string>
+
+  <!-- Run a login shell so nvm / user PATH / node are resolved correctly. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-l</string>
+    <string>-c</string>
+    <string>REPLACE_NODE_PATH scripts/regression-monitor.mjs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>REPLACE_REPO_ROOT</string>
+
+  <!-- Fire every 15 minutes. -->
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <!-- Do not run immediately on load — wait for the first interval. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>REPLACE_LOG_DIR/regression-monitor.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>REPLACE_LOG_DIR/regression-monitor-err.log</string>
+
+  <!-- Throttle rapid restarts on crash. -->
+  <key>ThrottleInterval</key>
+  <integer>60</integer>
+
+</dict>
+</plist>

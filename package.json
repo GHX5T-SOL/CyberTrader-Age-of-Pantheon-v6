@@ -25,7 +25,9 @@
     "endurance:economy": "ORACLE_ENDURANCE_LOG=1 jest engine/__tests__/economy-endurance.test.ts --runInBand",
     "archetypes:report": "ORACLE_ARCHETYPES_LOG=1 jest engine/__tests__/player-archetypes.test.ts --runInBand",
     "tuning:beta": "ORACLE_BETA_TUNING_LOG=1 jest engine/__tests__/beta-tuning.test.ts --runInBand",
-    "generate:brand": "python3 scripts/generate-brand-assets.py"
+    "generate:brand": "python3 scripts/generate-brand-assets.py",
+    "regression:check": "node scripts/regression-monitor.mjs --force",
+    "regression:monitor": "node scripts/regression-monitor.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
