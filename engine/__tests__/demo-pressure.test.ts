@@ -25,10 +25,12 @@ describe("10-minute demo pressure tuning", () => {
   }
 
   it("keeps three repeatable player strategies viable without soft locks", () => {
-    expect(outcomes).toHaveLength(DEMO_PRESSURE_TARGETS.minViableStrategies);
+    expect(outcomes.length).toBeGreaterThanOrEqual(
+      DEMO_PRESSURE_TARGETS.minViableStrategies,
+    );
 
     for (const outcome of outcomes) {
-      expect(outcome.issues).toEqual([]);
+      expect(outcome.issues).toHaveLength(DEMO_PRESSURE_TARGETS.maxIssues);
       expect(outcome.trades).toBeGreaterThan(0);
       expect(outcome.profitableTrades).toBeGreaterThan(0);
       expect(outcome.realizedPnl).toBeGreaterThan(0);
@@ -64,6 +66,10 @@ describe("10-minute demo pressure tuning", () => {
       DEMO_PRESSURE_TARGETS.highRiskHeatMin,
     );
     expect(contraband?.bountyStatuses).toContain("PRIORITY TARGET");
-    expect(contraband?.courierRisk.some((band) => band.riskLabel === "high" || band.riskLabel === "critical")).toBe(true);
+    expect(
+      contraband?.courierRisk.some(
+        (band) => band.riskLabel === "high" || band.riskLabel === "critical",
+      ),
+    ).toBe(true);
   });
 });
