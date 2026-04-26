@@ -46,7 +46,7 @@ export function SignalCore({
           }}
         />
         <Image
-          source={require("@/assets/ui/eidolon_shard_core.png")}
+          source={require("@/assets/optimized/ui/eidolon_shard_core.png")}
           resizeMode="contain"
           style={{ width: imageSize, height: imageSize }}
         />
