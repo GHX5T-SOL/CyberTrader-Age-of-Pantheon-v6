@@ -18,6 +18,25 @@ The current launch-safe path remains the local, simulated trading demo. This aud
 - Authority: `LocalAuthority` is default. `SupabaseAuthority` is selected only when the explicit SupabaseAuthority flag and public Supabase config are present.
 - Economy validation: `oracle-p0-001` replay harness reports 0 soft locks and 0 impossible states for the current baseline.
 - Native build path: `eas.json` contains preview, iOS simulator, internal, store, and production profiles with LocalAuthority-safe defaults.
+- EAS runtime: the shared base profile now pins Node `20.18.1`, matching Expo SDK 52's documented minimum Node `20.18.x` line.
+
+## External Store And Toolchain Constraints Checked
+
+Official source checks on 2026-04-26 found three constraints that affect the build plan:
+
+- Apple says that beginning 2026-04-28, App Store Connect uploads must be built with Xcode 26 or later and the matching 2026 platform SDKs. The first iOS store-candidate EAS build must prove the selected build image satisfies that requirement.
+- Google Play says new Android apps and app updates must target Android 15 / API level 35 or higher. The first Android internal/store build must confirm the resolved target SDK.
+- Expo's SDK 52 version table maps the project stack to React Native 0.76, React 18.3.1, React Native Web 0.19.13, and minimum Node `20.18.x`.
+- Expo's New Architecture guide notes that SDK 52 initializes new projects with New Architecture enabled by default, and recommends newer SDKs for the latest New Architecture fixes. v6 has `newArchEnabled: true`, so native smoke is still required before Gate B.
+- Apple third-party SDK rules require privacy-manifest coverage for listed SDKs when submitting apps that include them. No app-store upload should proceed until the native dependency manifest output is reviewed.
+
+References:
+
+- Apple Upcoming Requirements: https://developer.apple.com/news/upcoming-requirements/
+- Apple Third-party SDK requirements: https://developer.apple.com/support/third-party-SDK-requirements/
+- Google Play target API requirements: https://support.google.com/googleplay/android-developer/answer/11926878
+- Expo SDK 52 version table: https://docs.expo.dev/versions/v52.0.0/
+- Expo New Architecture guide: https://docs.expo.dev/guides/new-architecture/
 
 ## Expo SDK And Dependency Risks
 
@@ -31,6 +50,8 @@ The advisories are transitive through the Expo toolchain and include:
 - `uuid` through Expo rudder/bunyan and xcode dependencies.
 
 `npm audit fix --force` proposes installing `expo@49.0.23`, which is a breaking downgrade from the current SDK 52 track. Do not run the forced fix as an autonomous patch. The acceptable remediation paths are a planned Expo SDK upgrade, a targeted override review, or explicit Ghost risk acceptance after build/export checks.
+
+The audit also corrected the EAS base Node version from `20.11.0` to `20.18.1` so the remote build profile follows Expo SDK 52's documented minimum Node `20.18.x` line.
 
 ## Storage Boundary Review
 
@@ -79,7 +100,7 @@ Owner: Kite for Supabase implementation and RLS evidence; Ghost for launch-scope
 | --- | --- | --- | --- | --- |
 | 1 | iOS simulator and Android emulator smoke runs are still pending. | Native blank screens, route issues, MMKV failures, or gesture issues may be missed before internal testing. | Axiom / Rune | Simulator and emulator smoke notes with logs/screenshots. |
 | 2 | Cold-launch native persistence is not device-validated. | Returning players could lose or corrupt local demo progress on native runtime. | Rune / Axiom | Cold launch, reset, and corrupt-storage recovery validated on native runtime. |
-| 3 | Expo transitive advisories remain unresolved. | Store submission risk if dependency scrutiny escalates, and operational risk in CLI/build tooling. | Ghost / Rune | SDK upgrade, targeted override review, or explicit risk acceptance with passing checks. |
+| 3 | Expo transitive advisories and SDK/toolchain drift remain unresolved. | Store submission risk if dependency scrutiny escalates, Xcode/Android target requirements move ahead of the chosen EAS images, or Expo SDK 52 falls behind New Architecture fixes. | Ghost / Rune | SDK upgrade, targeted override review, resolved EAS build image/toolchain evidence, or explicit risk acceptance with passing checks. |
 | 4 | SupabaseAuthority live backend is not validated. | Flagged remote authority could fail account bootstrap, trades, ledgers, or RLS isolation. | Kite | Migrations, RLS, RPC/Edge Function validation, and authority write tests against a real project. |
 | 5 | Supabase launch scope is undecided. | Gate B/C planning can drift between LocalAuthority-only demo and remote authority expectations. | Ghost / Kite | Written scope decision before first store build approval. |
 | 6 | Production web smoke is shallow. | Gate A may miss login/trading/inventory/settings regressions. | Axiom | Repeatable smoke path from intro through first profitable sell and settings reset. |
@@ -96,10 +117,13 @@ Ghost should treat the current launch default as LocalAuthority-only unless `gho
 
 ## Validation
 
-This pass is documentation and planning truth only.
+This pass is a scoped build-configuration and release-documentation change.
 
 - Current dependency risk was rechecked with `npm audit --omit=dev --audit-level=high`.
-- No v6 runtime code changed in this task.
+- EAS Node was aligned with the Expo SDK 52 minimum.
+- `npx eas-cli config --profile preview-simulator --platform ios --non-interactive --json` resolved Node `20.18.1`.
+- `npx eas-cli config --profile store --platform android --non-interactive --json` resolved Node `20.18.1`.
+- No v6 runtime app code changed in this task; the only implementation patch is build configuration plus release documentation.
 - Dev Lab planning sync must pass `web` typecheck and build after the task status changes.
 
 ## Follow-Ups

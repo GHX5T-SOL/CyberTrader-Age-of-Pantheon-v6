@@ -29,6 +29,7 @@ Added EAS Build profiles for preview install testing, iOS simulator validation, 
 ## Environment Policy
 
 - EAS profiles commit only non-secret configuration.
+- The shared EAS base profile pins Node `20.18.1`, matching the Expo SDK 52 minimum Node `20.18.x` line.
 - `EXPO_PUBLIC_USE_SUPABASE_AUTHORITY=false` keeps the launch path on LocalAuthority until Kite's SupabaseAuthority work is ready.
 - Do not commit real Supabase URLs, anon keys, Apple credentials, Google service account files, or signing material.
 - When SupabaseAuthority is enabled, configure environment-specific values through EAS environment variables and keep any server-only values secret.
