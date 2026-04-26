@@ -34,7 +34,14 @@
     "extra": {
       "USE_SUPABASE": false,
       "supabaseUrl": "https://your-project.supabase.co",
-      "supabaseAnonKey": "your-anon-key"
-    }
+      "supabaseAnonKey": "your-anon-key",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b024b715-6718-4854-b318-c6afbb8788e6"
+      }
+    },
+    "owner": "ghxstxbt"
   }
 }
