@@ -22,6 +22,74 @@ function pct(change: number, price: number) {
   return price ? (change / Math.max(1, price - change)) * 100 : 0;
 }
 
+function compactNumber(value: number) {
+  const abs = Math.abs(value);
+
+  if (abs >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
+
+  if (abs >= 100_000) {
+    return `${Math.round(value / 1_000)}K`;
+  }
+
+  if (abs >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `${Math.round(value)}`;
+}
+
+function TerminalTelemetryChip({
+  label,
+  value,
+  accentColor,
+}: {
+  label: string;
+  value: string;
+  accentColor: string;
+}) {
+  return (
+    <View
+      style={{
+        width: "48%",
+        minHeight: 54,
+        borderWidth: 1,
+        borderColor: accentColor,
+        backgroundColor: terminalColors.panel,
+        padding: 9,
+        justifyContent: "space-between",
+      }}
+    >
+      <Text numberOfLines={1} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>
+        {label}
+      </Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 4, fontFamily: terminalFont, color: accentColor, fontSize: 15, fontWeight: "700" }}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function TicketSummaryRow({
+  label,
+  value,
+  color = terminalColors.text,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+      <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>{label}</Text>
+      <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72} style={{ flex: 1, fontFamily: terminalFont, color, fontSize: 11, textAlign: "right" }}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 export default function TerminalRoute() {
   const routeReady = useDemoRouteGuard();
   const params = useLocalSearchParams<{ ticker?: string }>();
@@ -93,6 +161,10 @@ export default function TerminalRoute() {
   const remainingMs = world.travelEndTime ? Math.max(0, world.travelEndTime - clock.nowMs) : 0;
   const etaMinutes = Math.floor(remainingMs / 60_000);
   const etaSeconds = Math.floor((remainingMs % 60_000) / 1000);
+  const energyHours = Math.floor(resources.energySeconds / 3600);
+  const energyTone = energyHours > 24 ? terminalColors.green : energyHours >= 6 ? terminalColors.amber : terminalColors.red;
+  const heatTone = resources.heat < 30 ? terminalColors.green : resources.heat < 70 ? terminalColors.amber : terminalColors.red;
+  const ownedQuantity = position?.quantity ?? 0;
 
   React.useEffect(() => {
     if (!tradeJuice || clock.nowMs - tradeJuice.createdAt > 2500) {
@@ -142,17 +214,18 @@ export default function TerminalRoute() {
       ) : null}
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
         <Pressable
+          hitSlop={6}
           onPress={() => {
             goHome();
             router.replace("/home");
           }}
-          style={{ paddingVertical: 8, paddingRight: 16 }}
+          style={{ minHeight: 44, paddingRight: 16, justifyContent: "center" }}
         >
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 12 }}>{"\u2190"} HOME</Text>
         </Pressable>
         <View style={{ flex: 1, alignItems: "flex-end" }}>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.systemGreen, fontSize: 16 }}>S1LKROAD 4.0</Text>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>NODE: {currentLocation.name.toUpperCase()}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: terminalColors.systemGreen, fontSize: 16 }}>S1LKROAD 4.0</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>NODE: {currentLocation.name.toUpperCase()}</Text>
         </View>
       </View>
 
@@ -177,6 +250,13 @@ export default function TerminalRoute() {
           </Text>
         </NeonBorder>
       ) : null}
+
+      <View style={{ marginBottom: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
+        <TerminalTelemetryChip label="ENERGY" value={`${energyHours}h`} accentColor={energyTone} />
+        <TerminalTelemetryChip label="HEAT" value={`${resources.heat}%`} accentColor={heatTone} />
+        <TerminalTelemetryChip label={`OWNED ${commodity.ticker}`} value={compactNumber(ownedQuantity)} accentColor={ownedQuantity > 0 ? terminalColors.green : terminalColors.muted} />
+        <TerminalTelemetryChip label="0BOL" value={compactNumber(balance)} accentColor={terminalColors.cyan} />
+      </View>
 
       <View style={{ marginBottom: 12 }}>
         <FirstSessionCue
@@ -226,10 +306,20 @@ export default function TerminalRoute() {
           {(["BUY", "SELL"] as const).map((ticketSide) => (
             <Pressable
               key={ticketSide}
+              hitSlop={4}
               onPress={() => setSide(ticketSide)}
-              style={{ flex: 1, borderWidth: 1, borderColor: side === ticketSide ? terminalColors.cyan : terminalColors.borderDim, padding: 10 }}
+              style={{
+                flex: 1,
+                minHeight: 52,
+                borderWidth: 1,
+                borderColor: side === ticketSide ? terminalColors.cyan : terminalColors.borderDim,
+                backgroundColor: side === ticketSide ? terminalColors.cyanFill : terminalColors.background,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: 8,
+              }}
             >
-              <Text style={{ fontFamily: terminalFont, color: side === ticketSide ? terminalColors.cyan : terminalColors.muted, textAlign: "center", fontSize: 12 }}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: side === ticketSide ? terminalColors.cyan : terminalColors.muted, textAlign: "center", fontSize: 13, fontWeight: "700" }}>
                 {ticketSide} [{commodity.ticker}]
               </Text>
             </Pressable>
@@ -245,19 +335,27 @@ export default function TerminalRoute() {
           value={String(orderSize)}
           onChangeText={(value) => setOrderSize(Number(value.replace(/[^0-9]/g, "")) || 1)}
           keyboardType="number-pad"
-          style={{ height: 44, borderWidth: 1, borderColor: terminalColors.border, color: terminalColors.text, fontFamily: terminalFont, paddingHorizontal: 12, marginTop: 6 }}
+          selectTextOnFocus
+          style={{ height: 48, borderWidth: 1, borderColor: terminalColors.border, color: terminalColors.text, fontFamily: terminalFont, fontSize: 18, paddingHorizontal: 12, marginTop: 6 }}
         />
         <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
           {[0.25, 0.5, 0.75, 1].map((portion) => (
-            <Pressable key={portion} onPress={() => setOrderSize(Math.max(1, Math.floor(maxQty * portion)))} style={{ flex: 1, borderWidth: 1, borderColor: terminalColors.borderDim, padding: 8 }}>
-              <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11, textAlign: "center" }}>{Math.round(portion * 100)}%</Text>
+            <Pressable
+              key={portion}
+              hitSlop={4}
+              onPress={() => setOrderSize(Math.max(1, Math.floor(maxQty * portion)))}
+              style={{ flex: 1, minHeight: 44, borderWidth: 1, borderColor: portion === 1 ? terminalColors.cyan : terminalColors.borderDim, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 }}
+            >
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: portion === 1 ? terminalColors.cyan : terminalColors.muted, fontSize: 11, textAlign: "center" }}>
+                {portion === 1 ? "MAX" : `${Math.round(portion * 100)}%`}
+              </Text>
             </Pressable>
           ))}
         </View>
         <View style={{ marginTop: 14, gap: 4 }}>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>EST COST: {cost.toFixed(2)} 0BOL</Text>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 11 }}>HEAT DELTA: +{heatDelta}</Text>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.systemGreen, fontSize: 11 }}>ENERGY COST: {energyCost}s</Text>
+          <TicketSummaryRow label="EST COST" value={`${cost.toFixed(2)} 0BOL`} />
+          <TicketSummaryRow label="HEAT DELTA" value={`+${heatDelta}`} color={terminalColors.amber} />
+          <TicketSummaryRow label="ENERGY COST" value={`${energyCost}s`} color={terminalColors.systemGreen} />
         </View>
         <View style={{ marginTop: 16 }}>
           <ActionButton

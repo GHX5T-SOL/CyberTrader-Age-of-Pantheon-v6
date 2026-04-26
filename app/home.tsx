@@ -111,11 +111,11 @@ export default function HomeRoute() {
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 34, backgroundColor: terminalColors.background }}>
       <BurgerTrigger onPress={menu.openMenu} style={{ position: "absolute", top: 8, right: 16, zIndex: 20 }} />
-      <View style={{ paddingTop: 8, paddingHorizontal: 16 }}>
-        <Text style={{ fontFamily: terminalFont, fontSize: 9, color: terminalColors.muted, letterSpacing: 2 }}>
+      <View style={{ paddingTop: 8, paddingHorizontal: 16, paddingRight: 62 }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, fontSize: 9, color: terminalColors.muted, letterSpacing: 2 }}>
           CYBERTRADER: AGE OF PANTHEON
         </Text>
-        <Text style={{ fontFamily: terminalFont, fontSize: 11, color: terminalColors.text, marginTop: 4 }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, fontSize: 11, color: terminalColors.text, marginTop: 4 }}>
           EIDOLON ID: {truncateHandle(handle)} // {clock.displayTime}
         </Text>
       </View>
@@ -150,6 +150,12 @@ export default function HomeRoute() {
           accentColor={heatColor === "green" ? terminalColors.green : heatColor === "amber" ? terminalColors.amber : terminalColors.red}
         />
         <MetricChip
+          label="0BOL BALANCE"
+          value={formatObol(balance)}
+          icon="0B"
+          accentColor={terminalColors.cyan}
+        />
+        <MetricChip
           label="MARKET SIGNAL"
           value={latestNews?.headline.toUpperCase().slice(0, 25) || "ALL CLEAR"}
           subValue={latestNews ? `CRED ${Math.round(latestNews.credibility * 100)}%` : "NO SIGNALS"}
@@ -162,12 +168,6 @@ export default function HomeRoute() {
           subValue={progression.nextXpRequired === null ? "MAX RANK" : `${nextXp} XP TO NEXT`}
           icon="XP"
           accentColor={terminalColors.green}
-        />
-        <MetricChip
-          label="0BOL BALANCE"
-          value={formatObol(balance)}
-          icon="0B"
-          accentColor={terminalColors.cyan}
         />
       </View>
 
@@ -225,7 +225,7 @@ export default function HomeRoute() {
       <View style={{ marginTop: 20, paddingHorizontal: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <PulsingDot />
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 14 }}>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ flex: 1, fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 14 }}>
             S1LKROAD 4.0 LIVE // {currentLocation.name.toUpperCase()}
           </Text>
         </View>
@@ -304,8 +304,13 @@ export default function HomeRoute() {
           }],
           ["[UPGRADE]", () => router.push("/menu/progression")],
         ].map(([label, action]) => (
-          <Pressable key={String(label)} onPress={action as () => void} style={{ borderWidth: 1, borderColor: terminalColors.borderDim, paddingHorizontal: 16, paddingVertical: 6 }}>
-            <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>{String(label)}</Text>
+          <Pressable
+            key={String(label)}
+            onPress={action as () => void}
+            hitSlop={4}
+            style={{ flex: 1, minHeight: 44, borderWidth: 1, borderColor: terminalColors.borderDim, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" }}
+          >
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>{String(label)}</Text>
           </Pressable>
         ))}
       </View>

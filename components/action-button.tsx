@@ -57,6 +57,7 @@ export default function ActionButton({
     >
       <Pressable
         disabled={disabled}
+        hitSlop={6}
         onPress={() => {
           if (!disabled) {
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
@@ -72,6 +73,9 @@ export default function ActionButton({
       >
         {({ pressed }) => (
           <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
             style={{
               fontFamily: terminalFont,
               fontSize: 16,
@@ -79,6 +83,8 @@ export default function ActionButton({
               letterSpacing: 2,
               color: pressed ? pressedColor : baseColor,
               textAlign: "center",
+              paddingHorizontal: 10,
+              maxWidth: "100%",
             }}
           >
             {label}
@@ -90,4 +96,3 @@ export default function ActionButton({
 }
 
 export { ActionButton };
-

@@ -51,8 +51,9 @@ export default function CommodityRow({
       onPress={onPress}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setTimeout(() => setPressed(false), 100)}
+      hitSlop={4}
       style={{
-        height: 48,
+        minHeight: 52,
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: pressed
@@ -72,16 +73,16 @@ export default function CommodityRow({
         resizeMode="contain"
         style={{ width: 28, height: 28, marginRight: 8 }}
       />
-      <Text style={{ width: 60, fontFamily: terminalFont, fontSize: 14, fontWeight: "700", color: terminalColors.cyan }}>
+      <Text numberOfLines={1} style={{ width: 52, fontFamily: terminalFont, fontSize: 13, fontWeight: "700", color: terminalColors.cyan }}>
         {ticker}
       </Text>
       <Text numberOfLines={1} style={{ flex: 1, fontFamily: terminalFont, fontSize: 12, color: terminalColors.muted }}>
         {name}
       </Text>
-      <Text style={{ width: 100, textAlign: "right", fontFamily: terminalFont, fontSize: 16, color: terminalColors.text }}>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 86, textAlign: "right", fontFamily: terminalFont, fontSize: 15, color: terminalColors.text }}>
         {price.toFixed(2)}
       </Text>
-      <Text style={{ width: 80, textAlign: "right", fontFamily: terminalFont, fontSize: 13, color }}>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 62, textAlign: "right", fontFamily: terminalFont, fontSize: 12, color }}>
         {prefix} {Math.abs(changePercent).toFixed(1)}%
       </Text>
     </Pressable>

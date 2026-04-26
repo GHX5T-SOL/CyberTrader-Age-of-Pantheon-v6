@@ -38,18 +38,28 @@ export default function MetricChip({
   return (
     <Wrapper onPress={onPress} style={{ width: "48%" }}>
       <NeonBorder active={active} style={accentColor ? { borderColor: accentColor } : undefined}>
-        <View style={{ minHeight: 116, justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <Text style={{ fontFamily: terminalFont, fontSize: 10, color: terminalColors.muted, letterSpacing: 1, textTransform: "uppercase" }}>
+        <View style={{ minHeight: 116, justifyContent: "space-between", gap: 8 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{ flex: 1, fontFamily: terminalFont, fontSize: 10, color: terminalColors.muted, letterSpacing: 1, textTransform: "uppercase" }}
+            >
               {label}
             </Text>
-            {icon ? <Text style={{ color: accentColor ?? terminalColors.cyan }}>{icon}</Text> : null}
+            {icon ? <Text style={{ color: accentColor ?? terminalColors.cyan, fontFamily: terminalFont, fontSize: 10, fontWeight: "700" }}>{icon}</Text> : null}
           </View>
-          <Text numberOfLines={2} style={{ fontFamily: terminalFont, fontSize: 28, color: terminalColors.text, fontWeight: "600" }}>
+          <Text
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.58}
+            style={{ fontFamily: terminalFont, fontSize: 28, lineHeight: 30, color: terminalColors.text, fontWeight: "600" }}
+          >
             {value}
           </Text>
           {subValue ? (
-            <Text numberOfLines={1} style={{ fontFamily: terminalFont, fontSize: 10, color: terminalColors.muted }}>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, fontSize: 10, color: terminalColors.muted }}>
               {subValue}
             </Text>
           ) : null}
@@ -68,4 +78,3 @@ export default function MetricChip({
 }
 
 export { MetricChip };
-

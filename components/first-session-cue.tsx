@@ -102,15 +102,17 @@ export function FirstSessionCue(props: FirstSessionCueInput) {
         borderWidth: 1,
         borderColor: accent,
         backgroundColor: terminalColors.panel,
-        padding: 12,
+        padding: 14,
         gap: 8,
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Text style={{ fontFamily: terminalFont, color: accent, fontSize: 20 }}>{cue.step}</Text>
+        <Text style={{ width: 30, fontFamily: terminalFont, color: accent, fontSize: 22, fontWeight: "700" }}>{cue.step}</Text>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: terminalFont, color: accent, fontSize: 12 }}>{cue.title}</Text>
-          <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.text, fontSize: 11, lineHeight: 17 }}>
+          <Text numberOfLines={2} style={{ fontFamily: terminalFont, color: accent, fontSize: 12, fontWeight: "700", lineHeight: 16 }}>
+            {cue.title}
+          </Text>
+          <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.text, fontSize: 11, lineHeight: 18 }}>
             {cue.detail}
           </Text>
         </View>

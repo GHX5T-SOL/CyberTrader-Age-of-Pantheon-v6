@@ -59,3 +59,14 @@ Legacy first-playable tokens in `theme/colors.ts` still exist for unused `screen
 - The first trade needs an obvious low-risk path: start with `VBLM`, buy a small lot, wait for a tick, sell when green.
 - Energy, Heat, 0BOL balance, selected ticker, and owned inventory must remain scannable on small phones.
 - Any required copy should be in-world and operational, not explanatory marketing text.
+
+## Vex P0 Mobile HUD Readability Pass
+
+Superdesign project: `CyberTrader v6 HUD readability pass`
+
+- Baseline draft: `b91811ab-de45-4dd5-a27f-cf7bce08671b`.
+- Branch references: `6f18c62a-b34a-426e-8c2c-89f091d711c7` and `4034312d-d827-4ca5-8a3d-4fae56a93713`.
+- Home HUD keeps the same terminal shell but prioritizes Energy, Heat, and 0BOL before secondary market/rank telemetry.
+- `MetricChip`, `CommodityRow`, and `ActionButton` must scale or truncate text explicitly instead of allowing critical labels, prices, or commands to clip.
+- Terminal trade controls must remain thumb-sized: segmented BUY/SELL controls are at least 52 px tall, quantity presets are at least 44 px tall, and command buttons keep the 52 px `ActionButton` height.
+- Terminal trade screens should surface Energy, Heat, owned quantity, and 0BOL near the ticket so a player does not need to scroll back to understand whether the next action is safe.
