@@ -184,7 +184,7 @@ export default function HomeRoute() {
           />
         </View>
         {/* Visible marker for Axiom test */}
-        <Text style={{ fontSize: 12, color: terminalColors.cyan, position: 'relative', display: 'inline' }}>0BOL</Text>
+        <Text style={{ fontSize: 12, color: terminalColors.cyan, position: 'relative' }}>0BOL</Text>
       </View>
 
       <AwayReportPanel report={awayReport} onDismiss={dismissAwayReport} />
