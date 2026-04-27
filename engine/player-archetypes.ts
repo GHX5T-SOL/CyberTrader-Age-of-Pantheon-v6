@@ -134,11 +134,14 @@ interface ArchetypeHolding extends DemoHolding {
 
 export function runPlayerArchetypeReport(
   archetype: PlayerArchetype,
-  input?: { seedCount?: number; ticks?: number },
+  input?: { seedCount?: number; ticks?: number; seedPrefix?: string },
 ): ArchetypeReport {
   const seedCount = input?.seedCount ?? ARCHETYPE_SEED_COUNT;
   const ticks = input?.ticks ?? ARCHETYPE_TICKS;
-  const seeds = makeEconomyReplaySeeds(seedCount, `oracle-p0-005:${archetype.id}`);
+  const seeds = makeEconomyReplaySeeds(
+    seedCount,
+    input?.seedPrefix ?? `oracle-p0-005:${archetype.id}`,
+  );
   const sessions = seeds.map((seed) => runArchetypeSession(archetype, seed, ticks));
 
   const pnls = sessions.map((s) => s.realizedPnl).sort((a, b) => a - b);
