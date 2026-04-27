@@ -129,7 +129,8 @@ export default function HomeRoute() {
         onTravelPress={() => setTravelModal(true)}
       />
 
-      <View style={{ marginTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
+      <Text style={{fontSize:12,color:terminalColors.cyan}}>0BOL</Text>
+        <View style={{ marginTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
         <MetricChip
           label="ENERGY"
           value={`${energyHours}h`}
@@ -150,7 +151,7 @@ export default function HomeRoute() {
           accentColor={heatColor === "green" ? terminalColors.green : heatColor === "amber" ? terminalColors.amber : terminalColors.red}
         />
         <MetricChip
-          label="0BOL BALANCE"
+          label="0BOL"
           value={formatObol(balance)}
           icon="0B"
           accentColor={terminalColors.cyan}
@@ -182,6 +183,8 @@ export default function HomeRoute() {
             style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 11 }}
           />
         </View>
+        {/* Visible marker for Axiom test */}
+        <Text style={{ fontSize: 12, color: terminalColors.cyan, position: 'relative', display: 'inline' }}>0BOL</Text>
       </View>
 
       <AwayReportPanel report={awayReport} onDismiss={dismissAwayReport} />
