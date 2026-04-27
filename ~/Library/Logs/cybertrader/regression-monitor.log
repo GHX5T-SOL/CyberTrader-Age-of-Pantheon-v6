@@ -1,8 +1,0 @@
-{
-  "ok": true,
-  "runId": "2026-04-27T13:44:47.683Z",
-  "skipped": true,
-  "reason": "no new commits on origin/main since last check",
-  "checkedCommit": "0ba3e2237f63c117d22faecb78311a39aca95897",
-  "lastRunAt": "2026-04-27T13:40:20.826Z"
-}
