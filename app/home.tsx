@@ -129,8 +129,7 @@ export default function HomeRoute() {
         onTravelPress={() => setTravelModal(true)}
       />
 
-      <Text style={{fontSize:12,color:terminalColors.cyan}}>0BOL</Text>
-        <View style={{ marginTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
+      <View style={{ marginTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
         <MetricChip
           label="ENERGY"
           value={`${energyHours}h`}
@@ -183,8 +182,6 @@ export default function HomeRoute() {
             style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 11 }}
           />
         </View>
-        {/* Visible marker for Axiom test */}
-        <Text style={{ fontSize: 12, color: terminalColors.cyan, position: 'relative' }}>0BOL</Text>
       </View>
 
       <AwayReportPanel report={awayReport} onDismiss={dismissAwayReport} />
@@ -206,6 +203,7 @@ export default function HomeRoute() {
           positions={positions}
           firstTradeComplete={firstTradeComplete}
           selectedTicker={selectedTicker}
+          heat={resources.heat}
         />
       </View>
 

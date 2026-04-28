@@ -41,7 +41,9 @@ const HEAT_FACTOR: Record<Commodity["heatRisk"], number> = {
 
 const HIGH_RISK_TICKERS = new Set(["BLCK", "AETH", "HXMD"]);
 
-export const DEFAULT_TRADE_QUANTITY = 10;
+const ENERGY_BASE_QUANTITY = 10;
+
+export const DEFAULT_TRADE_QUANTITY = 15;
 export const ORDER_SIZES = [5, 10, 25] as const;
 export const MAX_ENERGY_SECONDS = 72 * 60 * 60;
 export const DORMANT_ENERGY_THRESHOLD_SECONDS = 60;
@@ -115,7 +117,7 @@ export function getHeatDelta(ticker: string, side: "BUY" | "SELL"): number {
 
 export function getTradeEnergyCost(side: TradeIntent, quantity: number): number {
   const baseCost = side === "BUY" ? 90 : 75;
-  return Math.max(15, Math.round((baseCost * Math.max(1, quantity)) / DEFAULT_TRADE_QUANTITY));
+  return Math.max(15, Math.round((baseCost * Math.max(1, quantity)) / ENERGY_BASE_QUANTITY));
 }
 
 export function getStealthAdjustedHeatDelta(

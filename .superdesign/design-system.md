@@ -123,3 +123,27 @@ SuperDesign project: `CyberTrader v6 screenshot preset capture`
 - Store capture presets use the current terminal system for `/home`, `/terminal`, `/market`, `/missions`, `/menu/inventory`, and `/menu/profile`.
 - `npm run capture:screenshots` builds the Expo web export, serves `dist/`, completes normal local-demo onboarding, and captures 1242 x 2688 PNGs from a 414 x 896 mobile viewport at 3x device scale.
 - Generated screenshots must stay free of debug UI, personal data, wallet prompts, placeholder copy, and out-of-brand color treatments before Palette/Zoro review.
+
+## Nyx/Vex P1 Tuned Strategy Guidance
+
+Release note: `docs/release/nyx-p1-002-strategy-guidance.md`.
+
+- SuperDesign project: `CyberTrader v6 Vex cyberdeck polish`.
+- Baseline draft: `d0db7f31-3ede-4772-aba3-4fe7dbd55ce2`.
+- Preview URL: `https://p.superdesign.dev/draft/d0db7f31-3ede-4772-aba3-4fe7dbd55ce2`.
+- The first-session cue is now an Oracle route panel, not a generic instructional card: it uses an in-world header, step code, live-script marker, tuned strategy copy, and the current cyan/amber/green token system.
+- Metric chips use a subtle left signal rail and active panel fill while preserving the existing 116 px chip height, 48% two-column layout, progress bars, and small-phone scaling rules.
+- Strategy guidance must continue to reflect `oracle-p0-006` tuning: starter VBLM x15, safe-cycle VBLM/MTRX, upgrade PGAS/ORRS/SNPS, contraband FDST/AETH/BLCK only below the Heat stop line.
+
+## Oracle P1 Strategy Guidance Pass
+
+SuperDesign project: `CyberTrader v6 Strategy Guidance Pass`
+
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/d04527d4-2764-4fad-991a-dfdc48650d31`.
+- Baseline reproduction draft: `d225bdf9-46fc-47f7-81c5-38e628c3d79e`.
+- Implemented direction follows the Oracle strategy integration branch: `b82e9ab7-f20a-476f-8f8a-351ab27e5f31`.
+- Supplemental Codex automation project: `09f65e9b-27ae-4f49-842a-dbf4947ca041`; drafts `f5fd069a-b0b6-4da2-b018-5b3a2c2ae1fc`, `a4ac5fda-68ad-4cfa-a1a3-21c0ba4bbd26`, and `606a6e96-0aba-4084-85d2-02c9d88828d6`.
+- First-session guidance should now make the tuned `VBLM x15` starter route explicit on home and terminal.
+- If a first-session player selects a non-`VBLM` ticker, the cue should steer them back to `VBLM` before the first clean sell.
+- After first profit, the copy should surface `PGAS` / `ORRS` / `SNPS` as the first upgrade lane and keep contraband gated behind low Heat.
+- Mission contact strategy hints should read as operator advice, not generic tutorial text, and must stay store-safe: no real-money, investment, cash-out, or prize language.

@@ -4,6 +4,7 @@ export const NPCS = [
     name: "Kite",
     faction: "Blackwake",
     personality: "Impatient smuggler captain. Pays well. Hates delays.",
+    strategyHint: "Starter cargo first: VBLM x15, sell green, then keep PGAS runs short.",
     unlockedAtRank: 1,
   },
   {
@@ -11,6 +12,7 @@ export const NPCS = [
     name: "The Librarian",
     faction: "Archivists",
     personality: "Memory broker. Speaks in fragments. Rewards intel.",
+    strategyHint: "Archive note: PGAS, ORRS, and SNPS are the first upgrade lane after profit.",
     unlockedAtRank: 3,
   },
   {
@@ -18,6 +20,7 @@ export const NPCS = [
     name: "Verdigris",
     faction: "Null Crown",
     personality: "Morally gray envoy. Missions have ethical weight.",
+    strategyHint: "Read the street: safe cycles build rank; contraband waits until Heat is quiet.",
     unlockedAtRank: 5,
   },
   {
@@ -25,6 +28,7 @@ export const NPCS = [
     name: "Obsidian",
     faction: "Eclipse Guild",
     personality: "Silent enforcer. Rewards high risk, high reward ops.",
+    strategyHint: "Eclipse rule: FDST, AETH, and BLCK only pay when Heat stays under control.",
     unlockedAtRank: 7,
   },
 ] as const;

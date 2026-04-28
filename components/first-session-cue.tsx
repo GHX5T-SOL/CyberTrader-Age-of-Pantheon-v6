@@ -1,5 +1,7 @@
 import { Text, View } from "react-native";
 import type { Position } from "@/engine/types";
+import { FIRST_TRADE_HINT_TICKER } from "@/engine/demo-market";
+import { getLiveStrategyHint } from "@/engine/strategy-guidance";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export interface FirstSessionCueInput {
@@ -7,6 +9,7 @@ export interface FirstSessionCueInput {
   positions: Record<string, Position>;
   firstTradeComplete: boolean;
   selectedTicker: string;
+  heat?: number;
 }
 
 export interface FirstSessionCueCopy {
@@ -22,17 +25,24 @@ export function getFirstSessionCueCopy({
   positions,
   firstTradeComplete,
   selectedTicker,
+  heat = 0,
 }: FirstSessionCueInput): FirstSessionCueCopy {
   const selectedPosition = positions[selectedTicker];
   const firstOpenPosition = Object.values(positions)[0];
+  const strategy = getLiveStrategyHint({
+    selectedTicker,
+    firstTradeComplete,
+    heat,
+    hasOpenPosition: Boolean(selectedPosition ?? firstOpenPosition),
+  });
 
   if (firstTradeComplete) {
     return {
       step: "04",
       title: "FIRST PROFIT BANKED",
-      detail: "The demo loop is complete. Keep Heat controlled, scale only when the tape gives you room, and build XP toward the next OS tier.",
+      detail: strategy.detail,
       tone: "green",
-      lines: ["[DONE] handle claimed", "[DONE] position closed", "[NEXT] manage heat and rank"],
+      lines: ["[DONE] handle claimed", "[DONE] position closed", ...strategy.lines.slice(0, 1)],
     };
   }
 
@@ -43,7 +53,7 @@ export function getFirstSessionCueCopy({
       title: pnl > 0 ? "SELL THE GREEN TAPE" : "WAIT FOR GREEN TAPE",
       detail:
         pnl > 0
-          ? `${selectedTicker} is profitable now. Switch to SELL, keep the lot at ${selectedPosition.quantity}, and execute the close.`
+          ? `${selectedTicker} is profitable now. Switch to SELL, keep the lot at ${selectedPosition.quantity}, and execute the close before opening another lane.`
           : `${selectedTicker} is open. Use WAIT MARKET TICK until PnL turns positive, then sell the same lot.`,
       tone: pnl > 0 ? "green" : "amber",
       lines: [
@@ -71,19 +81,21 @@ export function getFirstSessionCueCopy({
   if (surface === "terminal") {
     return {
       step: "02",
-      title: "BUY THE STARTER SIGNAL",
-      detail: `${selectedTicker} is locked as the low-heat starter. Keep the default lot, execute BUY, then wait one market tick before selling.`,
-      tone: "cyan",
-      lines: [`[LOCK] ${selectedTicker}`, "[NEXT] execute buy", "[NEXT] wait market tick"],
+      title: selectedTicker === FIRST_TRADE_HINT_TICKER ? "BUY THE STARTER SIGNAL" : strategy.title,
+      detail: strategy.detail,
+      tone: strategy.tone,
+      lines: selectedTicker === FIRST_TRADE_HINT_TICKER
+        ? [`[LOCK] ${selectedTicker}`, ...strategy.lines.slice(0, 1), "[NEXT] execute buy", ...strategy.lines.slice(1, 2)]
+        : strategy.lines,
     };
   }
 
   return {
     step: "01",
     title: "ENTER S1LKROAD",
-    detail: "Your first objective is one clean local trade: enter the terminal, buy the starter signal, wait for a green tick, and sell.",
+    detail: strategy.detail,
     tone: "cyan",
-    lines: ["[READY] local handle", "[NEXT] enter market", "[GOAL] first profitable sell"],
+    lines: ["[READY] local handle", ...strategy.lines.slice(0, 2)],
   };
 }
 
@@ -101,28 +113,46 @@ export function FirstSessionCue(props: FirstSessionCueInput) {
       style={{
         borderWidth: 1,
         borderColor: accent,
-        backgroundColor: terminalColors.panel,
-        padding: 14,
-        gap: 8,
+        backgroundColor: terminalColors.panelAlt,
+        padding: 0,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Text style={{ width: 30, fontFamily: terminalFont, color: accent, fontSize: 22, fontWeight: "700" }}>{cue.step}</Text>
-        <View style={{ flex: 1 }}>
+      <View
+        style={{
+          borderBottomWidth: 1,
+          borderBottomColor: terminalColors.borderDim,
+          paddingHorizontal: 12,
+          paddingVertical: 7,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
+      >
+        <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9, letterSpacing: 1.2 }}>
+          ORACLE ROUTE // STEP {cue.step}
+        </Text>
+        <Text style={{ fontFamily: terminalFont, color: accent, fontSize: 9, fontWeight: "700" }}>
+          LIVE_SCRIPT
+        </Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 14 }}>
+        <Text style={{ width: 34, fontFamily: terminalFont, color: accent, fontSize: 24, fontWeight: "700" }}>{cue.step}</Text>
+        <View style={{ flex: 1, gap: 8 }}>
           <Text numberOfLines={2} style={{ fontFamily: terminalFont, color: accent, fontSize: 12, fontWeight: "700", lineHeight: 16 }}>
             {cue.title}
           </Text>
-          <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.text, fontSize: 11, lineHeight: 18 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11, lineHeight: 18 }}>
             {cue.detail}
           </Text>
+          <View style={{ gap: 4 }}>
+            {cue.lines.map((line) => (
+              <Text key={line} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+                {line}
+              </Text>
+            ))}
+          </View>
         </View>
-      </View>
-      <View style={{ gap: 4 }}>
-        {cue.lines.map((line) => (
-          <Text key={line} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-            {line}
-          </Text>
-        ))}
       </View>
     </View>
   );

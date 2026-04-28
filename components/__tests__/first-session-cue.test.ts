@@ -42,7 +42,23 @@ describe("first-session cue copy", () => {
     ).toMatchObject({
       step: "02",
       title: "BUY THE STARTER SIGNAL",
-      lines: expect.arrayContaining(["[NEXT] execute buy"]),
+      lines: expect.arrayContaining(["[TUNED] VBLM x15", "[NEXT] execute buy"]),
+    });
+  });
+
+  it("steers first-session ticker detours back to VBLM", () => {
+    expect(
+      getFirstSessionCueCopy({
+        surface: "terminal",
+        positions: {},
+        firstTradeComplete: false,
+        selectedTicker: "PGAS",
+      }),
+    ).toMatchObject({
+      step: "02",
+      title: "SWITCH TO VBLM STARTER",
+      tone: "amber",
+      lines: expect.arrayContaining(["[NEXT] select VBLM"]),
     });
   });
 
@@ -90,6 +106,7 @@ describe("first-session cue copy", () => {
       step: "04",
       title: "FIRST PROFIT BANKED",
       tone: "green",
+      lines: expect.arrayContaining(["[SAFE] VBLM MTRX"]),
     });
   });
 });

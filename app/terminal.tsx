@@ -265,6 +265,7 @@ export default function TerminalRoute() {
           positions={positions}
           firstTradeComplete={firstTradeComplete}
           selectedTicker={commodity.ticker}
+          heat={resources.heat}
         />
       </View>
 

@@ -37,8 +37,28 @@ export default function MetricChip({
 
   return (
     <Wrapper onPress={onPress} style={{ width: "48%" }}>
-      <NeonBorder active={active} style={accentColor ? { borderColor: accentColor } : undefined}>
-        <View style={{ minHeight: 116, justifyContent: "space-between", gap: 8 }}>
+      <NeonBorder
+        active={active}
+        style={{
+          borderColor: accentColor ?? (active ? terminalColors.cyan : terminalColors.border),
+          backgroundColor: active ? terminalColors.panelAlt : terminalColors.panel,
+          padding: 0,
+          overflow: "hidden",
+        }}
+      >
+        <View style={{ minHeight: 116, justifyContent: "space-between", gap: 8, padding: 12 }}>
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: 2,
+              backgroundColor: accentColor ?? terminalColors.cyan,
+              opacity: active ? 0.85 : 0.25,
+            }}
+          />
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
             <Text
               numberOfLines={1}

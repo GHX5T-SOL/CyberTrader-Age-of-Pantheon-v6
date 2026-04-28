@@ -45,6 +45,11 @@ export default function MissionsRoute() {
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
                 {locked ? `LOCKED RANK ${npc.unlockedAtRank}` : npc.personality}
               </Text>
+              {!locked ? (
+                <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 10, lineHeight: 15 }}>
+                  HINT // {npc.strategyHint}
+                </Text>
+              ) : null}
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
                 REP {npcReputation[npc.id] ?? 0}
               </Text>
