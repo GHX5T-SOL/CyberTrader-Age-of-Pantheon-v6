@@ -20,6 +20,13 @@ export const NPCS = [
     personality: "Morally gray envoy. Missions have ethical weight.",
     unlockedAtRank: 5,
   },
+  {
+    id: "obsidian",
+    name: "Obsidian",
+    faction: "Eclipse Guild",
+    personality: "Silent enforcer. Rewards high risk, high reward ops.",
+    unlockedAtRank: 7,
+  },
 ] as const;
 
 export type NpcDefinition = (typeof NPCS)[number];
