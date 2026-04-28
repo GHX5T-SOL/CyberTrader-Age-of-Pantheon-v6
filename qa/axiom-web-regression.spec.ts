@@ -278,6 +278,7 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
   test("1.3a login – text input and demo-entry button visible, no wallet prompt", async ({
     page,
   }) => {
+    await resetBrowserSession(page, origin);
     await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
 
     await expect(page.locator("input").first()).toBeVisible();
@@ -290,6 +291,7 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
   });
 
   test("1.3b login – empty handle submission is rejected", async ({ page }) => {
+    await resetBrowserSession(page, origin);
     await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
 
     await page.locator("input").first().fill("");
@@ -302,6 +304,7 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
 
   test("1.3c login – valid handle reaches tutorial", async ({ page }) => {
     const getErrors = collectConsoleErrors(page);
+    await resetBrowserSession(page, origin);
     await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
 
     await page.locator("input").first().fill("ZYRA_AX_HDL");
