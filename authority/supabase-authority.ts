@@ -34,6 +34,9 @@ type DbPlayer = {
   rank: number;
   xp?: number | string | null;
   faction: PlayerProfile["faction"];
+  current_location_id?: string | null;
+  travel_destination_id?: string | null;
+  travel_end_time?: string | null;
   created_at: string;
 };
 
@@ -334,7 +337,15 @@ export class SupabaseAuthority implements Authority {
       payload.energy_seconds = energyHours * 3600;
     }
 
-    const { error } = await client.from("resources").update(payload).eq("player_id", playerId);
+    const { error } = await client.rpc("set_player_resources", {
+      p_player_id: playerId,
+      p_energy_seconds: payload.energy_seconds ?? null,
+      p_heat: payload.heat ?? null,
+      p_integrity: payload.integrity ?? null,
+      p_stealth: payload.stealth ?? null,
+      p_influence: payload.influence ?? null,
+    });
+
     if (error) {
       throw new Error(error.message);
     }
@@ -403,36 +414,16 @@ export class SupabaseAuthority implements Authority {
 
   async updateXp(playerId: string, xpDelta: number): Promise<RankSnapshot> {
     const client = await requireSupabase();
-    const { error } = await client.rpc("add_xp", {
+    const { data, error } = await client.rpc("add_xp", {
       p_player_id: playerId,
       p_delta: Math.floor(xpDelta),
     });
 
-    if (error) {
-      throw new Error(error.message);
+    if (error || !data) {
+      throw new Error(error?.message ?? `Rank not found for player: ${playerId}`);
     }
 
-    const { data, error: rankError } = await client
-      .from("players")
-      .select("xp, rank")
-      .eq("id", playerId)
-      .single<{ xp: number | string; rank: number }>();
-
-    if (rankError || !data) {
-      throw new Error(rankError?.message ?? `Rank not found for player: ${playerId}`);
-    }
-
-    const snapshot = getRankSnapshot(Number(data.xp ?? 0));
-    const { error: updateError } = await client
-      .from("players")
-      .update({ rank: snapshot.level })
-      .eq("id", playerId);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    return snapshot;
+    return getRankSnapshot(Number((data as DbPlayer).xp ?? 0));
   }
 
   async getRank(playerId: string): Promise<RankSnapshot> {
@@ -548,6 +539,9 @@ export class SupabaseAuthority implements Authority {
       osTier: data.os_tier,
       rank: data.rank,
       faction: data.faction,
+      currentLocationId: data.current_location_id ?? undefined,
+      travelDestinationId: data.travel_destination_id ?? null,
+      travelEndTime: data.travel_end_time ? Date.parse(data.travel_end_time) : null,
       createdAt: data.created_at,
     };
   }
