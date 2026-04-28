@@ -3,6 +3,13 @@ import MenuScreen from "@/components/menu-screen";
 import MissionBanner from "@/components/mission-banner";
 import NeonBorder from "@/components/neon-border";
 import { NPCS } from "@/data/npcs";
+import {
+  getAgentOsFactionByNpcFaction,
+  getAgentOsFactionGate,
+  getAgentOsGateProgress,
+  getFactionDefinition,
+  getFactionStanding,
+} from "@/engine/factions";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -13,8 +20,18 @@ export default function MissionsRoute() {
   const missionHistory = useDemoStore((state) => state.missionHistory);
   const npcReputation = useDemoStore((state) => state.npcReputation);
   const progression = useDemoStore((state) => state.progression);
+  const profile = useDemoStore((state) => state.profile);
+  const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
+  const heat = useDemoStore((state) => state.resources.heat);
   const acceptMission = useDemoStore((state) => state.acceptMission);
   const declineMission = useDemoStore((state) => state.declineMission);
+  const agentOsGate = getAgentOsFactionGate({
+    rank: progression.level,
+    firstTradeComplete,
+    heat,
+    faction: profile?.faction ?? null,
+  });
+  const agentOsProgress = getAgentOsGateProgress(agentOsGate);
 
   return (
     <MenuScreen title="MISSION CONTACTS">
@@ -33,10 +50,33 @@ export default function MissionsRoute() {
         </NeonBorder>
       )}
 
+      <NeonBorder style={{ marginTop: 14 }} active={agentOsGate.canChooseFaction}>
+        <Text style={{ fontFamily: terminalFont, color: agentOsGate.unlocked ? terminalColors.green : terminalColors.amber, fontSize: 12 }}>
+          AGENTOS CONTRACT GATE // {agentOsProgress.percent}%
+        </Text>
+        <View style={{ height: 6, backgroundColor: terminalColors.borderDim, marginTop: 8 }}>
+          <View
+            style={{
+              height: 6,
+              width: `${agentOsProgress.percent}%`,
+              backgroundColor: agentOsGate.unlocked ? terminalColors.green : terminalColors.amber,
+            }}
+          />
+        </View>
+        <Text style={{ marginTop: 8, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10, lineHeight: 15 }}>
+          {agentOsGate.canChooseFaction
+            ? "Faction choice ready. Pick an allegiance from the OS Upgrade Path."
+            : `${agentOsProgress.completed}/${agentOsProgress.total} unlock signals stable. Rank 5, one profitable sell, and Heat 70 or lower open the relay.`}
+        </Text>
+      </NeonBorder>
+
       <NeonBorder style={{ marginTop: 14 }}>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>CONTACTS</Text>
         {NPCS.map((npc) => {
           const locked = progression.level < npc.unlockedAtRank;
+          const factionId = getAgentOsFactionByNpcFaction(npc.faction);
+          const faction = factionId ? getFactionDefinition(factionId) : null;
+          const standing = factionId ? getFactionStanding(factionId, npcReputation[npc.id] ?? 0) : null;
           return (
             <View key={npc.id} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10 }}>
               <Text style={{ fontFamily: terminalFont, color: locked ? terminalColors.dim : terminalColors.text, fontSize: 12 }}>
@@ -53,6 +93,15 @@ export default function MissionsRoute() {
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
                 REP {npcReputation[npc.id] ?? 0}
               </Text>
+              {faction && standing ? (
+                <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.green, fontSize: 10, lineHeight: 15 }}>
+                  AGENTOS // {faction.name.toUpperCase()} {standing.tier.toUpperCase()} // {faction.heatPosture.toUpperCase()} HEAT POSTURE
+                </Text>
+              ) : (
+                <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.dim, fontSize: 10, lineHeight: 15 }}>
+                  AGENTOS // OBSERVER SIGNAL - FACTION CHOICE NOT BOUND HERE
+                </Text>
+              )}
             </View>
           );
         })}

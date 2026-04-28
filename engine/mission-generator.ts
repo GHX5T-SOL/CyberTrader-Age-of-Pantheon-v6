@@ -1,8 +1,9 @@
 import { getLocation } from "@/data/locations";
 import { getNpc, getUnlockedNpcs } from "@/data/npcs";
 import { roundCurrency, type PriceMap } from "@/engine/demo-market";
+import { getAgentOsFactionByNpcFaction, getFactionDefinition } from "@/engine/factions";
 import { seededStream } from "@/engine/prng";
-import type { Mission, MissionType, Position } from "@/engine/types";
+import type { Faction, Mission, MissionType, Position } from "@/engine/types";
 
 const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop"];
 
@@ -18,12 +19,19 @@ export function createMission(input: {
   rankLevel: number;
   prices: PriceMap;
   rewardMultiplier?: number;
+  faction?: Faction | null;
 }): Mission {
   const stream = seededStream(`${input.seed}:mission:${input.index}`);
   const npcs = getUnlockedNpcs(input.rankLevel);
-  const npc = npcs[Math.floor(stream() * npcs.length)] ?? npcs[0]!;
-  const type = MISSION_TYPES[Math.floor(stream() * MISSION_TYPES.length)] ?? "delivery";
-  const rewardMultiplier = input.rewardMultiplier ?? 1;
+  const faction = input.faction ? getFactionDefinition(input.faction) : null;
+  const factionNpcPool = faction
+    ? npcs.filter((npc) => getAgentOsFactionByNpcFaction(npc.faction) === faction.id)
+    : [];
+  const npcPool = factionNpcPool.length ? factionNpcPool : npcs;
+  const missionTypes = faction?.missionBias ?? MISSION_TYPES;
+  const npc = npcPool[Math.floor(stream() * npcPool.length)] ?? npcPool[0] ?? npcs[0]!;
+  const type = missionTypes[Math.floor(stream() * missionTypes.length)] ?? "delivery";
+  const rewardMultiplier = (input.rewardMultiplier ?? 1) * (faction?.rewardModifier ?? 1);
 
   if (type === "buy_request") {
     const ticker = "PGAS";

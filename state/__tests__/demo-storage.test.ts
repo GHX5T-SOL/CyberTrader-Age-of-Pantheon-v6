@@ -49,6 +49,12 @@ describe("demo storage", () => {
       activeView: "trade",
       handle: "QA_STORAGE",
       playerId: "player-1",
+      factionChoice: {
+        faction: "BLACKWAKE",
+        chosenAt: "2077-04-01T00:00:00.000Z",
+        freeSwitchUsed: false,
+        previousFaction: null,
+      },
       authoritySnapshot: null,
     };
 

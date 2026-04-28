@@ -6,7 +6,8 @@ export type SafeFailureContext =
   | "heat"
   | "courier"
   | "shipment"
-  | "challenge";
+  | "challenge"
+  | "faction";
 
 const SAFE_FAILURE_MESSAGES: Record<SafeFailureContext, string> = {
   provision: "[sys] local shard could not boot. retry from the handle gate.",
@@ -17,6 +18,7 @@ const SAFE_FAILURE_MESSAGES: Record<SafeFailureContext, string> = {
   courier: "[sys] courier dispatch failed safe. inventory remains local.",
   shipment: "[sys] shipment claim failed safe. cargo manifest is unchanged.",
   challenge: "[sys] challenge reward failed safe. objective state is unchanged.",
+  faction: "[agentos] alignment relay failed safe. current faction remains unchanged.",
 };
 
 export function getSafeFailureMessage(context: SafeFailureContext): string {

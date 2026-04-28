@@ -69,6 +69,11 @@ import {
   updateFlashEvent,
 } from "@/engine/flash-events";
 import {
+  getAgentOsFactionGate,
+  getFactionDefinition,
+  getNextFactionChoice,
+} from "@/engine/factions";
+import {
   createMission,
   getMissionProgress,
   getNextMissionDelay,
@@ -86,6 +91,8 @@ import type {
   AwayReport,
   BountySnapshot,
   DistrictStateRecord,
+  Faction,
+  FactionChoice,
   FlashEvent,
   MarketNews,
   Mission,
@@ -184,6 +191,7 @@ interface DemoStoreState {
   tradeJuice: TradeJuice | null;
   heatWarning: { threshold: number; createdAt: number } | null;
   rankCelebration: RankCelebration | null;
+  factionChoice: FactionChoice | null;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;
@@ -226,6 +234,7 @@ interface DemoStoreActions {
   claimShipment: (shipmentId: string) => Promise<void>;
   acceptMission: () => void;
   declineMission: () => void;
+  chooseFaction: (faction: Faction) => Promise<void>;
   claimDailyChallenge: (challengeId: string) => Promise<void>;
   recordAwayReport: (nowMs: number, awayStartedAt: number) => void;
   dismissAwayReport: () => void;
@@ -290,6 +299,7 @@ function buildInitialState(): DemoStoreState {
     tradeJuice: null,
     heatWarning: null,
     rankCelebration: null,
+    factionChoice: null,
     selectedTicker: FIRST_TRADE_HINT_TICKER,
     orderSize: DEFAULT_TRADE_QUANTITY,
     lastRealizedPnl: null,
@@ -502,6 +512,19 @@ function markMissionStatus(
   };
 }
 
+function getLegacyFactionChoice(profile: PlayerProfile | null | undefined): FactionChoice | null {
+  if (!profile?.faction) {
+    return null;
+  }
+
+  return {
+    faction: profile.faction,
+    chosenAt: profile.createdAt,
+    freeSwitchUsed: false,
+    previousFaction: null,
+  };
+}
+
 function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
   return {
     phase: state.phase,
@@ -544,6 +567,7 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     tradeJuice: state.tradeJuice,
     heatWarning: state.heatWarning,
     rankCelebration: state.rankCelebration,
+    factionChoice: state.factionChoice,
     selectedTicker: state.selectedTicker,
     orderSize: state.orderSize,
     lastRealizedPnl: state.lastRealizedPnl,
@@ -669,6 +693,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         tradeJuice: session.tradeJuice ?? null,
         heatWarning: session.heatWarning ?? null,
         rankCelebration: session.rankCelebration ?? null,
+        factionChoice: session.factionChoice ?? getLegacyFactionChoice(session.profile),
         orderSize: session.orderSize ?? DEFAULT_TRADE_QUANTITY,
         lastRealizedPnl: session.lastRealizedPnl ?? null,
         introSeen: session.introSeen ?? false,
@@ -774,6 +799,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           tradeJuice: null,
           heatWarning: null,
           rankCelebration: null,
+          factionChoice: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -865,6 +891,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           tradeJuice: null,
           heatWarning: null,
           rankCelebration: null,
+          factionChoice: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -1097,6 +1124,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           rankLevel: nextProgression.level,
           prices: state.prices,
           rewardMultiplier: nextBounty.missionRewardMultiplier,
+          faction: state.profile?.faction ?? null,
         });
         nextMissionCount += 1;
         nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
@@ -1733,6 +1761,71 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         ),
         systemMessage: `[mission] declined // ${declined.title}`,
       });
+    },
+    chooseFaction: async (faction) => {
+      const state = get();
+      if (!state.playerId || !state.profile || state.isBusy) {
+        return;
+      }
+
+      const gate = getAgentOsFactionGate({
+        rank: state.progression.level,
+        firstTradeComplete: state.firstTradeComplete,
+        heat: state.resources.heat,
+        faction: state.profile.faction,
+      });
+
+      if (!gate.unlocked) {
+        commitState({
+          systemMessage: "[agentos] locked // finish rank, profit, and heat checks",
+        });
+        return;
+      }
+
+      const currentChoice = state.factionChoice ?? getLegacyFactionChoice(state.profile);
+      const nextChoice = getNextFactionChoice({
+        currentChoice,
+        nextFaction: faction,
+        chosenAt: new Date(state.clock.nowMs || Date.now()).toISOString(),
+      });
+
+      if (!nextChoice.ok) {
+        commitState({
+          systemMessage: `[agentos] ${nextChoice.reason.toLowerCase()}`,
+        });
+        return;
+      }
+
+      set({ isBusy: true });
+      try {
+        const authority = getAuthority();
+        const profile = authority.chooseFaction
+          ? await authority.chooseFaction(state.playerId, faction)
+          : {
+              ...state.profile,
+              faction,
+              osTier: "AGENT" as const,
+            };
+        const definition = getFactionDefinition(faction);
+        set({
+          profile,
+          factionChoice: nextChoice.choice,
+          isBusy: false,
+          notifications: addNotification(
+            state.notifications,
+            `AgentOS alignment bound: ${definition.name}.`,
+            "success",
+          ),
+          systemMessage: `[agentos] alignment bound // ${definition.name.toLowerCase()}`,
+        });
+        await persistCurrentState();
+      } catch {
+        set({
+          isBusy: false,
+          systemMessage: getSafeFailureMessage("faction"),
+        });
+        await persistCurrentState();
+      }
     },
     claimDailyChallenge: async (challengeId) => {
       const state = get();

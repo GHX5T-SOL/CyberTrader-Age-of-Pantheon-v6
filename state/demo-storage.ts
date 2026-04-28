@@ -5,6 +5,7 @@ import type {
   BountySnapshot,
   DistrictStateRecord,
   FlashEvent,
+  FactionChoice,
   MarketNews,
   Mission,
   PlayerProfile,
@@ -68,6 +69,7 @@ interface PersistedDemoSession {
   tradeJuice?: TradeJuice | null;
   heatWarning?: { threshold: number; createdAt: number } | null;
   rankCelebration?: RankCelebration | null;
+  factionChoice?: FactionChoice | null;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;

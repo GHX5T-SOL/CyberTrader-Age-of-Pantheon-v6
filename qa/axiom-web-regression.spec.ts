@@ -495,6 +495,7 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await enterDemoSession(page, origin, "ZYRA_AX_RTES");
 
     const menuRoutes = [
+      "/missions",
       "/menu/help",
       "/menu/profile",
       "/menu/settings",

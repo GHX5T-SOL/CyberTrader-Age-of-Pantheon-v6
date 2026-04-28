@@ -12,6 +12,7 @@ import {
   type PriceMap,
 } from "@/engine/demo-market";
 import { applyNewsToPrices, getActiveNewsForTick, generateNewsForTick } from "@/engine/news-generator";
+import { getFactionDefinition, getOsTierForRank } from "@/engine/factions";
 import {
   getInventorySlots,
   getRankSnapshot,
@@ -21,6 +22,7 @@ import type {
   Authority,
   Commodity,
   Currency,
+  Faction,
   LedgerEntry,
   MarketNews,
   PlayerProfile,
@@ -602,6 +604,21 @@ export class LocalAuthority implements Authority {
 
   async updateXp(playerId: string, xpDelta: number, _reason = "manual"): Promise<RankSnapshot> {
     return this.applyXp(playerId, xpDelta);
+  }
+
+  async chooseFaction(playerId: string, faction: Faction): Promise<PlayerProfile> {
+    const profile = this.requireProfile(playerId);
+    const rank = await this.getRank(playerId);
+    const definition = getFactionDefinition(faction);
+
+    if (rank.level < 5) {
+      throw new Error("AGENTOS LOCKED. REACH RANK 5.");
+    }
+
+    profile.faction = definition.id;
+    profile.osTier = getOsTierForRank(rank.level);
+
+    return this.cloneProfile(profile);
   }
 
   async connectWallet(): Promise<WalletSession> {

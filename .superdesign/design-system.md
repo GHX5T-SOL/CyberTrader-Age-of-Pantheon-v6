@@ -147,3 +147,29 @@ SuperDesign project: `CyberTrader v6 Strategy Guidance Pass`
 - If a first-session player selects a non-`VBLM` ticker, the cue should steer them back to `VBLM` before the first clean sell.
 - After first profit, the copy should surface `PGAS` / `ORRS` / `SNPS` as the first upgrade lane and keep contraband gated behind low Heat.
 - Mission contact strategy hints should read as operator advice, not generic tutorial text, and must stay store-safe: no real-money, investment, cash-out, or prize language.
+
+## Nyx P1 AgentOS Faction Selection
+
+SuperDesign project: `CyberTrader v6 AgentOS faction unlock`
+
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/c7661221-672f-4dc2-8105-5bf1f5af6134`.
+- Current-state draft: `4bf074bd-0055-40ac-9c27-cd3dceae2642`.
+- AgentOS branch draft: `476f9ac2-d2eb-426f-8491-b7088513c103`.
+- `/menu/progression` keeps the compact terminal route structure, then adds a faction alignment matrix below the AgentOS gate instead of opening a separate onboarding flow.
+- Faction rows should stay dense and operational: faction name/handle, bound/queued state, gameplay stake, mission bias, reward modifier, and Heat posture.
+- The action model uses one full-width bracket command after selecting a queued faction row; disabled states must explicitly show whether AgentOS is locked, already current, or allegiance is locked.
+- Copy must stay store-safe and local-mode: no token-gated claims, investment language, cash-out, real-money reward, seed phrase, private-key, staking, or wallet-signing language.
+
+## Nyx P1 AgentOS Faction Design Pass
+
+Release note: `docs/release/nyx-p1-003-agentos-faction-design.md`.
+
+- SuperDesign project: `CyberTrader v6 AgentOS Unlock Preview`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/841b8d96-38bd-4372-a22b-f6452ec3d55e`.
+- Current reproduction draft: `b84f6a45-ca2c-4c3c-9e3f-613aa2dbb317`.
+- AgentOS readiness branch: `7ec5931e-1283-4235-9256-c1537d024b91`.
+- Preview URL: `https://p.superdesign.dev/draft/7ec5931e-1283-4235-9256-c1537d024b91`.
+- AgentOS remains a compact terminal progression layer, not a separate marketing page. The `/menu/progression` route should show the current PirateOS state, the deterministic AgentOS gate, faction preview signals, and PantheonOS as a future lock.
+- The AgentOS gate is rank 5, first profitable sell complete, and Heat at 70 or lower. Requirements should render as terse `[OK]` / `[--]` terminal checklist rows.
+- Faction previews use the existing `NeonBorder` panel, mono type, cyan names, muted gameplay stakes, and a green rail for the bound faction. `nyx-p1-004` adds the commit/reselection control directly inside `/menu/progression`.
+- Player-facing faction copy must avoid real-money, investment, prize, cash-out, staking, or external-wallet implications. Factions are gameplay allegiances for missions, reputation, and Heat posture.

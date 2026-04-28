@@ -175,4 +175,33 @@ describe("LocalAuthority", () => {
       await original.getTickPrices(4),
     );
   });
+
+  it("persists a rank-5 AgentOS faction choice into authority snapshots", async () => {
+    const authority = new LocalAuthority({ seed: "faction-choice", startedAt: STARTED_AT });
+    const profile = await authority.createProfile({
+      walletAddress: null,
+      devIdentity: "faction_dev",
+      eidolonHandle: "FACTION",
+      osTier: "PIRATE",
+      rank: 1,
+      faction: null,
+    });
+
+    await expect(authority.chooseFaction(profile.id, "BLACKWAKE")).rejects.toThrow("AGENTOS LOCKED");
+
+    await authority.updateXp(profile.id, 2000, "test_rank_5");
+    const updated = await authority.chooseFaction(profile.id, "BLACKWAKE");
+
+    expect(updated).toMatchObject({
+      osTier: "AGENT",
+      faction: "BLACKWAKE",
+      rank: 5,
+    });
+
+    const restored = LocalAuthority.fromSnapshot(authority.exportSnapshot());
+    await expect(restored.getProfile(profile.id)).resolves.toMatchObject({
+      osTier: "AGENT",
+      faction: "BLACKWAKE",
+    });
+  });
 });

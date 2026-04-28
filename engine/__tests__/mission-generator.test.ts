@@ -15,6 +15,20 @@ describe("mission generator", () => {
     expect(mission.reward0Bol).toBeGreaterThan(0);
   });
 
+  it("biases AgentOS faction missions toward aligned contacts and mission types", () => {
+    const mission = createMission({
+      nowMs: 1000,
+      seed: "mission-test",
+      index: 0,
+      rankLevel: 5,
+      prices: { FDST: 100, PGAS: 50 },
+      faction: "BLACKWAKE",
+    });
+
+    expect(mission.npcId).toBe("kite");
+    expect(["delivery", "buy_request"]).toContain(mission.type);
+  });
+
   it("detects buy request completion", () => {
     const mission = {
       id: "buy",

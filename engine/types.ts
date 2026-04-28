@@ -8,6 +8,43 @@
 export type OsTier = "PIRATE" | "AGENT" | "PANTHEON";
 export type Faction = "FREE_SPLINTERS" | "BLACKWAKE" | "NULL_CROWN" | "ARCHIVISTS";
 export type Currency = "0BOL" | "$OBOL";
+export type FactionStandingTier = "neutral" | "trusted" | "favored" | "legend";
+
+export interface FactionStanding {
+  faction: Faction;
+  reputation: number;
+  tier: FactionStandingTier;
+  missionBias: readonly MissionType[];
+  rewardModifier: number;
+}
+
+export interface FactionChoice {
+  faction: Faction;
+  chosenAt: string;
+  freeSwitchUsed: boolean;
+  previousFaction: Faction | null;
+}
+
+export interface FactionChoiceRequirement {
+  id: "rank" | "first_profit" | "heat";
+  label: string;
+  met: boolean;
+  current: number | boolean;
+  target: number | boolean;
+}
+
+export interface AgentOsFactionGate {
+  osTier: OsTier;
+  unlocked: boolean;
+  canChooseFaction: boolean;
+  requirements: readonly FactionChoiceRequirement[];
+}
+
+export interface FactionSwitchRule {
+  canSwitch: boolean;
+  freeSwitchAvailable: boolean;
+  reason: string;
+}
 
 export interface PlayerProfile {
   id: string;
@@ -324,6 +361,7 @@ export interface Authority {
 
   getRank(playerId: string): Promise<RankSnapshot>;
   updateXp(playerId: string, xpDelta: number, reason?: string): Promise<RankSnapshot>;
+  chooseFaction?(playerId: string, faction: Faction): Promise<PlayerProfile>;
 
   connectWallet?(): Promise<WalletSession>;
   disconnectWallet?(): Promise<void>;
