@@ -4,7 +4,7 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "capture:screenshots": "node scripts/capture-screenshot-presets.mjs",
+    "capture:screenshots": "npm run build:web && node scripts/capture-screenshot-presets.mjs",
     "start": "expo start",
     "ios": "expo start --ios",
     "android": "expo start --android",
