@@ -29,6 +29,7 @@
     "archetypes:report": "ORACLE_ARCHETYPES_LOG=1 jest engine/__tests__/player-archetypes.test.ts --runInBand",
     "tuning:beta": "ORACLE_BETA_TUNING_LOG=1 jest engine/__tests__/beta-tuning.test.ts --runInBand",
     "swarm:market": "HYDRA_SWARM_LOG=1 jest engine/__tests__/market-swarm.test.ts --runInBand",
+    "retention:beta": "HYDRA_RETENTION_LOG=1 jest engine/__tests__/retention-scenarios.test.ts --runInBand",
     "generate:brand": "python3 scripts/generate-brand-assets.py",
     "regression:check": "node scripts/regression-monitor.mjs --force",
     "regression:monitor": "node scripts/regression-monitor.mjs"
