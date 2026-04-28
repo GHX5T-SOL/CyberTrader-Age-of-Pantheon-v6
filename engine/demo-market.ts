@@ -57,6 +57,7 @@ const DRIFT_BIAS: Record<string, number> = {
   MTRX: 0.0008,
   AETH: 0.0016,
   BLCK: 0.0022,
+  GLCH: 0.0014,
 };
 
 export const FIRST_TRADE_HINT_TICKER = "VBLM";
@@ -72,6 +73,7 @@ export const DEMO_COMMODITIES: Commodity[] = [
   { ticker: "MTRX", name: "Matrix Salt", basePrice: 58, volatility: "low", heatRisk: "low", eventTags: ["lattice", "unlock"] },
   { ticker: "AETH", name: "Aether Tabs", basePrice: 41, volatility: "high", heatRisk: "high", eventTags: ["rumor", "pump"] },
   { ticker: "BLCK", name: "Blacklight Serum", basePrice: 179, volatility: "very_high", heatRisk: "very_high", eventTags: ["contraband", "margin"] },
+  { ticker: "GLCH", name: "Glitch Echo", basePrice: 95, volatility: "med", heatRisk: "med", eventTags: ["ai_fragment", "drift"] },
 ];
 
 export const INITIAL_RESOURCES: DemoResources = {

@@ -11,4 +11,5 @@ export const commodityArt: Record<string, ImageSourcePropType> = {
   MTRX: require("./optimized/commodities/matrix_salt.png"),
   AETH: require("./optimized/commodities/aether_tabs.png"),
   BLCK: require("./optimized/commodities/blacklight_serum.png"),
+  GLCH: require("./optimized/commodities/glitch_echo.png"),
 };

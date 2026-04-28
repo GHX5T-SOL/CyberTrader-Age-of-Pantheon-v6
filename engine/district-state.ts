@@ -10,7 +10,7 @@ const SHIFT_STATES: Exclude<DistrictState, "NORMAL">[] = [
   "GANG_CONTROL",
   "MARKET_CRASH",
 ];
-const FESTIVAL_TICKERS = ["FDST", "PGAS", "NGLS", "HXMD", "VBLM", "ORRS", "SNPS", "MTRX", "AETH", "BLCK"] as const;
+const FESTIVAL_TICKERS = ["FDST", "PGAS", "NGLS", "HXMD", "VBLM", "ORRS", "SNPS", "MTRX", "AETH", "BLCK", "GLCH"] as const;
 
 export function createInitialDistrictStates(nowMs: number): Record<string, DistrictStateRecord> {
   return Object.fromEntries(

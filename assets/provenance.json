@@ -12,11 +12,11 @@
     "cinematics/public"
   ],
   "summary": {
-    "totalAssets": 37,
+    "totalAssets": 39,
     "sourceCleanAssets": 4,
     "generatedCaptureAssets": 6,
-    "assetsPendingSourceOrRightsReview": 27,
-    "assetsPendingFinalStoreClearance": 33
+    "assetsPendingSourceOrRightsReview": 29,
+    "assetsPendingFinalStoreClearance": 35
   },
   "records": [
     {
@@ -109,6 +109,19 @@
       "storeUse": "internal QA and capture planning until sign-off",
       "width": 1254,
       "height": 1254
+    },
+    {
+      "path": "assets/commodities/glitch_echo.png",
+      "kind": "png",
+      "bytes": 668223,
+      "sha256": "3591e5d76add65c1b7befd32f4cd3d3bfe9a94dadc83f52f13b2e005495a6be9",
+      "owner": "Palette",
+      "origin": "Existing repository art asset; source project/license metadata not present in repo",
+      "licenseBasis": "unverified repository asset pending Palette attestation",
+      "clearance": "requires source provenance evidence before final store media",
+      "storeUse": "internal QA and capture planning until sign-off",
+      "width": 1024,
+      "height": 1024
     },
     {
       "path": "assets/commodities/helix_mud.png",
@@ -264,6 +277,20 @@
       "clearance": "source provenance evidence still required before final store media",
       "storeUse": "in-app runtime art and screenshot staging",
       "derivedFrom": "assets/commodities/fractal_dust.png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "path": "assets/optimized/commodities/glitch_echo.png",
+      "kind": "png",
+      "bytes": 97819,
+      "sha256": "62d2872f5ecf053d2964d51cbc6ce88e9b12d1bc7f8036c05f6b8e55f6405600",
+      "owner": "Zara/Palette",
+      "origin": "Optimized derivative generated from assets/commodities/glitch_echo.png by scripts/optimize-assets.mjs",
+      "licenseBasis": "inherits source asset provenance",
+      "clearance": "source provenance evidence still required before final store media",
+      "storeUse": "in-app runtime art and screenshot staging",
+      "derivedFrom": "assets/commodities/glitch_echo.png",
       "width": 256,
       "height": 256
     },
