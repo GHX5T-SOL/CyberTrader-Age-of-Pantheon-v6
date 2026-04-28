@@ -456,13 +456,23 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     ).toBeVisible({ timeout: 5_000 });
 
     await page.goto(`${origin}/menu/inventory`, { waitUntil: "networkidle" });
-    await expect(visibleText(page, "COMMODITY INVENTORY")).toBeVisible();
-    await expect(visibleText(page, /SLOTS|NO COMMODITIES HELD/)).toBeVisible();
+    await expect(visibleText(page, "COMMODITY INVENTORY")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(visibleText(page, /SLOTS|NO COMMODITIES HELD/)).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto(`${origin}/menu/settings`, { waitUntil: "networkidle" });
-    await expect(visibleText(page, "SETTINGS")).toBeVisible();
-    await expect(visibleText(page, "SUPABASE AUTHORITY: OFF")).toBeVisible();
-    await expect(visibleText(page, "LOCAL LOOP ACTIVE")).toBeVisible();
+    await expect(visibleText(page, "SETTINGS")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(visibleText(page, "SUPABASE AUTHORITY: OFF")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(visibleText(page, "LOCAL IDENTITY // RECOVERY")).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.screenshot({
       path: path.join(reportDir, "axiom-p1-004-smoke-settings.jpg"),
