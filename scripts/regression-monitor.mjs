@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Automated post-push regression detection for CyberTrader v6.
 // Fetches origin/main and runs the regression suite whenever new commits appear.
-// State is persisted in .git/regression-state.json (not tracked by git).
+// State is persisted in the Git metadata directory via git rev-parse --git-path
+// so regular clones and linked worktrees both keep it outside tracked files.
 //
 // Monitor mode (default): run suite only when origin/main has advanced.
 // Force mode (--force):   always run the full suite regardless of commit state.
@@ -10,7 +11,6 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
 
 const FORCE_MODE = process.argv.includes("--force");
 
@@ -18,7 +18,10 @@ const repoRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
   encoding: "utf8",
 }).trim();
 
-const stateFile = path.join(repoRoot, ".git", "regression-state.json");
+const stateFile = execFileSync("git", ["rev-parse", "--git-path", "regression-state.json"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+}).trim();
 
 function git(args) {
   return execFileSync("git", args, { cwd: repoRoot, encoding: "utf8" }).trim();
