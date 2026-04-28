@@ -31,6 +31,8 @@
     "swarm:market": "HYDRA_SWARM_LOG=1 jest engine/__tests__/market-swarm.test.ts --runInBand",
     "retention:beta": "HYDRA_RETENTION_LOG=1 jest engine/__tests__/retention-scenarios.test.ts --runInBand",
     "generate:brand": "python3 scripts/generate-brand-assets.py",
+    "provenance:assets": "node scripts/generate-asset-provenance.mjs",
+    "provenance:assets:check": "node scripts/generate-asset-provenance.mjs --check",
     "regression:check": "node scripts/regression-monitor.mjs --force",
     "regression:monitor": "node scripts/regression-monitor.mjs"
   },
