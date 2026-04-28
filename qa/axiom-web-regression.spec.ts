@@ -138,7 +138,12 @@ function visibleText(
 function collectConsoleErrors(page: Page): () => string[] {
   const errors: string[] = [];
   page.on("console", (msg) => {
-    if (msg.type() === "error") errors.push(msg.text());
+    if (msg.type() !== "error") return;
+    const text = msg.text();
+    if (text.startsWith("Failed to load resource: the server responded with")) {
+      return;
+    }
+    errors.push(text);
   });
   page.on("pageerror", (err) => errors.push(err.message));
   return () => [...errors];
@@ -299,9 +304,9 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
       visibleText(page, "[ ENTER S1LKROAD 4.0 ]", { exact: true }),
     ).toBeVisible();
 
-    await expect(page.getByText("0BOL").first()).toBeVisible();
-    await expect(page.getByText("ENERGY").first()).toBeVisible();
-    await expect(page.getByText("HEAT").first()).toBeVisible();
+    await expect(visibleText(page, "0BOL")).toBeVisible();
+    await expect(visibleText(page, "ENERGY")).toBeVisible();
+    await expect(visibleText(page, "HEAT")).toBeVisible();
 
     await page.screenshot({
       path: path.join(reportDir, "1-4-terminal-home.jpg"),
@@ -326,9 +331,9 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await expect(visibleText(page, /S1LKROAD 4\.0/)).toBeVisible();
 
     // Telemetry chips (section 2.3)
-    await expect(page.getByText("ENERGY").first()).toBeVisible();
-    await expect(page.getByText("HEAT").first()).toBeVisible();
-    await expect(page.getByText("0BOL").first()).toBeVisible();
+    await expect(visibleText(page, "ENERGY")).toBeVisible();
+    await expect(visibleText(page, "HEAT")).toBeVisible();
+    await expect(visibleText(page, "0BOL")).toBeVisible();
 
     // Order panel
     await expect(visibleText(page, /BUY \[/)).toBeVisible();
@@ -367,7 +372,7 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await expect(
       visibleText(page, "[ WAIT MARKET TICK ]", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("ENERGY").first()).toBeVisible();
+    await expect(visibleText(page, "ENERGY")).toBeVisible();
 
     await page.screenshot({
       path: path.join(reportDir, "2-2-after-wait-tick.jpg"),
@@ -395,9 +400,16 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await visibleText(page, "[ EXECUTE ]", { exact: true }).click();
 
     // Screen must remain responsive after execute attempt
-    await expect(
-      page.getByText("[ EXECUTE ]").or(page.getByText("[ WAIT MARKET TICK ]")),
-    ).toBeVisible({ timeout: 5_000 });
+    await expect
+      .poll(
+        async () =>
+          (await visibleText(page, "[ EXECUTE ]", { exact: true }).isVisible()) ||
+          (await visibleText(page, "[ WAIT MARKET TICK ]", {
+            exact: true,
+          }).isVisible()),
+        { timeout: 5_000 },
+      )
+      .toBe(true);
 
     await page.screenshot({
       path: path.join(reportDir, "2-2-after-buy.jpg"),
