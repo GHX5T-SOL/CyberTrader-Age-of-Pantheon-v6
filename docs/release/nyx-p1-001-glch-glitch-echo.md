@@ -81,7 +81,7 @@ GLCH inherits the existing `seededStream` flow. Adding the ticker:
   byte-identical when GLCH is excluded by ticker filter.
 - Player archetypes (`engine/player-archetypes.ts`) still whitelist
   `VBLM/NGLS/MTRX`, `VBLM/MTRX/PGAS`, etc. — they will not enter GLCH
-  positions until Oracle drops a follow-up tuning task (`oracle-p1-007`)
+  positions until Oracle drops a follow-up tuning task (`oracle-p1-009`)
   that explicitly admits GLCH.
 
 ## Brand & store safety
@@ -96,8 +96,9 @@ GLCH inherits the existing `seededStream` flow. Adding the ticker:
 
 ## Follow-ups
 
-- **oracle-p1-007** — admit GLCH into one or more player archetype mixes
-  and re-run `npm run archetypes:report` to validate viability.
+- **oracle-p1-009** — complete. GLCH is admitted into the Oracle
+  `momentum-trader` medium-risk archetype mix and the beta-tuned mirror path;
+  `npm run archetypes:report` validates the updated viability.
 - **hydra-p1-003** — extend the synthetic market swarm scenarios to include
   GLCH as both target and counter-trade asset.
 - **palette-p1-005** — promote the placeholder Pillow sprite to a proper

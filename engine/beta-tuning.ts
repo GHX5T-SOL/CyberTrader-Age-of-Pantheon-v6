@@ -12,7 +12,7 @@ import {
 //   cautious-grinder : VBLM qty 10→15, profitTargetPct 0.003→0.005 (baseline medianPnl 6.13 too low)
 //   heat-seeker      : profitTargetPct 0.012→0.010 (fix 1/200 non-profitable edge case)
 //   speed-runner     : qty [5,5,5]→[8,8,8] (amplify frequency advantage, baseline medianPnl 8.43)
-//   momentum-trader  : no change (100% profitable, medianPnl 33.50 — already optimal)
+//   momentum-trader  : no p0-006 numeric change; oracle-p1-009 admits GLCH into the shared medium-risk mix
 export const BETA_TUNED_ARCHETYPES: readonly PlayerArchetype[] = [
   {
     id: "cautious-grinder",
@@ -31,9 +31,9 @@ export const BETA_TUNED_ARCHETYPES: readonly PlayerArchetype[] = [
     id: "momentum-trader",
     label: "Momentum Trader",
     description:
-      "Medium-risk positions following price momentum in mid-volatility commodities; balanced heat/PnL profile",
-    tickers: ["PGAS", "ORRS", "SNPS"],
-    quantities: [25, 10, 10],
+      "Medium-risk positions following price momentum in mid-volatility commodities, including GLCH drift exposure; balanced heat/PnL profile",
+    tickers: ["PGAS", "GLCH", "ORRS", "SNPS"],
+    quantities: [25, 10, 10, 10],
     profitTargetPct: 0.007,
     stopLossPct: 0.028,
     maxHoldTicks: 3,
@@ -85,7 +85,7 @@ export const BETA_TUNING_DELTAS: readonly BetaTuningDelta[] = [
     archetypeId: "momentum-trader",
     changes: [],
     rationale:
-      "No change. Baseline achieves 100% profitable sessions and median PnL 33.50. Already optimal for the dominant post-tutorial pattern.",
+      "No oracle-p0-006 numeric tuning change. Baseline already passed the dominant post-tutorial pattern, and oracle-p1-009 now routes that same medium-risk strategy through GLCH drift exposure.",
   },
   {
     archetypeId: "heat-seeker",

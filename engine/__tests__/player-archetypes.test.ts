@@ -50,6 +50,12 @@ describe("player archetype strategy reports", () => {
     }
   });
 
+  it("admits GLCH into the momentum-trader medium-risk mix", () => {
+    const momentum = PLAYER_ARCHETYPES.find((a) => a.id === "momentum-trader")!;
+    expect(momentum.tickers).toContain("GLCH");
+    expect(momentum.quantities).toHaveLength(momentum.tickers.length);
+  });
+
   it("cautious-grinder has lower median max heat than heat-seeker", () => {
     const grinder = reports.find((r) => r.archetypeId === "cautious-grinder")!;
     const heatSeeker = reports.find((r) => r.archetypeId === "heat-seeker")!;

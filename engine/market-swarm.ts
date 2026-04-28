@@ -86,7 +86,7 @@ export const MARKET_SWARM_SCENARIOS: readonly MarketSwarmScenario[] = [
         archetypeId: "momentum-trader",
         agentCount: 6,
         role: "post-tutorial optimizers",
-        oracleFocus: "Watch PGAS/ORRS/SNPS as the mid-game upgrade path.",
+        oracleFocus: "Watch PGAS/GLCH/ORRS/SNPS as the mid-game upgrade path.",
       },
       {
         archetypeId: "heat-seeker",

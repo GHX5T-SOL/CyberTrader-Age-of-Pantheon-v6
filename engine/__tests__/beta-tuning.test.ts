@@ -66,6 +66,12 @@ describe("oracle-p0-006 beta tuning", () => {
     }
   });
 
+  it("keeps GLCH in the tuned momentum-trader path", () => {
+    const tuned = BETA_TUNED_ARCHETYPES.find((a) => a.id === "momentum-trader")!;
+    expect(tuned.tickers).toContain("GLCH");
+    expect(tuned.quantities).toHaveLength(tuned.tickers.length);
+  });
+
   it("tuned cautious-grinder has higher medianPnl than oracle-p0-005 baseline (6.13)", () => {
     const tuned = tunedReports.find((r) => r.archetypeId === "cautious-grinder")!;
     expect(tuned.medianPnl).toBeGreaterThan(6.13);

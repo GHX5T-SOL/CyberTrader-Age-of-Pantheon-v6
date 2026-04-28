@@ -58,9 +58,9 @@ export const PLAYER_ARCHETYPES: readonly PlayerArchetype[] = [
     id: "momentum-trader",
     label: "Momentum Trader",
     description:
-      "Medium-risk positions following price momentum in mid-volatility commodities; balanced heat/PnL profile",
-    tickers: ["PGAS", "ORRS", "SNPS"],
-    quantities: [25, 10, 10],
+      "Medium-risk positions following price momentum in mid-volatility commodities, including GLCH drift exposure; balanced heat/PnL profile",
+    tickers: ["PGAS", "GLCH", "ORRS", "SNPS"],
+    quantities: [25, 10, 10, 10],
     profitTargetPct: 0.007,
     stopLossPct: 0.028,
     maxHoldTicks: 3,

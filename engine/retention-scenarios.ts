@@ -242,7 +242,7 @@ export const RETENTION_SCENARIOS: readonly RetentionScenario[] = [
         personaId: "steady-upgrader",
         playerCount: 5,
         role: "medium-risk optimizers",
-        designFocus: "Keep PGAS/ORRS/SNPS as the first upgrade path.",
+        designFocus: "Keep PGAS/GLCH/ORRS/SNPS as the first upgrade path.",
       },
       {
         personaId: "contraband-tourist",
