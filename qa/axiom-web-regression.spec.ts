@@ -431,13 +431,18 @@ test.describe("zyra-p1-004 axiom web regression (live deployment)", () => {
 
     const response = await page.goto(LIVE_URL, {
       timeout: 30_000,
-      waitUntil: "networkidle",
+      waitUntil: "domcontentloaded",
     });
 
     expect(
       response?.status(),
       "live deployment must return HTTP 200",
     ).toBe(200);
+
+    await expect(
+      visibleText(page, /AG3NT_0S|CyberTrader|PIRATE OS/),
+      "live deployment must render a visible app shell marker",
+    ).toBeVisible({ timeout: 15_000 });
 
     const bodyText = await page.locator("body").textContent();
     expect(
