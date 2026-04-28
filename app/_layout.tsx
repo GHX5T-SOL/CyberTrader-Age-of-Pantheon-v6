@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -8,12 +8,72 @@ import { TerminalShell } from "@/components/terminal-shell";
 import { MenuContext } from "@/context/menu-context";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
 import { useGameLoop } from "@/hooks/use-game-loop";
+import {
+  installRuntimeDiagnostics,
+  type RuntimeDiagnosticContext,
+} from "@/state/runtime-diagnostics";
+import { useDemoStore } from "@/state/demo-store";
 import { terminalColors } from "@/theme/terminal";
+
+function balanceBand(balanceObol: number): string {
+  if (balanceObol >= 1_000_000) {
+    return ">=1m";
+  }
+  if (balanceObol >= 100_000) {
+    return "100k-999k";
+  }
+  if (balanceObol >= 10_000) {
+    return "10k-99k";
+  }
+  return "<10k";
+}
 
 export default function RootLayout() {
   const [menuVisible, setMenuVisible] = React.useState(false);
+  const pathname = usePathname();
+  const diagnosticState = useDemoStore((state) => ({
+    phase: state.phase,
+    activeView: state.activeView,
+    tick: state.tick,
+    heat: state.resources.heat,
+    balanceObol: state.balanceObol,
+    selectedTicker: state.selectedTicker,
+    handlePresent: Boolean(state.handle),
+    playerIdPresent: Boolean(state.playerId),
+    hydrated: state.isHydrated,
+  }));
+  const diagnosticsContextRef = React.useRef<RuntimeDiagnosticContext>({
+    route: pathname,
+    platform: Platform.OS,
+    phase: diagnosticState.phase,
+    activeView: diagnosticState.activeView,
+    tick: diagnosticState.tick,
+    heat: diagnosticState.heat,
+    balanceBand: balanceBand(diagnosticState.balanceObol),
+    selectedTicker: diagnosticState.selectedTicker,
+    handlePresent: diagnosticState.handlePresent,
+    playerIdPresent: diagnosticState.playerIdPresent,
+    hydrated: diagnosticState.hydrated,
+  });
+
+  diagnosticsContextRef.current = {
+    route: pathname,
+    platform: Platform.OS,
+    phase: diagnosticState.phase,
+    activeView: diagnosticState.activeView,
+    tick: diagnosticState.tick,
+    heat: diagnosticState.heat,
+    balanceBand: balanceBand(diagnosticState.balanceObol),
+    selectedTicker: diagnosticState.selectedTicker,
+    handlePresent: diagnosticState.handlePresent,
+    playerIdPresent: diagnosticState.playerIdPresent,
+    hydrated: diagnosticState.hydrated,
+  };
+
   useDemoBootstrap();
   useGameLoop();
+
+  React.useEffect(() => installRuntimeDiagnostics(() => diagnosticsContextRef.current), []);
 
   React.useEffect(() => {
     if (Platform.OS !== "web" || typeof document === "undefined") {
