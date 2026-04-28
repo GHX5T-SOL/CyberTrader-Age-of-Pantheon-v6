@@ -1,5 +1,14 @@
 export const NPCS = [
   {
+    id: "vox",
+    name: "Vox",
+    faction: "Pantheon",
+    personality: "Mystic conduit. Grants rare boosts for daring traders.",
+    strategyHint: "Unlock hidden tier: trade rare shards when Heat < 30 for bonus XP.",
+    unlockedAtRank: 9,
+  },
+
+  {
     id: "kite",
     name: "Kite",
     faction: "Blackwake",
