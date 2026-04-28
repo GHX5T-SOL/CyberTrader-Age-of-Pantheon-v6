@@ -427,10 +427,11 @@ test.describe("zyra-p1-004 axiom web regression (live deployment)", () => {
   test("2.8 live – Vercel deployment returns 200 and serves non-blank app shell", async ({
     page,
   }) => {
+    test.setTimeout(90_000);
     const getErrors = collectConsoleErrors(page);
 
     const response = await page.goto(LIVE_URL, {
-      timeout: 30_000,
+      timeout: 60_000,
       waitUntil: "domcontentloaded",
     });
 
