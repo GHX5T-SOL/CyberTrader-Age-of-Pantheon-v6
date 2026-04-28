@@ -13,6 +13,7 @@ export const COMMODITY_ICON_MAP: Record<string, any> = {
   MTRX: require("../assets/optimized/commodities/matrix_salt.png"),
   AETH: require("../assets/optimized/commodities/aether_tabs.png"),
   BLCK: require("../assets/optimized/commodities/blacklight_serum.png"),
+  GLCH: require("../assets/optimized/commodities/glitch_echo.png"),
 };
 
 interface CommodityRowProps {

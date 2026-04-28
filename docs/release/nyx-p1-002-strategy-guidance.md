@@ -15,6 +15,7 @@ Applied the completed Oracle beta tuning to player-facing guidance so the first-
 - Home and terminal first-session cues now use live strategy hints, including VBLM starter correction, post-profit upgrade guidance, and Heat stop-line copy.
 - NPC mission contacts and Help copy now expose concise tuned strategy hints.
 - The first-session cue and metric chips received a SuperDesign-backed cyberdeck treatment with in-world route framing and metric rails.
+- The commodity row icon map now includes GLCH/Glitch Echo so responsive QA no longer sees missing web image resources.
 
 ## SuperDesign
 
