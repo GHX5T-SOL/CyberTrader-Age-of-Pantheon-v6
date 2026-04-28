@@ -24,7 +24,7 @@
  */
 
 import { createReadStream } from "node:fs";
-import { access, mkdir, stat } from "node:fs/promises";
+import { access, mkdir, readFile, stat } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { AddressInfo } from "node:net";
 import path from "node:path";
@@ -59,8 +59,11 @@ const contentTypes: Record<string, string> = {
 };
 
 async function startStaticServer(): Promise<{ origin: string; server: Server }> {
+  const indexPath = path.join(distDir, "index.html");
+  let appShell: Buffer;
   try {
-    await access(path.join(distDir, "index.html"));
+    await access(indexPath);
+    appShell = await readFile(indexPath);
   } catch {
     throw new Error(
       "Missing dist/index.html — run `npm run build:web` before `npm run qa:axiom`.",
@@ -80,19 +83,28 @@ async function startStaticServer(): Promise<{ origin: string; server: Server }> 
       return;
     }
 
-    const filePath = await resolveStaticPath(requestedPath, decodedPath);
-    if (!filePath) {
+    const resolved = await resolveStaticPath(requestedPath, decodedPath);
+    if (!resolved) {
       response.writeHead(404);
       response.end("Not found");
+      return;
+    }
+
+    if (resolved.spaFallback) {
+      response.writeHead(200, {
+        "cache-control": "no-store",
+        "content-type": contentTypes[".html"],
+      });
+      response.end(appShell);
       return;
     }
 
     response.writeHead(200, {
       "cache-control": "no-store",
       "content-type":
-        contentTypes[path.extname(filePath)] ?? "application/octet-stream",
+        contentTypes[path.extname(resolved.filePath)] ?? "application/octet-stream",
     });
-    createReadStream(filePath).pipe(response);
+    createReadStream(resolved.filePath).pipe(response);
   });
 
   await new Promise<void>((resolve) => {
@@ -106,16 +118,16 @@ async function startStaticServer(): Promise<{ origin: string; server: Server }> 
 async function resolveStaticPath(
   requestedPath: string,
   decodedPath: string,
-): Promise<string | null> {
+): Promise<{ filePath: string; spaFallback: boolean } | null> {
   try {
     const entry = await stat(requestedPath);
     if (entry.isDirectory()) {
-      return path.join(requestedPath, "index.html");
+      return { filePath: path.join(requestedPath, "index.html"), spaFallback: true };
     }
-    return requestedPath;
+    return { filePath: requestedPath, spaFallback: false };
   } catch {
     const extension = path.extname(decodedPath);
-    return extension ? null : path.join(distDir, "index.html");
+    return extension ? null : { filePath: path.join(distDir, "index.html"), spaFallback: true };
   }
 }
 

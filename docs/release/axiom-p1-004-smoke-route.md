@@ -29,6 +29,7 @@ The new `npm run qa:smoke` command builds the Expo web export and runs only the 
 - Settings verifies `SUPABASE AUTHORITY: OFF` and `LOCAL LOOP ACTIVE` so store-review-safe local-mode copy remains visible.
 - The app shell diagnostic selector now subscribes to stable primitive store fields so runtime diagnostics do not trigger React's maximum-update-depth guard during intro smoke.
 - Follow-up hardening keeps the route assertions anchored to visible text, polls the post-execute responsive state explicitly, and filters browser resource-load noise out of the runtime-error buffer while preserving page errors and console exceptions.
+- Follow-up static-server hardening serves the Expo app shell for extensionless SPA route fallbacks, so direct `/menu/*` smoke checks exercise the same client-side route recovery as production.
 
 ## Validation
 
