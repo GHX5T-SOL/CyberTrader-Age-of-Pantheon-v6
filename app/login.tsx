@@ -6,6 +6,11 @@ import ActionButton from "@/components/action-button";
 import AsciiDivider from "@/components/ascii-divider";
 import Scanlines from "@/components/scanlines";
 import SystemStatePanel from "@/components/system-state-panel";
+import {
+  HANDLE_VALIDATION_COPY,
+  isValidEidolonHandle,
+  normalizeEidolonHandle,
+} from "@/authority/launch-identity";
 import { useDemoBootstrap } from "@/hooks/use-demo-bootstrap";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -35,12 +40,14 @@ export default function LoginRoute() {
 
   const cursorStyle = useAnimatedStyle(() => ({ opacity: cursorOpacity.value }));
   const enter = () => {
-    if (!/^[A-Za-z0-9_]{3,20}$/.test(handle)) {
-      setError("INVALID HANDLE. 3-20 ALPHANUMERIC CHARS.");
+    const normalizedHandle = normalizeEidolonHandle(handle);
+
+    if (!isValidEidolonHandle(handle)) {
+      setError(HANDLE_VALIDATION_COPY);
       return;
     }
     setError("");
-    setHandle(handle);
+    setHandle(normalizedHandle);
     router.replace("/boot");
   };
 
@@ -113,7 +120,7 @@ export default function LoginRoute() {
         <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 9 }}>REPLAY INTRO SIGNAL</Text>
       </Pressable>
       <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 9, textAlign: "center", marginTop: 40 }}>
-        Local demo login. No wallet required. This locks your handle.
+        Local demo login. No wallet required. This handle stays on this device.
       </Text>
     </ScrollView>
   );

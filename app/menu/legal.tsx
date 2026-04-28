@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import { LAUNCH_ACCOUNT_RECOVERY_COPY } from "@/authority/launch-identity";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function LegalMenuRoute() {
@@ -18,9 +19,11 @@ export default function LegalMenuRoute() {
           <Text style={{ fontFamily: terminalFont, color: terminalColors.green, fontSize: 11, lineHeight: 18 }}>
             No gambling loops. No loot boxes. Demo trades use deterministic local simulation and fictional commodities.
           </Text>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11, lineHeight: 18 }}>
+            {LAUNCH_ACCOUNT_RECOVERY_COPY.legalDisclosure}
+          </Text>
         </View>
       </NeonBorder>
     </MenuScreen>
   );
 }
-

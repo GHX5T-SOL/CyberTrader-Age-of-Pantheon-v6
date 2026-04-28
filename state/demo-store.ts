@@ -6,6 +6,12 @@ import {
   restoreLocalAuthority,
 } from "@/authority";
 import {
+  HANDLE_VALIDATION_COPY,
+  createLaunchPlayerProfileInput,
+  isValidEidolonHandle,
+  normalizeEidolonHandle,
+} from "@/authority/launch-identity";
+import {
   COURIER_SERVICES,
   DEFAULT_LOCATION_ID,
   LOCATIONS,
@@ -297,7 +303,7 @@ function buildInitialState(): DemoStoreState {
 }
 
 function sanitizeHandle(rawHandle: string): string {
-  return rawHandle.trim().replace(/\s+/g, "_").slice(0, 16);
+  return normalizeEidolonHandle(rawHandle);
 }
 
 function formatClock(nowMs: number): string {
@@ -709,17 +715,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
       try {
         const authority = getAuthority();
-        const profile = await authority.createProfile({
-          walletAddress: null,
-          devIdentity: handle.toLowerCase(),
-          eidolonHandle: handle,
-          osTier: "PIRATE",
-          rank: 1,
-          faction: null,
-          currentLocationId: DEFAULT_LOCATION_ID,
-          travelDestinationId: null,
-          travelEndTime: null,
-        });
+        const profile = await authority.createProfile(createLaunchPlayerProfileInput(handle));
 
         const nowMs = Date.now();
         const basePrices = await authority.getTickPrices(0);
@@ -799,8 +795,10 @@ export const useDemoStore = create<DemoStore>((set, get) => {
     },
     submitHandle: async (rawHandle) => {
       const handle = sanitizeHandle(rawHandle);
-      if (!handle) {
-        commitState({ systemMessage: "[sys] handle required." });
+      if (!isValidEidolonHandle(rawHandle)) {
+        commitState({
+          systemMessage: handle ? `[sys] ${HANDLE_VALIDATION_COPY.toLowerCase()}` : "[sys] handle required.",
+        });
         return false;
       }
 
@@ -808,17 +806,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
 
       try {
         const authority = getAuthority();
-        const profile = await authority.createProfile({
-          walletAddress: null,
-          devIdentity: handle.toLowerCase(),
-          eidolonHandle: handle,
-          osTier: "PIRATE",
-          rank: 1,
-          faction: null,
-          currentLocationId: DEFAULT_LOCATION_ID,
-          travelDestinationId: null,
-          travelEndTime: null,
-        });
+        const profile = await authority.createProfile(createLaunchPlayerProfileInput(handle));
 
         const nowMs = Date.now();
         const basePrices = await authority.getTickPrices(0);

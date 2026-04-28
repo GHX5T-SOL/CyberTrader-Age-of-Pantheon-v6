@@ -94,6 +94,15 @@ SuperDesign project: `CyberTrader v6 responsive viewport pass`
 - Offline states should make LocalAuthority/no-wallet mode explicit and should explain route, travel, or market-lock causes without implying a broken app.
 - Error states should use player-safe recovery copy; raw exception, backend, SQL, RPC, URL, or secret-like text must not be echoed into `systemMessage`.
 
+## Kite P0 Launch Identity Pass
+
+Release note: `docs/release/kite-p0-002-launch-identity-recovery.md`.
+
+- Launch identity is a local Eidolon handle only; the first playable flow must not ask for wallet, email, payment, Supabase credentials, or external account recovery.
+- Login, Settings, and Legal Disclosures use concise operational copy: handle stays on this device, LocalAuthority is active, and Clear Local Data removes local demo state.
+- Recovery language must stay direct and store-safe: cross-device recovery is unavailable in LocalAuthority mode unless a future approved online authority is enabled.
+- Avoid seed phrase, private-key, cash-out, withdraw, investment, yield, or staking language in player-facing identity/recovery copy.
+
 ## Palette P0 Asset Audit
 
 Release note: `docs/release/palette-p0-001-asset-audit.md`.

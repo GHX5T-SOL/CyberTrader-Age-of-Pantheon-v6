@@ -6,6 +6,7 @@ import ConfirmModal from "@/components/confirm-modal";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
 import SystemStatePanel from "@/components/system-state-panel";
+import { LAUNCH_ACCOUNT_RECOVERY_COPY } from "@/authority/launch-identity";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -44,9 +45,9 @@ export default function SettingsMenuRoute() {
           kind="offline"
           framed={false}
           compact
-          title="LOCAL LOOP ACTIVE"
-          message="Progress, inventory, and 0BOL stay on this device while live authority is sealed."
-          detail="NO WALLET REQUIRED // SUPABASE AUTHORITY OFF"
+          title={LAUNCH_ACCOUNT_RECOVERY_COPY.settingsTitle}
+          message={LAUNCH_ACCOUNT_RECOVERY_COPY.settingsMessage}
+          detail={LAUNCH_ACCOUNT_RECOVERY_COPY.settingsDetail}
         />
       </NeonBorder>
       <ConfirmModal
