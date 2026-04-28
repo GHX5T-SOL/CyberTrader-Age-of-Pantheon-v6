@@ -124,6 +124,17 @@ SuperDesign project: `CyberTrader v6 screenshot preset capture`
 - `npm run capture:screenshots` builds the Expo web export, serves `dist/`, completes normal local-demo onboarding, and captures 1242 x 2688 PNGs from a 414 x 896 mobile viewport at 3x device scale.
 - Generated screenshots must stay free of debug UI, personal data, wallet prompts, placeholder copy, and out-of-brand color treatments before Palette/Zoro review.
 
+## Zoro P0 Store Media Direction
+
+Release note: `docs/release/zoro-p0-002-store-media-approval.md`.
+
+- The approved Gate C screenshot direction is the current six-route set: home deck, terminal ready, market overview, mission contacts, inventory, and profile.
+- The current captures are `1242 x 2688` portrait PNGs produced by the real app capture flow, not mockups or placeholder images.
+- The store-page mood is a portrait cyberdeck game: illegal Eidolon shard, PirateOS, S1LKROAD, Heat, Energy, fictional 0BOL, faction/progression hints, and LocalAuthority/no-wallet safety.
+- Reel's 30-second preview story is approved to open with the Eidolon/Pantheon hook, reach real app trading quickly, show `VBLM` buy/wait/sell gameplay, and end on missions/rank/profile identity.
+- Do not introduce finance-dashboard styling, device-hand footage, store badges, install CTAs, real-money claims, wallet prompts, investment/yield language, prize claims, or unapproved external media.
+- Final preview video, native-device screenshot evidence, public privacy policy URL, age-rating declarations, and account-owner store submissions remain Gate C follow-ups.
+
 ## Nyx/Vex P1 Tuned Strategy Guidance
 
 Release note: `docs/release/nyx-p1-002-strategy-guidance.md`.

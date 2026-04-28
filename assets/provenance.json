@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "taskId": "zara-p1-005",
-  "generatedAt": "2026-04-29T01:45:53+02:00",
+  "generatedAt": "2026-04-29T02:00:03+02:00",
   "inventoryRoots": [
     "assets/brand",
     "assets/commodities",
@@ -409,8 +409,8 @@
     {
       "path": "assets/screenshots/screenshot-home-idle.png",
       "kind": "png",
-      "bytes": 298217,
-      "sha256": "37adb50242b4ae6c79640a5c8bb883de705927ebee796a49d67a4347a028b79a",
+      "bytes": 322484,
+      "sha256": "b405970eeb8c65d619dd3c5dc1c1615968fcf31362c20835e1401280c06bb2b3",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -422,8 +422,8 @@
     {
       "path": "assets/screenshots/screenshot-inventory-overview.png",
       "kind": "png",
-      "bytes": 100196,
-      "sha256": "6c9d9d91a41998f986b07b9e55655b0e6c2308739f4b8a44051055ce4a90b9c6",
+      "bytes": 100198,
+      "sha256": "9159d75b0b5ff08879436a1b4046c7ffa4116b6350ca4e3142546cbc604857f8",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -435,8 +435,8 @@
     {
       "path": "assets/screenshots/screenshot-market-overview.png",
       "kind": "png",
-      "bytes": 432596,
-      "sha256": "e85dc3ac821430a2418b046c5579a1a3367a9c94cb71fb4689a3ee82d085f735",
+      "bytes": 434276,
+      "sha256": "7dbe65bff1bc717e1d49c0bc8f2c82c5591732a564a53f6a66ed2d2d7c8266e7",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -448,8 +448,8 @@
     {
       "path": "assets/screenshots/screenshot-missions-list.png",
       "kind": "png",
-      "bytes": 169231,
-      "sha256": "4ddc4be7f1f6c699c27e8645c359cf4758779ded39653ba0a95554139e0a554e",
+      "bytes": 322230,
+      "sha256": "82a6590ba6ca3d7f60e8a55fc5a934c048cc75614d7d279072506d5c9f1c8db6",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -461,8 +461,8 @@
     {
       "path": "assets/screenshots/screenshot-profile-overview.png",
       "kind": "png",
-      "bytes": 161230,
-      "sha256": "c137729713b58118b979faf3dc605d94aee144f70d7ea2b8b7a1805275c88cb8",
+      "bytes": 161229,
+      "sha256": "e61315fe6c342e47920fe67e44ad449236c8ec9ae3daced33c1b2efd87a22a80",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -474,8 +474,8 @@
     {
       "path": "assets/screenshots/screenshot-terminal-ready.png",
       "kind": "png",
-      "bytes": 432596,
-      "sha256": "e85dc3ac821430a2418b046c5579a1a3367a9c94cb71fb4689a3ee82d085f735",
+      "bytes": 434276,
+      "sha256": "7dbe65bff1bc717e1d49c0bc8f2c82c5591732a564a53f6a66ed2d2d7c8266e7",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
