@@ -31,43 +31,41 @@ function balanceBand(balanceObol: number): string {
 export default function RootLayout() {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const pathname = usePathname();
-  const diagnosticState = useDemoStore((state) => ({
-    phase: state.phase,
-    activeView: state.activeView,
-    tick: state.tick,
-    heat: state.resources.heat,
-    balanceObol: state.balanceObol,
-    selectedTicker: state.selectedTicker,
-    handlePresent: Boolean(state.handle),
-    playerIdPresent: Boolean(state.playerId),
-    hydrated: state.isHydrated,
-  }));
+  const phase = useDemoStore((state) => state.phase);
+  const activeView = useDemoStore((state) => state.activeView);
+  const tick = useDemoStore((state) => state.tick);
+  const heat = useDemoStore((state) => state.resources.heat);
+  const balanceObol = useDemoStore((state) => state.balanceObol);
+  const selectedTicker = useDemoStore((state) => state.selectedTicker);
+  const handlePresent = useDemoStore((state) => Boolean(state.handle));
+  const playerIdPresent = useDemoStore((state) => Boolean(state.playerId));
+  const hydrated = useDemoStore((state) => state.isHydrated);
   const diagnosticsContextRef = React.useRef<RuntimeDiagnosticContext>({
     route: pathname,
     platform: Platform.OS,
-    phase: diagnosticState.phase,
-    activeView: diagnosticState.activeView,
-    tick: diagnosticState.tick,
-    heat: diagnosticState.heat,
-    balanceBand: balanceBand(diagnosticState.balanceObol),
-    selectedTicker: diagnosticState.selectedTicker,
-    handlePresent: diagnosticState.handlePresent,
-    playerIdPresent: diagnosticState.playerIdPresent,
-    hydrated: diagnosticState.hydrated,
+    phase,
+    activeView,
+    tick,
+    heat,
+    balanceBand: balanceBand(balanceObol),
+    selectedTicker,
+    handlePresent,
+    playerIdPresent,
+    hydrated,
   });
 
   diagnosticsContextRef.current = {
     route: pathname,
     platform: Platform.OS,
-    phase: diagnosticState.phase,
-    activeView: diagnosticState.activeView,
-    tick: diagnosticState.tick,
-    heat: diagnosticState.heat,
-    balanceBand: balanceBand(diagnosticState.balanceObol),
-    selectedTicker: diagnosticState.selectedTicker,
-    handlePresent: diagnosticState.handlePresent,
-    playerIdPresent: diagnosticState.playerIdPresent,
-    hydrated: diagnosticState.hydrated,
+    phase,
+    activeView,
+    tick,
+    heat,
+    balanceBand: balanceBand(balanceObol),
+    selectedTicker,
+    handlePresent,
+    playerIdPresent,
+    hydrated,
   };
 
   useDemoBootstrap();

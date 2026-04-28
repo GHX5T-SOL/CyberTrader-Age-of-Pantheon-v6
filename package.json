@@ -14,6 +14,7 @@
     "qa:responsive": "npm run build:web && playwright test qa/responsive-captures.spec.ts --browser=chromium --reporter=line",
     "qa:axiom": "npm run build:web && playwright test qa/axiom-web-regression.spec.ts --browser=chromium --reporter=line",
     "qa:axiom:live": "playwright test qa/axiom-web-regression.spec.ts --grep '2.8 live' --browser=chromium --reporter=line",
+    "qa:smoke": "npm run build:web && playwright test qa/axiom-web-regression.spec.ts --grep axiom-p1-004 --browser=chromium --reporter=line",
     "safety:autonomous": "node scripts/check-autonomous-safety.mjs",
     "ship:check": "npm run safety:autonomous && npm run typecheck && npm test -- --runInBand && npm run build:web",
     "typecheck": "tsc --noEmit",

@@ -19,6 +19,7 @@
  *   2.3 Energy and Heat labels          ✓ automated (chip visibility)
  *   2.7 Routes (no dead ends)           ✓ automated (menu routes load)
  *   2.8 Live deployment smoke (web)     ✓ automated (Vercel cold launch)
+ *   axiom-p1-004 Smoke route            ✓ automated (intro/login/buy/sell/inventory/settings)
  *   All others                          manual / covered by unit test suite
  */
 
@@ -153,6 +154,32 @@ async function enterDemoSession(
   await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
   await expect(visibleText(page, "TUTORIAL STEP 1/8")).toBeVisible({
     timeout: 10_000,
+  });
+  for (let step = 0; step < 7; step += 1) {
+    await visibleText(page, "[NEXT >]", { exact: true }).click();
+  }
+  await visibleText(page, "[ ENTER ]", { exact: true }).click();
+  await expect(visibleText(page, /S1LKROAD 4\.0 LIVE/)).toBeVisible({
+    timeout: 10_000,
+  });
+}
+
+async function enterDemoSessionFromIntro(
+  page: Page,
+  origin: string,
+  handle: string,
+): Promise<void> {
+  await page.goto(`${origin}/intro`, { waitUntil: "networkidle" });
+  await expect(page).toHaveURL(/intro/);
+  await expect(visibleText(page, /\[SKIP/)).toBeVisible({ timeout: 6_000 });
+  await visibleText(page, /\[SKIP/).click();
+
+  await expect(page.locator("input").first()).toBeVisible({ timeout: 5_000 });
+  await page.locator("input").first().fill(handle);
+  await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
+
+  await expect(visibleText(page, "TUTORIAL STEP 1/8")).toBeVisible({
+    timeout: 15_000,
   });
   for (let step = 0; step < 7; step += 1) {
     await visibleText(page, "[NEXT >]", { exact: true }).click();
@@ -380,6 +407,49 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     });
 
     expect(getErrors(), "no runtime errors after buy execute").toEqual([]);
+  });
+
+  test("axiom-p1-004 smoke route – intro, login, buy, sell, inventory, settings", async ({
+    page,
+  }) => {
+    const getErrors = collectConsoleErrors(page);
+    await enterDemoSessionFromIntro(page, origin, "AXIOM_SMOKE");
+    await enterMarket(page);
+
+    await visibleText(page, /BUY \[/).click();
+    await visibleText(page, "[ EXECUTE ]", { exact: true }).click();
+    await visibleText(page, /\[Y\] CONFIRM/).click();
+    await expect(visibleText(page, /VBLM QTY|OPEN POSITIONS/)).toBeVisible({
+      timeout: 5_000,
+    });
+
+    await visibleText(page, "[ WAIT MARKET TICK ]", { exact: true }).click();
+    await visibleText(page, /SELL \[/).click();
+    await visibleText(page, "[ EXECUTE ]", { exact: true }).click();
+    await visibleText(page, /\[Y\] CONFIRM/).click();
+    await expect(
+      visibleText(page, /NO OPEN POSITIONS|TRADE ACKNOWLEDGED/),
+    ).toBeVisible({ timeout: 5_000 });
+
+    await page.goto(`${origin}/menu/inventory`, { waitUntil: "networkidle" });
+    await expect(visibleText(page, "COMMODITY INVENTORY")).toBeVisible();
+    await expect(visibleText(page, /SLOTS|NO COMMODITIES HELD/)).toBeVisible();
+
+    await page.goto(`${origin}/menu/settings`, { waitUntil: "networkidle" });
+    await expect(visibleText(page, "SETTINGS")).toBeVisible();
+    await expect(visibleText(page, "SUPABASE AUTHORITY: OFF")).toBeVisible();
+    await expect(visibleText(page, "LOCAL LOOP ACTIVE")).toBeVisible();
+
+    await page.screenshot({
+      path: path.join(reportDir, "axiom-p1-004-smoke-settings.jpg"),
+      fullPage: true,
+      quality: 78,
+      type: "jpeg",
+    });
+
+    expect(getErrors(), "no runtime errors in axiom-p1-004 smoke route").toEqual(
+      [],
+    );
   });
 
   // ── 1.6 / 2.7 Route invariants ────────────────────────────────────────────
