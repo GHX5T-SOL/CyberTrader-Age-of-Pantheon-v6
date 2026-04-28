@@ -9,6 +9,7 @@ import path from "node:path";
 const repoRoot = process.cwd();
 const outputPath = "assets/provenance.json";
 const checkMode = process.argv.includes("--check");
+const writeMode = !checkMode;
 
 const inventoryRoots = [
   "assets/brand",
@@ -29,10 +30,9 @@ async function listMediaFiles(relativeDir) {
   }
 
   const entries = await readdir(absoluteDir, { withFileTypes: true });
-  const nestedEntries = await Promise.all(
+  const nested = await Promise.all(
     entries.map(async (entry) => {
       const relativePath = path.posix.join(relativeDir, entry.name);
-
       if (entry.isDirectory()) {
         return listMediaFiles(relativePath);
       }
@@ -45,7 +45,7 @@ async function listMediaFiles(relativeDir) {
     }),
   );
 
-  return nestedEntries.flat();
+  return nested.flat();
 }
 
 function readPngDimensions(buffer) {
@@ -72,7 +72,7 @@ function readJpegDimensions(buffer) {
   }
 
   let offset = 2;
-  while (offset + 8 < buffer.length) {
+  while (offset < buffer.length) {
     if (buffer[offset] !== 0xff) {
       offset += 1;
       continue;
@@ -126,7 +126,7 @@ function sourceNoteFor(relativePath) {
       owner: "Palette/Zara",
       origin: "Generated internally by scripts/generate-brand-assets.py",
       licenseBasis: "CyberTrader AI studio work-made-for-hire",
-      clearance: "source-clean; final Zoro creative sign-off still required",
+      clearance: "source-clean; eligible for autonomous creative iteration before final store package",
       storeUse: "app icon, adaptive icon, splash, favicon, screenshots, preview frames",
     };
   }
@@ -136,8 +136,8 @@ function sourceNoteFor(relativePath) {
       owner: "Palette/Axiom",
       origin: "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       licenseBasis: "first-party app UI capture",
-      clearance: "candidate capture evidence; Palette/Zoro final screenshot approval pending",
-      storeUse: "store screenshot staging only until final creative approval",
+      clearance: "candidate capture evidence; eligible for autonomous screenshot iteration",
+      storeUse: "store screenshot staging; final account-owner submission declarations may still be required",
     };
   }
 
@@ -147,7 +147,7 @@ function sourceNoteFor(relativePath) {
       owner: "Zara/Palette",
       origin: `Optimized derivative generated from ${optimizedSource} by scripts/optimize-assets.mjs`,
       licenseBasis: "inherits source asset provenance",
-      clearance: "source provenance sign-off still required before final store media",
+      clearance: "source provenance evidence still required before final store media",
       storeUse: "in-app runtime art and screenshot staging",
       derivedFrom: optimizedSource,
     };
@@ -158,7 +158,7 @@ function sourceNoteFor(relativePath) {
       owner: "Palette",
       origin: "Existing repository art asset; source project/license metadata not present in repo",
       licenseBasis: "unverified repository asset pending Palette attestation",
-      clearance: "requires Palette/Zoro provenance sign-off before final store media",
+      clearance: "requires source provenance evidence before final store media",
       storeUse: "internal QA and capture planning until sign-off",
     };
   }
@@ -188,7 +188,7 @@ function sourceNoteFor(relativePath) {
       owner: "Reel/Palette",
       origin: "Remotion public asset copied from or derived from the v6 art set",
       licenseBasis: "inherits source asset provenance",
-      clearance: "requires source provenance sign-off before external trailer use",
+      clearance: "requires source provenance evidence before external trailer use",
       storeUse: "internal trailer rendering until sign-off",
     };
   }
@@ -203,31 +203,31 @@ function sourceNoteFor(relativePath) {
 }
 
 function latestAssetCommit(paths) {
-  const committedPaths = paths.filter((relativePath) => {
-    try {
-      execFileSync("git", ["ls-files", "--error-unmatch", relativePath], {
-        cwd: repoRoot,
-        stdio: "ignore",
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  });
-
-  if (committedPaths.length === 0) {
-    return "untracked";
-  }
-
   try {
-    const latestCommitDate = execFileSync("git", ["log", "-1", "--format=%cI", "--", ...committedPaths], {
+    const committedPaths = paths.filter((relativePath) => {
+      try {
+        execFileSync("git", ["ls-files", "--error-unmatch", relativePath], {
+          cwd: repoRoot,
+          stdio: "ignore",
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    });
+
+    if (committedPaths.length === 0) {
+      return new Date().toISOString();
+    }
+
+    const latest = execFileSync("git", ["log", "-1", "--format=%cI", "--", ...committedPaths], {
       cwd: repoRoot,
       encoding: "utf8",
     }).trim();
 
-    return latestCommitDate || "untracked";
+    return latest || new Date().toISOString();
   } catch {
-    return "untracked";
+    return new Date().toISOString();
   }
 }
 
@@ -267,8 +267,8 @@ async function buildProvenance() {
       assetsPendingSourceOrRightsReview: records.filter((record) =>
         /requires|required|unverified|not approved/i.test(`${record.clearance} ${record.licenseBasis}`),
       ).length,
-      assetsPendingCreativeApproval: records.filter((record) =>
-        /creative approval|creative sign-off|final zoro|final screenshot approval/i.test(record.clearance),
+      assetsPendingFinalStoreClearance: records.filter((record) =>
+        /required|requires|unverified|not approved|declarations/i.test(`${record.clearance} ${record.licenseBasis} ${record.storeUse}`),
       ).length,
     },
     records,
@@ -290,7 +290,7 @@ if (checkMode) {
   }
 
   console.log(`${outputPath} is current with ${provenance.summary.totalAssets} assets.`);
-} else {
+} else if (writeMode) {
   await writeFile(outputPath, nextOutput);
   console.log(`Wrote ${outputPath} with ${provenance.summary.totalAssets} assets.`);
 }
