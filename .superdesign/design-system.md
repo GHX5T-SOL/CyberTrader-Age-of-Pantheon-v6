@@ -104,3 +104,13 @@ Release note: `docs/release/palette-p0-001-asset-audit.md`.
 - `assets/media/silkroad-dashboard-reference.jpg` is legacy first-playable reference art and is not approved for final store screenshots.
 - App icon, adaptive icon foreground, and splash source art are missing from `app.json`; these remain Palette follow-up work before store submission.
 - The repo currently lacks source/license/provenance metadata for visible image and video assets. Use existing assets for internal QA and capture planning only until Palette attaches ownership notes for final App Store / Play Store use.
+
+## Palette P1 Screenshot Presets
+
+SuperDesign project: `CyberTrader v6 screenshot preset capture`
+
+- Current capture draft: `b11d6241-7779-4b80-bffb-846467843d92`.
+- Preview URL: `https://p.superdesign.dev/draft/b11d6241-7779-4b80-bffb-846467843d92`.
+- Store capture presets use the current terminal system for `/home`, `/terminal`, `/market`, `/missions`, `/menu/inventory`, and `/menu/profile`.
+- `npm run capture:screenshots` builds the Expo web export, serves `dist/`, completes normal local-demo onboarding, and captures 1242 x 2688 PNGs from a 414 x 896 mobile viewport at 3x device scale.
+- Generated screenshots must stay free of debug UI, personal data, wallet prompts, placeholder copy, and out-of-brand color treatments before Palette/Zoro review.
