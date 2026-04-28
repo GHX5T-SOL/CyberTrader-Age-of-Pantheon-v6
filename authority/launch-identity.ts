@@ -1,5 +1,6 @@
 import { DEFAULT_LOCATION_ID } from "@/data/locations";
 import type { PlayerProfile } from "@/engine/types";
+import { isStoreSafeCopy } from "@/authority/store-safety";
 
 export const EIDOLON_HANDLE_MIN_LENGTH = 3;
 export const EIDOLON_HANDLE_MAX_LENGTH = 20;
@@ -68,5 +69,5 @@ export function createLaunchPlayerProfileInput(
 }
 
 export function isLaunchIdentityCopyStoreSafe(copy: string): boolean {
-  return !/(private key|seed phrase|service_role|cash out|withdraw|investment|yield|staking)/i.test(copy);
+  return isStoreSafeCopy(copy);
 }
