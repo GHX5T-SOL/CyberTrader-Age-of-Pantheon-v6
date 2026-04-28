@@ -35,11 +35,11 @@
     <string>/bin/zsh</string>
     <string>-l</string>
     <string>-c</string>
-    <string>REPLACE_NODE_PATH scripts/regression-monitor.mjs</string>
+    <string>/usr/local/bin/node scripts/regression-monitor.mjs</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>REPLACE_REPO_ROOT</string>
+  <string>/Users/brucewayne/CyberTrader-Age-of-Pantheon-v6</string>
 
   <!-- Fire every 15 minutes. -->
   <key>StartInterval</key>
