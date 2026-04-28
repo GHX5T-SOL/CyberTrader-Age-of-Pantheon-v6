@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "taskId": "zara-p1-005",
-  "generatedAt": "2026-04-28T13:29:12+02:00",
+  "generatedAt": "2026-04-29T01:45:53+02:00",
   "inventoryRoots": [
     "assets/brand",
     "assets/commodities",
@@ -283,8 +283,8 @@
     {
       "path": "assets/optimized/commodities/glitch_echo.png",
       "kind": "png",
-      "bytes": 97819,
-      "sha256": "62d2872f5ecf053d2964d51cbc6ce88e9b12d1bc7f8036c05f6b8e55f6405600",
+      "bytes": 162430,
+      "sha256": "ccd31e2feb9265822e88a9c6a898feae22a51c314da2ae62d24e2f4b9ab8257d",
       "owner": "Zara/Palette",
       "origin": "Optimized derivative generated from assets/commodities/glitch_echo.png by scripts/optimize-assets.mjs",
       "licenseBasis": "inherits source asset provenance",

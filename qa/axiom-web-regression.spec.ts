@@ -166,7 +166,9 @@ async function enterDemoSession(
   origin: string,
   handle: string,
 ): Promise<void> {
+  await resetBrowserSession(page, origin);
   await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  await expect(page.locator("input").first()).toBeVisible({ timeout: 10_000 });
   await page.locator("input").first().fill(handle);
   await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
   await expect(visibleText(page, "TUTORIAL STEP 1/8")).toBeVisible({
@@ -186,6 +188,7 @@ async function enterDemoSessionFromIntro(
   origin: string,
   handle: string,
 ): Promise<void> {
+  await resetBrowserSession(page, origin);
   await page.goto(`${origin}/intro`, { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/intro/);
   await expect(visibleText(page, /\[SKIP/)).toBeVisible({ timeout: 6_000 });
@@ -204,6 +207,14 @@ async function enterDemoSessionFromIntro(
   await visibleText(page, "[ ENTER ]", { exact: true }).click();
   await expect(visibleText(page, /S1LKROAD 4\.0 LIVE/)).toBeVisible({
     timeout: 10_000,
+  });
+}
+
+async function resetBrowserSession(page: Page, origin: string): Promise<void> {
+  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
   });
 }
 
