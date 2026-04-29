@@ -5,11 +5,14 @@ import {
   getAgentOsFactionByNpcFaction,
   getFactionContractSignal,
   getFactionDefinition,
+  getFactionRoutePressureSummary,
 } from "@/engine/factions";
 import { seededStream } from "@/engine/prng";
 import type { Faction, FactionContractSignal, Mission, MissionType, Position } from "@/engine/types";
 
 const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop"];
+const MIN_PRESSURED_MISSION_MINUTES = 4;
+const MAX_PRESSURED_MISSION_MINUTES = 22;
 
 export function getNextMissionDelay(seed: string, index: number): number {
   const stream = seededStream(`${seed}:mission-delay:${index}`);
@@ -188,7 +191,18 @@ function baseMission(input: {
   contractSignal?: FactionContractSignal;
 }): Mission {
   const npc = getNpc(input.npcId);
-  const expiresAtTimestamp = input.input.nowMs + input.minutes * 60_000;
+  const pressure = input.contractSignal?.routePressure;
+  const routeMinutes = pressure
+    ? Math.min(
+        MAX_PRESSURED_MISSION_MINUTES,
+        Math.max(MIN_PRESSURED_MISSION_MINUTES, Math.round(input.minutes * pressure.timeMultiplier)),
+      )
+    : input.minutes;
+  const reward0Bol = roundCurrency(input.reward0Bol * (pressure?.rewardMultiplier ?? 1));
+  const routePressureSummary = input.contractSignal
+    ? getFactionRoutePressureSummary(input.contractSignal)
+    : undefined;
+  const expiresAtTimestamp = input.input.nowMs + routeMinutes * 60_000;
   return {
     id: `mission_${input.input.nowMs}_${input.input.index}`,
     npcId: input.npcId,
@@ -199,11 +213,16 @@ function baseMission(input: {
     requiredTicker: input.ticker,
     requiredQuantity: input.quantity,
     destinationLocationId: input.destinationId,
-    reward0Bol: input.reward0Bol,
+    reward0Bol,
     rewardXp: input.rewardXp,
     reputationChangeOnSuccess: input.contractSignal?.reputationDelta ?? 2,
     reputationChangeOnFail: -Math.max(1, Math.ceil((input.contractSignal?.reputationDelta ?? 2) / 2)),
     contractSignal: input.contractSignal,
+    routePressureSummary,
+    routeRewardMultiplier: pressure?.rewardMultiplier,
+    routeTimeMultiplier: pressure?.timeMultiplier,
+    routeHeatDeltaOnSuccess: pressure?.successHeatDelta,
+    routeHeatDeltaOnFail: pressure?.failureHeatDelta,
     expiresAtTimestamp,
     accepted: false,
     completed: false,
@@ -215,7 +234,7 @@ function baseMission(input: {
     destinationId: input.destinationId,
     startTimestamp: input.input.nowMs,
     endTimestamp: expiresAtTimestamp,
-    rewardObol: input.reward0Bol,
+    rewardObol: reward0Bol,
     reputationDelta: input.contractSignal?.reputationDelta ?? 2,
   };
 }

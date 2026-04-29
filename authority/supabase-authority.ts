@@ -386,6 +386,17 @@ export class SupabaseAuthority implements Authority {
     return this.getResources(playerId);
   }
 
+  async applyMissionPressure(
+    playerId: string,
+    heatDelta: number,
+    _reason = "mission_pressure",
+  ): Promise<Resources> {
+    const current = await this.getResources(playerId);
+    return this.updateResources(playerId, {
+      heat: Math.min(100, Math.max(0, current.heat + Math.trunc(heatDelta))),
+    });
+  }
+
   async getActiveNews(tick: number): Promise<MarketNews[]> {
     const client = await requireSupabase();
     const targetTick = Math.max(0, Math.floor(tick));

@@ -186,6 +186,13 @@ describe("AgentOS faction contract", () => {
       heatPosture: "high",
       reputationDelta: 4,
       rewardModifier: 1.08,
+      routePressure: {
+        label: "HOT CARGO",
+        rewardMultiplier: 1.11,
+        timeMultiplier: 0.86,
+        successHeatDelta: 3,
+        failureHeatDelta: 5,
+      },
     });
   });
 });

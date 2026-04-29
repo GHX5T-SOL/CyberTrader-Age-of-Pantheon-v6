@@ -207,6 +207,19 @@ Release note: `docs/release/nyx-p1-005-agentos-contract-chains.md`.
 - Contract strips should stay subordinate to the mission title/description and must not add new colors, cards, gradients, icons, or tutorial prose.
 - Copy remains fictional and store-safe: faction contracts may affect missions, route risk, Heat pressure, and reputation, but must not imply real-money rewards, investment outcomes, prizes, wallet signing, staking, or external cash-out.
 
+## Nyx/Oracle P1 AgentOS Route Pressure
+
+Release note: `docs/release/nyx-p1-006-agentos-route-pressure.md`.
+
+- SuperDesign project: `CyberTrader v6 AgentOS Route Consequences`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/ec4dca81-d196-4656-9287-5e20e26fcc48`.
+- Draft generation was attempted before implementation and blocked by team `insufficient_credits`; implementation stays conservative and follows the existing AgentOS contract-chain strip treatment.
+- AgentOS contract strips may now show one extra compact `ROUTE // ...` line for deterministic mission pressure: reward modifier, timer modifier, and success/failure Heat delta.
+- This line must remain inside the existing `MissionContractStrip` treatment: 1 px left rail, terminal panel fill, 9 px mono text, existing cyan/amber/dim tokens, no new color family, no icon, and no card nesting.
+- Route-pressure copy must stay operational and terse, for example `ROUTE // HOT CARGO // REWARD +11% // TIMER -14% // HEAT +3/+5`.
+- Free Splinters and Archivists should read as safer lanes with longer timers and lower Heat on clean runs. Blackwake and Null Crown should read as sharper lanes with higher reward pressure, tighter timers, and stronger Heat consequences.
+- Mission pressure remains fictional and store-safe: no wallet, real-money, investment, cash-out, staking, yield, prize, or regulated-market language.
+
 ## Oracle P1 Terminal Pressure Flow
 
 Release note: `docs/release/oracle-p1-011-terminal-pressure-flow.md`.

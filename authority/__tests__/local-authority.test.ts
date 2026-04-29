@@ -130,6 +130,30 @@ describe("LocalAuthority", () => {
     ).rejects.toThrow("INVENTORY FULL");
   });
 
+  it("persists mission route pressure Heat deltas", async () => {
+    const authority = new LocalAuthority({ seed: "mission-pressure", startedAt: STARTED_AT });
+    const profile = await authority.createProfile({
+      walletAddress: null,
+      devIdentity: "mission_pressure_dev",
+      eidolonHandle: "MISSION_PRESS",
+      osTier: "PIRATE",
+      rank: 1,
+      faction: null,
+    });
+
+    await expect(authority.applyMissionPressure(profile.id, 4, "blackwake_route")).resolves.toMatchObject({
+      heat: 10,
+    });
+    await expect(authority.applyMissionPressure(profile.id, -7, "free_splinters_route")).resolves.toMatchObject({
+      heat: 3,
+    });
+
+    const restored = LocalAuthority.fromSnapshot(authority.exportSnapshot());
+    await expect(restored.getResources(profile.id)).resolves.toMatchObject({
+      heat: 3,
+    });
+  });
+
   it("replays the same outcome for 1000 seeds", async () => {
     for (let index = 0; index < 1000; index += 1) {
       const seed = `seed-${index}`;

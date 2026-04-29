@@ -4,6 +4,7 @@ import type {
   FactionChoice,
   FactionContractSignal,
   FactionContractStage,
+  FactionRoutePressure,
   FactionStanding,
   FactionSwitchRule,
   MissionType,
@@ -26,6 +27,121 @@ export interface FactionDefinition {
 export const AGENT_OS_UNLOCK_RANK = 5;
 export const AGENT_OS_HEAT_LIMIT = 70;
 
+const ROUTE_PRESSURE = {
+  safeLane: {
+    label: "SAFE LANE",
+    rewardMultiplier: 1,
+    timeMultiplier: 1.1,
+    successHeatDelta: -1,
+    failureHeatDelta: 1,
+  },
+  recoveryBuffer: {
+    label: "RECOVERY BUFFER",
+    rewardMultiplier: 1.03,
+    timeMultiplier: 1.12,
+    successHeatDelta: -2,
+    failureHeatDelta: 1,
+  },
+  courierSoften: {
+    label: "COURIER SOFTEN",
+    rewardMultiplier: 1.05,
+    timeMultiplier: 1.15,
+    successHeatDelta: -3,
+    failureHeatDelta: 0,
+  },
+  signalEscort: {
+    label: "SIGNAL ESCORT",
+    rewardMultiplier: 1.08,
+    timeMultiplier: 1.06,
+    successHeatDelta: -2,
+    failureHeatDelta: 2,
+  },
+  convoyRush: {
+    label: "CONVOY RUSH",
+    rewardMultiplier: 1.04,
+    timeMultiplier: 0.95,
+    successHeatDelta: 1,
+    failureHeatDelta: 2,
+  },
+  timedHaul: {
+    label: "TIMED HAUL",
+    rewardMultiplier: 1.07,
+    timeMultiplier: 0.9,
+    successHeatDelta: 2,
+    failureHeatDelta: 3,
+  },
+  hotCargo: {
+    label: "HOT CARGO",
+    rewardMultiplier: 1.11,
+    timeMultiplier: 0.86,
+    successHeatDelta: 3,
+    failureHeatDelta: 5,
+  },
+  priorityLane: {
+    label: "PRIORITY LANE",
+    rewardMultiplier: 1.15,
+    timeMultiplier: 0.82,
+    successHeatDelta: 4,
+    failureHeatDelta: 6,
+  },
+  blindSpot: {
+    label: "BLIND-SPOT",
+    rewardMultiplier: 1.06,
+    timeMultiplier: 0.92,
+    successHeatDelta: 2,
+    failureHeatDelta: 4,
+  },
+  tightWindow: {
+    label: "TIGHT WINDOW",
+    rewardMultiplier: 1.1,
+    timeMultiplier: 0.86,
+    successHeatDelta: 3,
+    failureHeatDelta: 5,
+  },
+  shadowPremium: {
+    label: "SHADOW PREMIUM",
+    rewardMultiplier: 1.14,
+    timeMultiplier: 0.8,
+    successHeatDelta: 4,
+    failureHeatDelta: 7,
+  },
+  voidLeverage: {
+    label: "VOID LEVERAGE",
+    rewardMultiplier: 1.18,
+    timeMultiplier: 0.78,
+    successHeatDelta: 5,
+    failureHeatDelta: 8,
+  },
+  patientIndex: {
+    label: "PATIENT INDEX",
+    rewardMultiplier: 1.02,
+    timeMultiplier: 1.08,
+    successHeatDelta: -1,
+    failureHeatDelta: 1,
+  },
+  clueChain: {
+    label: "CLUE CHAIN",
+    rewardMultiplier: 1.05,
+    timeMultiplier: 1.12,
+    successHeatDelta: -2,
+    failureHeatDelta: 1,
+  },
+  custodyBuffer: {
+    label: "CUSTODY BUFFER",
+    rewardMultiplier: 1.07,
+    timeMultiplier: 1.15,
+    successHeatDelta: -3,
+    failureHeatDelta: 1,
+  },
+  deepCatalog: {
+    label: "DEEP CATALOG",
+    rewardMultiplier: 1.1,
+    timeMultiplier: 1.05,
+    successHeatDelta: -2,
+    failureHeatDelta: 2,
+  },
+} as const satisfies Record<string, FactionRoutePressure>;
+
 export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
   {
     id: "FREE_SPLINTERS",
@@ -45,6 +161,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "Starter lanes stay shielded.",
         reputationDelta: 2,
+        routePressure: ROUTE_PRESSURE.safeLane,
       },
       {
         id: "trusted_route",
@@ -53,6 +170,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "Recovery contracts favor clean delivery.",
         reputationDelta: 3,
+        routePressure: ROUTE_PRESSURE.recoveryBuffer,
       },
       {
         id: "favored_cell",
@@ -61,6 +179,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "Courier pressure softens after safe runs.",
         reputationDelta: 4,
+        routePressure: ROUTE_PRESSURE.courierSoften,
       },
       {
         id: "legend_signal",
@@ -69,6 +188,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "medium",
         routeConsequence: "PantheonOS influence starts listening.",
         reputationDelta: 5,
+        routePressure: ROUTE_PRESSURE.signalEscort,
       },
     ],
   },
@@ -90,6 +210,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "medium",
         routeConsequence: "Short PGAS and FDST convoy work opens.",
         reputationDelta: 2,
+        routePressure: ROUTE_PRESSURE.convoyRush,
       },
       {
         id: "trusted_route",
@@ -98,6 +219,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "medium",
         routeConsequence: "Timed cargo rewards climb.",
         reputationDelta: 3,
+        routePressure: ROUTE_PRESSURE.timedHaul,
       },
       {
         id: "favored_cell",
@@ -106,6 +228,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "Smuggler missions add sharper Heat pressure.",
         reputationDelta: 4,
+        routePressure: ROUTE_PRESSURE.hotCargo,
       },
       {
         id: "legend_signal",
@@ -114,6 +237,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "Priority cargo lanes surface.",
         reputationDelta: 5,
+        routePressure: ROUTE_PRESSURE.priorityLane,
       },
     ],
   },
@@ -135,6 +259,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "Hold and intel contracts demand Heat discipline.",
         reputationDelta: 2,
+        routePressure: ROUTE_PRESSURE.blindSpot,
       },
       {
         id: "trusted_route",
@@ -143,6 +268,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "Contraband timing windows get tighter.",
         reputationDelta: 3,
+        routePressure: ROUTE_PRESSURE.tightWindow,
       },
       {
         id: "favored_cell",
@@ -151,6 +277,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "Blind-spot routes pay for clean nerve.",
         reputationDelta: 4,
+        routePressure: ROUTE_PRESSURE.shadowPremium,
       },
       {
         id: "legend_signal",
@@ -159,6 +286,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "high",
         routeConsequence: "PantheonOS shadow leverage unlocks later.",
         reputationDelta: 5,
+        routePressure: ROUTE_PRESSURE.voidLeverage,
       },
     ],
   },
@@ -180,6 +308,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "Intel and hold routes favor patience.",
         reputationDelta: 2,
+        routePressure: ROUTE_PRESSURE.patientIndex,
       },
       {
         id: "trusted_route",
@@ -188,6 +317,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "ORRS and SNPS clue chains surface.",
         reputationDelta: 3,
+        routePressure: ROUTE_PRESSURE.clueChain,
       },
       {
         id: "favored_cell",
@@ -196,6 +326,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "low",
         routeConsequence: "Long-hold contracts earn safer trust.",
         reputationDelta: 4,
+        routePressure: ROUTE_PRESSURE.custodyBuffer,
       },
       {
         id: "legend_signal",
@@ -204,6 +335,7 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
         heatPosture: "medium",
         routeConsequence: "Shard-memory lore branches later.",
         reputationDelta: 5,
+        routePressure: ROUTE_PRESSURE.deepCatalog,
       },
     ],
   },
@@ -274,7 +406,32 @@ export function getFactionContractSignal(input: {
     routeConsequence: stage.routeConsequence,
     reputationDelta: stage.reputationDelta,
     rewardModifier: definition.rewardModifier,
+    routePressure: stage.routePressure,
   };
+}
+
+function formatSignedHeat(value: number): string {
+  if (value > 0) {
+    return `+${value}`;
+  }
+
+  return String(value);
+}
+
+function formatMultiplierDelta(multiplier: number): string {
+  const percent = Math.round((multiplier - 1) * 100);
+  if (percent > 0) {
+    return `+${percent}%`;
+  }
+  if (percent < 0) {
+    return `${percent}%`;
+  }
+  return "FLAT";
+}
+
+export function getFactionRoutePressureSummary(signal: FactionContractSignal): string {
+  const pressure = signal.routePressure;
+  return `${pressure.label} // REWARD ${formatMultiplierDelta(pressure.rewardMultiplier)} // TIMER ${formatMultiplierDelta(pressure.timeMultiplier)} // HEAT ${formatSignedHeat(pressure.successHeatDelta)}/${formatSignedHeat(pressure.failureHeatDelta)}`;
 }
 
 export function getOsTierForRank(rank: number): OsTier {

@@ -167,7 +167,6 @@ async function enterDemoSession(
   handle: string,
 ): Promise<void> {
   await resetBrowserSession(page, origin);
-  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
   await expect(page.locator("input").first()).toBeVisible({ timeout: 10_000 });
   await page.locator("input").first().fill(handle);
   await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
@@ -211,7 +210,13 @@ async function enterDemoSessionFromIntro(
 }
 
 async function resetBrowserSession(page: Page, origin: string): Promise<void> {
-  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  await page.addInitScript(() => {
+    if (location.search.includes("qa_reset")) {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
+  });
+  await page.goto(`${origin}/login?qa_reset=${Date.now()}`, { waitUntil: "networkidle" });
   await page.evaluate(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -471,9 +476,9 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await visibleText(page, /SELL \[/).click();
     await visibleText(page, "[ EXECUTE ]", { exact: true }).click();
     await visibleText(page, /\[Y\] CONFIRM/).click();
-    await expect(
-      visibleText(page, /NO OPEN POSITIONS|TRADE ACKNOWLEDGED/),
-    ).toBeVisible({ timeout: 5_000 });
+    await expect(visibleText(page, "NO OPEN POSITIONS")).toBeVisible({
+      timeout: 10_000,
+    });
 
     await page.goto(`${origin}/menu/inventory`, { waitUntil: "networkidle" });
     await expect(visibleText(page, "COMMODITY INVENTORY")).toBeVisible({

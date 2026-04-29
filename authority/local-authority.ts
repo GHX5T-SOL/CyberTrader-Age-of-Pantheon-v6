@@ -606,6 +606,20 @@ export class LocalAuthority implements Authority {
     return this.applyXp(playerId, xpDelta);
   }
 
+  async applyMissionPressure(
+    playerId: string,
+    heatDelta: number,
+    _reason = "mission_pressure",
+  ): Promise<Resources> {
+    const state = this.requirePlayerState(playerId);
+    state.resources = {
+      ...state.resources,
+      heat: Math.min(100, Math.max(0, state.resources.heat + Math.trunc(heatDelta))),
+    };
+
+    return { ...state.resources };
+  }
+
   async chooseFaction(playerId: string, faction: Faction): Promise<PlayerProfile> {
     const profile = this.requireProfile(playerId);
     const rank = await this.getRank(playerId);

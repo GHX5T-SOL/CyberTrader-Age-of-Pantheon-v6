@@ -27,6 +27,14 @@ export interface FactionChoice {
 
 export type FactionContractStageId = "initiation" | "trusted_route" | "favored_cell" | "legend_signal";
 
+export interface FactionRoutePressure {
+  label: string;
+  rewardMultiplier: number;
+  timeMultiplier: number;
+  successHeatDelta: number;
+  failureHeatDelta: number;
+}
+
 export interface FactionContractStage {
   id: FactionContractStageId;
   label: string;
@@ -34,6 +42,7 @@ export interface FactionContractStage {
   heatPosture: "low" | "medium" | "high";
   routeConsequence: string;
   reputationDelta: number;
+  routePressure: FactionRoutePressure;
 }
 
 export interface FactionContractSignal {
@@ -46,6 +55,7 @@ export interface FactionContractSignal {
   routeConsequence: string;
   reputationDelta: number;
   rewardModifier: number;
+  routePressure: FactionRoutePressure;
 }
 
 export type LimitOrderSide = "BUY" | "SELL";
@@ -287,6 +297,11 @@ export interface Mission {
   reputationChangeOnSuccess: number;
   reputationChangeOnFail: number;
   contractSignal?: FactionContractSignal;
+  routePressureSummary?: string;
+  routeRewardMultiplier?: number;
+  routeTimeMultiplier?: number;
+  routeHeatDeltaOnSuccess?: number;
+  routeHeatDeltaOnFail?: number;
   expiresAtTimestamp: number;
   accepted: boolean;
   completed: boolean;
@@ -448,6 +463,7 @@ export interface Authority {
   getRank(playerId: string): Promise<RankSnapshot>;
   updateXp(playerId: string, xpDelta: number, reason?: string): Promise<RankSnapshot>;
   chooseFaction?(playerId: string, faction: Faction): Promise<PlayerProfile>;
+  applyMissionPressure?(playerId: string, heatDelta: number, reason: string): Promise<Resources>;
 
   connectWallet?(): Promise<WalletSession>;
   disconnectWallet?(): Promise<void>;

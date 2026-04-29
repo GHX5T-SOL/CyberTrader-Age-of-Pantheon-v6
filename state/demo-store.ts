@@ -545,6 +545,24 @@ function markMissionStatus(
   };
 }
 
+function getMissionRouteHeatDelta(mission: Mission, completed: boolean): number {
+  const rawDelta = completed
+    ? mission.routeHeatDeltaOnSuccess
+    : mission.routeHeatDeltaOnFail;
+  return Math.trunc(rawDelta ?? 0);
+}
+
+function applyMissionPressureLocally(resources: Resources, heatDelta: number): Resources {
+  return {
+    ...resources,
+    heat: Math.min(100, Math.max(0, resources.heat + heatDelta)),
+  };
+}
+
+function formatMissionPressureDelta(heatDelta: number): string {
+  return heatDelta > 0 ? `+${heatDelta}` : String(heatDelta);
+}
+
 function getLegacyFactionChoice(profile: PlayerProfile | null | undefined): FactionChoice | null {
   if (!profile?.faction) {
     return null;
@@ -1474,6 +1492,21 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           };
           nextActiveMission = null;
           nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);
+          const routeHeatDelta = getMissionRouteHeatDelta(finishedMission, completed);
+          if (routeHeatDelta !== 0) {
+            nextResources = authority.applyMissionPressure
+              ? await authority.applyMissionPressure(
+                  state.playerId,
+                  routeHeatDelta,
+                  completed ? "mission_route_success" : "mission_route_failure",
+                )
+              : applyMissionPressureLocally(nextResources, routeHeatDelta);
+            nextNotifications = addNotification(
+              nextNotifications,
+              `${completed ? "Route pressure settled" : "Route pressure spiked"}: Heat ${formatMissionPressureDelta(routeHeatDelta)}.`,
+              routeHeatDelta <= 0 ? "success" : "warning",
+            );
+          }
           if (completed) {
             const ledger = authority.grantReward
               ? await authority.grantReward(state.playerId, finishedMission.reward0Bol, `mission_${finishedMission.type}`)

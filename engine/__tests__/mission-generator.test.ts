@@ -35,6 +35,11 @@ describe("mission generator", () => {
       heatPosture: "high",
       reputationDelta: 4,
     });
+    expect(mission.routePressureSummary).toContain("HOT CARGO");
+    expect(mission.routeRewardMultiplier).toBe(1.11);
+    expect(mission.routeTimeMultiplier).toBe(0.86);
+    expect(mission.routeHeatDeltaOnSuccess).toBe(3);
+    expect(mission.routeHeatDeltaOnFail).toBe(5);
     expect(mission.reputationChangeOnSuccess).toBe(4);
     expect(mission.reputationChangeOnFail).toBe(-2);
   });

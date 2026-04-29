@@ -21,7 +21,8 @@ Generated: 2026-04-26
 - `components/deck-section-header.tsx`: packet-style terminal section divider for route telemetry, live tape, command racks, order pipes, ledgers, and signal feeds.
 - `components/market-tape-header.tsx`: compact table header aligned to `CommodityRow` columns so commodity lists read as a S1LKROAD tape.
 - `components/first-session-cue.tsx`: live first-loop guidance panel for home and terminal.
-- `components/location-banner.tsx`, `flash-event-banner.tsx`, `mission-banner.tsx`, `daily-challenges-panel.tsx`, `streak-display.tsx`, `away-report.tsx`: home route live-world panels.
+- `components/mission-banner.tsx`: pending/active mission panel and compact `MissionContractStrip`; AgentOS strips show faction, stage, Heat posture, route consequence, reputation delta, and route-pressure summary.
+- `components/location-banner.tsx`, `flash-event-banner.tsx`, `daily-challenges-panel.tsx`, `streak-display.tsx`, `away-report.tsx`: home route live-world panels.
 
 ## Legacy Or Unrouted Components
 
