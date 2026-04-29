@@ -258,3 +258,12 @@ Release note: `docs/release/vex-p1-004-cyberdeck-surface-polish.md`.
 - `/home` and `/terminal` now use packet-style section headers for route telemetry, Oracle runbook, live tape, command rack, order pipe, execution rack, cargo ledger, and signal feed.
 - Commodity lists should render as market tape tables by pairing `MarketTapeHeader` with `CommodityRow`; keep exact trade-button labels unchanged for QA and first-session continuity.
 - Continue to avoid new colors, gradients, cards, icons, tutorial prose, or marketing copy; cyberdeck polish should reuse terminal tokens, 1 px dividers, bracket labels, and compact operational copy.
+
+## Zoro P1 Tutorial Copy Review
+
+Release note: `docs/release/zoro-p1-004-tutorial-copy-review.md`.
+
+- This pass is copy-only: no SuperDesign visual draft was created because routed layout, spacing, colors, and component structure remain unchanged.
+- Tutorial copy should read as cyberdeck operating instructions, not generic onboarding. Keep each step focused on one player action or system rule.
+- First-session instructions must preserve the tuned route: enter S1LKROAD, select `VBLM`, buy `x15`, use `WAIT MARKET TICK` until green, then switch to SELL and close the same lot.
+- Help and cue copy must keep local-mode/store-safe boundaries explicit: `0BOL` is fictional local game currency, `$OBOL` remains optional/disabled unless explicitly enabled, and no copy may imply real-money rewards, investment outcomes, cash-out, staking, wallet signing, or guaranteed profit.

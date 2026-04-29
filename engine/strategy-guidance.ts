@@ -155,7 +155,7 @@ export function getLiveStrategyHint(input: LiveStrategyHintInput): LiveStrategyH
     return {
       title: "SWITCH TO VBLM STARTER",
       detail:
-        `${input.selectedTicker} can wait. Nyx route starts with VBLM x${STARTER_GUIDANCE_QUANTITY}, one green tick, then a clean sell before any second lane.`,
+        `${input.selectedTicker} can wait. First route starts with VBLM x${STARTER_GUIDANCE_QUANTITY}: buy, wait for green tape, then sell before opening a second lane.`,
       tone: "amber",
       lines: [`[TUNED] VBLM x${STARTER_GUIDANCE_QUANTITY}`, "[WHY] lowest heat", "[NEXT] select VBLM"],
     };
@@ -166,7 +166,7 @@ export function getLiveStrategyHint(input: LiveStrategyHintInput): LiveStrategyH
     return {
       title: "VBLM X15 STARTER ROUTE",
       detail:
-        `Oracle beta tuning moved cautious starters to ${getStrategyTickerLot(guidance, "VBLM")}. Buy the starter lot, wait for green tape, then sell the same lot.`,
+        `Oracle locks the starter path at ${getStrategyTickerLot(guidance, "VBLM")}. Buy the lot, wait for green tape, then sell the same lot.`,
       tone: "cyan",
       lines: [`[TUNED] ${getStrategyTickerLot(guidance, "VBLM")}`, "[NEXT] wait green tick", "[GOAL] first 0BOL profit"],
     };
@@ -206,7 +206,7 @@ export function getLiveStrategyHint(input: LiveStrategyHintInput): LiveStrategyH
   return {
     title: "SCALE CLEANLY",
     detail:
-      "After first profit, use VBLM/MTRX for speed cycles or PGAS/ORRS/SNPS for the first upgrade lane. Save contraband for low Heat.",
+      "After first profit, cycle VBLM/MTRX for speed or test PGAS/ORRS/SNPS as the first upgrade lane. Save contraband for low Heat.",
     tone: "green",
     lines: ["[SAFE] VBLM MTRX", "[UPGRADE] PGAS ORRS SNPS", "[CAUTION] contraband"],
   };

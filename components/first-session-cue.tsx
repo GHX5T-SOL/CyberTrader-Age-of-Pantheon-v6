@@ -53,8 +53,8 @@ export function getFirstSessionCueCopy({
       title: pnl > 0 ? "SELL THE GREEN TAPE" : "WAIT FOR GREEN TAPE",
       detail:
         pnl > 0
-          ? `${selectedTicker} is profitable now. Switch to SELL, keep the lot at ${selectedPosition.quantity}, and execute the close before opening another lane.`
-          : `${selectedTicker} is open. Use WAIT MARKET TICK until PnL turns positive, then sell the same lot.`,
+          ? `${selectedTicker} is green now. Switch to SELL, keep the lot at ${selectedPosition.quantity}, and close before opening another lane.`
+          : `${selectedTicker} is open. Use WAIT MARKET TICK until PnL turns green, then sell the same lot.`,
       tone: pnl > 0 ? "green" : "amber",
       lines: [
         `[LIVE] ${selectedTicker} x${selectedPosition.quantity}`,
@@ -68,7 +68,7 @@ export function getFirstSessionCueCopy({
     return {
       step: "03",
       title: "RETURN TO OPEN CARGO",
-      detail: `${firstOpenPosition.ticker} is already in inventory. Tap the open position, sell on green, and avoid opening a second learning thread.`,
+      detail: `${firstOpenPosition.ticker} is already in inventory. Select that cargo, switch to SELL on green tape, and close before opening a second learning thread.`,
       tone: "amber",
       lines: [
         `[OPEN] ${firstOpenPosition.ticker} x${firstOpenPosition.quantity}`,
