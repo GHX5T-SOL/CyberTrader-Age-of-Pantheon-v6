@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { terminalColors } from "@/theme/terminal";
 
-const LINE_COUNT = 100; // Reduced for performance
+const LINE_COUNT = 200; // Increased for visual polish
 const LINE_HEIGHT = 4;
 const DATA = Array.from({ length: LINE_COUNT }, (_, index) => index);
 
