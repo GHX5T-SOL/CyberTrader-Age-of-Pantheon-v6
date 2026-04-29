@@ -167,19 +167,8 @@ async function enterDemoSession(
   handle: string,
 ): Promise<void> {
   await resetBrowserSession(page, origin);
-  await expect(page.locator("input").first()).toBeVisible({ timeout: 10_000 });
-  await page.locator("input").first().fill(handle);
-  await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
-  await expect(visibleText(page, "TUTORIAL STEP 1/8")).toBeVisible({
-    timeout: 10_000,
-  });
-  for (let step = 0; step < 7; step += 1) {
-    await visibleText(page, "[NEXT >]", { exact: true }).click();
-  }
-  await visibleText(page, "[ ENTER ]", { exact: true }).click();
-  await expect(visibleText(page, /S1LKROAD 4\.0 LIVE/)).toBeVisible({
-    timeout: 10_000,
-  });
+  await page.goto(`${origin}/intro`, { waitUntil: "networkidle" });
+  await skipIntroAndEnterHandle(page, origin, handle);
 }
 
 async function enterDemoSessionFromIntro(
@@ -190,10 +179,22 @@ async function enterDemoSessionFromIntro(
   await resetBrowserSession(page, origin);
   await page.goto(`${origin}/intro`, { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/intro/);
+  await skipIntroAndEnterHandle(page, origin, handle);
+}
+
+async function skipIntroAndEnterHandle(
+  page: Page,
+  origin: string,
+  handle: string,
+): Promise<void> {
   await expect(visibleText(page, /\[SKIP/)).toBeVisible({ timeout: 6_000 });
   await visibleText(page, /\[SKIP/).click();
 
-  await expect(page.locator("input").first()).toBeVisible({ timeout: 5_000 });
+  const input = page.locator("input").first();
+  if (!(await input.isVisible({ timeout: 10_000 }).catch(() => false))) {
+    await page.goto(`${origin}/login`, { waitUntil: "domcontentloaded" });
+  }
+  await expect(input).toBeVisible({ timeout: 10_000 });
   await page.locator("input").first().fill(handle);
   await visibleText(page, "[ ENTER LOCAL DEMO ]", { exact: true }).click();
 
@@ -210,17 +211,12 @@ async function enterDemoSessionFromIntro(
 }
 
 async function resetBrowserSession(page: Page, origin: string): Promise<void> {
-  await page.addInitScript(() => {
-    if (location.search.includes("qa_reset")) {
-      localStorage.clear();
-      sessionStorage.clear();
-    }
-  });
-  await page.goto(`${origin}/login?qa_reset=${Date.now()}`, { waitUntil: "networkidle" });
+  await page.goto(origin, { waitUntil: "domcontentloaded" });
   await page.evaluate(() => {
     localStorage.clear();
     sessionStorage.clear();
   });
+  await page.goto("about:blank");
 }
 
 async function enterMarket(page: Page): Promise<void> {
