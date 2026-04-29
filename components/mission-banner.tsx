@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { getNpc } from "@/data/npcs";
-import type { Mission } from "@/engine/types";
+import type { FactionContractSignal, Mission } from "@/engine/types";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 interface MissionBannerProps {
@@ -15,6 +15,60 @@ function formatCountdown(ms: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
   return `${minutes}m ${String(remainder).padStart(2, "0")}s`;
+}
+
+interface MissionContractStripProps {
+  signal?: FactionContractSignal | null;
+  locked?: boolean;
+}
+
+function MissionContractStrip({ signal, locked = false }: MissionContractStripProps) {
+  if (!signal) {
+    return null;
+  }
+
+  const accent = locked ? terminalColors.dim : signal.heatPosture === "high" ? terminalColors.amber : terminalColors.cyan;
+  const textColor = locked ? terminalColors.dim : terminalColors.muted;
+
+  return (
+    <View
+      style={{
+        marginTop: 8,
+        marginBottom: 2,
+        paddingVertical: 5,
+        paddingHorizontal: 8,
+        borderLeftWidth: 1,
+        borderLeftColor: accent,
+        backgroundColor: terminalColors.panelAlt,
+        opacity: locked ? 0.48 : 1,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: terminalFont,
+          color: accent,
+          fontSize: 9,
+          lineHeight: 13,
+        }}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+      >
+        CONTRACT // {signal.factionName.toUpperCase()} // {signal.stageLabel.toUpperCase()}
+      </Text>
+      <Text
+        style={{
+          marginTop: 2,
+          fontFamily: terminalFont,
+          color: textColor,
+          fontSize: 9,
+          lineHeight: 13,
+        }}
+      >
+        HEAT {signal.heatPosture.toUpperCase()} // {signal.routeConsequence.toUpperCase()} // +{signal.reputationDelta} REP
+      </Text>
+    </View>
+  );
 }
 
 export default function MissionBanner({
@@ -45,6 +99,7 @@ export default function MissionBanner({
       <Text style={{ marginTop: 6, fontFamily: terminalFont, color: terminalColors.text, fontSize: 12 }}>
         {mission.description}
       </Text>
+      <MissionContractStrip signal={mission.contractSignal} />
       <Text style={{ marginTop: 6, fontFamily: terminalFont, color: urgent ? terminalColors.red : terminalColors.cyan, fontSize: 16 }}>
         ETA {formatCountdown(remainingMs)}
       </Text>
@@ -65,4 +120,4 @@ export default function MissionBanner({
   );
 }
 
-export { MissionBanner };
+export { MissionBanner, MissionContractStrip };

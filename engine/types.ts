@@ -25,6 +25,91 @@ export interface FactionChoice {
   previousFaction: Faction | null;
 }
 
+export type FactionContractStageId = "initiation" | "trusted_route" | "favored_cell" | "legend_signal";
+
+export interface FactionContractStage {
+  id: FactionContractStageId;
+  label: string;
+  tier: FactionStandingTier;
+  heatPosture: "low" | "medium" | "high";
+  routeConsequence: string;
+  reputationDelta: number;
+}
+
+export interface FactionContractSignal {
+  faction: Faction;
+  factionName: string;
+  stageId: FactionContractStageId;
+  stageLabel: string;
+  tier: FactionStandingTier;
+  heatPosture: "low" | "medium" | "high";
+  routeConsequence: string;
+  reputationDelta: number;
+  rewardModifier: number;
+}
+
+export type LimitOrderSide = "BUY" | "SELL";
+export type LimitOrderStatus = "open" | "filled" | "executed" | "cancelled" | "expired" | "rejected";
+
+export interface LimitOrder {
+  id: string;
+  playerId: string;
+  ticker: string;
+  side: LimitOrderSide;
+  quantity: number;
+  limitPrice: number;
+  status: LimitOrderStatus;
+  createdAtTick: number;
+  expiresAtTick: number;
+  faction: Faction | null;
+  filledAtTick: number | null;
+  executedAtTick: number | null;
+  cancelledAtTick: number | null;
+  cancelReason: string | null;
+  rejectionReason: string | null;
+}
+
+export interface LimitOrderFill {
+  id: string;
+  orderId: string;
+  playerId: string;
+  ticker: string;
+  side: LimitOrderSide;
+  quantity: number;
+  limitPrice: number;
+  executionPrice: number;
+  tick: number;
+  faction: Faction | null;
+  heatDelta: number;
+  energyCost: number;
+  realizedPnl: number;
+}
+
+export interface LimitOrderExecution {
+  orderId: string;
+  ticker: string;
+  side: LimitOrderSide;
+  quantity: number;
+  limitPrice: number;
+  executedPrice: number;
+  tick: number;
+  balanceDelta: number;
+  heatDelta: number;
+  realizedPnl: number;
+}
+
+export interface FactionMarketPressure {
+  id: string;
+  faction: Faction;
+  tick: number;
+  reputation: number;
+  intensity: number;
+  tickerBias: Record<string, number>;
+  heatDelta: number;
+  volatilityMultiplier: number;
+  expiresAtTick: number;
+}
+
 export interface FactionChoiceRequirement {
   id: "rank" | "first_profit" | "heat";
   label: string;
@@ -201,6 +286,7 @@ export interface Mission {
   rewardXp: number;
   reputationChangeOnSuccess: number;
   reputationChangeOnFail: number;
+  contractSignal?: FactionContractSignal;
   expiresAtTimestamp: number;
   accepted: boolean;
   completed: boolean;

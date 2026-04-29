@@ -5,6 +5,8 @@ import {
   getAgentOsFactionByNpcFaction,
   getAgentOsFactionGate,
   getAgentOsGateProgress,
+  getFactionContractSignal,
+  getFactionContractStage,
   getFactionStanding,
   getFactionSwitchRule,
   getNextFactionChoice,
@@ -26,6 +28,7 @@ describe("AgentOS faction contract", () => {
       expect(faction.gameplayStake.length).toBeGreaterThan(20);
       expect(faction.missionBias.length).toBeGreaterThan(0);
       expect(faction.rewardModifier).toBeGreaterThanOrEqual(1);
+      expect(faction.contractChain).toHaveLength(4);
     }
   });
 
@@ -159,6 +162,30 @@ describe("AgentOS faction contract", () => {
       reputation: 53,
       tier: "favored",
       rewardModifier: 1.12,
+    });
+  });
+
+  it("maps faction reputation onto contract-chain stages and player-facing signals", () => {
+    expect(getFactionContractStage({
+      faction: "BLACKWAKE",
+      reputation: 0,
+    })).toMatchObject({
+      id: "initiation",
+      label: "Dockside Favor",
+      reputationDelta: 2,
+    });
+
+    expect(getFactionContractSignal({
+      faction: "BLACKWAKE",
+      reputation: 52,
+    })).toMatchObject({
+      faction: "BLACKWAKE",
+      factionName: "Blackwake",
+      stageId: "favored_cell",
+      stageLabel: "Blackwake Wake",
+      heatPosture: "high",
+      reputationDelta: 4,
+      rewardModifier: 1.08,
     });
   });
 });

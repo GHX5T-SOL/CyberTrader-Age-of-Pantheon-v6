@@ -1,9 +1,13 @@
 import { getLocation } from "@/data/locations";
 import { getNpc, getUnlockedNpcs } from "@/data/npcs";
 import { roundCurrency, type PriceMap } from "@/engine/demo-market";
-import { getAgentOsFactionByNpcFaction, getFactionDefinition } from "@/engine/factions";
+import {
+  getAgentOsFactionByNpcFaction,
+  getFactionContractSignal,
+  getFactionDefinition,
+} from "@/engine/factions";
 import { seededStream } from "@/engine/prng";
-import type { Faction, Mission, MissionType, Position } from "@/engine/types";
+import type { Faction, FactionContractSignal, Mission, MissionType, Position } from "@/engine/types";
 
 const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop"];
 
@@ -20,6 +24,7 @@ export function createMission(input: {
   prices: PriceMap;
   rewardMultiplier?: number;
   faction?: Faction | null;
+  npcReputation?: Record<string, number>;
 }): Mission {
   const stream = seededStream(`${input.seed}:mission:${input.index}`);
   const npcs = getUnlockedNpcs(input.rankLevel);
@@ -32,6 +37,12 @@ export function createMission(input: {
   const npc = npcPool[Math.floor(stream() * npcPool.length)] ?? npcPool[0] ?? npcs[0]!;
   const type = missionTypes[Math.floor(stream() * missionTypes.length)] ?? "delivery";
   const rewardMultiplier = (input.rewardMultiplier ?? 1) * (faction?.rewardModifier ?? 1);
+  const contractSignal = faction
+    ? getFactionContractSignal({
+        faction: faction.id,
+        reputation: input.npcReputation?.[npc.id] ?? 0,
+      })
+    : undefined;
 
   if (type === "buy_request") {
     const ticker = "PGAS";
@@ -48,6 +59,7 @@ export function createMission(input: {
       quantity,
       reward0Bol: roundCurrency(marketValue * 1.2 * rewardMultiplier),
       rewardXp: 70,
+      contractSignal,
     });
   }
 
@@ -63,6 +75,7 @@ export function createMission(input: {
       quantity: 50,
       reward0Bol: roundCurrency(15_000 * rewardMultiplier),
       rewardXp: 90,
+      contractSignal,
     });
   }
 
@@ -78,6 +91,7 @@ export function createMission(input: {
       destinationId: destination.id,
       reward0Bol: roundCurrency(7_500 * rewardMultiplier),
       rewardXp: 60,
+      contractSignal,
     });
   }
 
@@ -97,6 +111,7 @@ export function createMission(input: {
     destinationId: destination.id,
     reward0Bol: roundCurrency((marketValue * 1.5 + 5000) * rewardMultiplier),
     rewardXp: 80,
+    contractSignal,
   });
 }
 
@@ -170,6 +185,7 @@ function baseMission(input: {
   destinationId?: string;
   reward0Bol: number;
   rewardXp: number;
+  contractSignal?: FactionContractSignal;
 }): Mission {
   const npc = getNpc(input.npcId);
   const expiresAtTimestamp = input.input.nowMs + input.minutes * 60_000;
@@ -185,8 +201,9 @@ function baseMission(input: {
     destinationLocationId: input.destinationId,
     reward0Bol: input.reward0Bol,
     rewardXp: input.rewardXp,
-    reputationChangeOnSuccess: 2,
-    reputationChangeOnFail: -1,
+    reputationChangeOnSuccess: input.contractSignal?.reputationDelta ?? 2,
+    reputationChangeOnFail: -Math.max(1, Math.ceil((input.contractSignal?.reputationDelta ?? 2) / 2)),
+    contractSignal: input.contractSignal,
     expiresAtTimestamp,
     accepted: false,
     completed: false,
@@ -199,6 +216,6 @@ function baseMission(input: {
     startTimestamp: input.input.nowMs,
     endTimestamp: expiresAtTimestamp,
     rewardObol: input.reward0Bol,
-    reputationDelta: 2,
+    reputationDelta: input.contractSignal?.reputationDelta ?? 2,
   };
 }

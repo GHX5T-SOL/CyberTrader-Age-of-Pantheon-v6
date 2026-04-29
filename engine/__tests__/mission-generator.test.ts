@@ -23,10 +23,20 @@ describe("mission generator", () => {
       rankLevel: 5,
       prices: { FDST: 100, PGAS: 50 },
       faction: "BLACKWAKE",
+      npcReputation: { kite: 52 },
     });
 
     expect(mission.npcId).toBe("kite");
     expect(["delivery", "buy_request"]).toContain(mission.type);
+    expect(mission.contractSignal).toMatchObject({
+      faction: "BLACKWAKE",
+      stageId: "favored_cell",
+      stageLabel: "Blackwake Wake",
+      heatPosture: "high",
+      reputationDelta: 4,
+    });
+    expect(mission.reputationChangeOnSuccess).toBe(4);
+    expect(mission.reputationChangeOnFail).toBe(-2);
   });
 
   it("detects buy request completion", () => {

@@ -1125,6 +1125,7 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           prices: state.prices,
           rewardMultiplier: nextBounty.missionRewardMultiplier,
           faction: state.profile?.faction ?? null,
+          npcReputation: nextNpcReputation,
         });
         nextMissionCount += 1;
         nextMissionAt = nowMs + getNextMissionDelay(ENGAGEMENT_SEED, nextMissionCount);

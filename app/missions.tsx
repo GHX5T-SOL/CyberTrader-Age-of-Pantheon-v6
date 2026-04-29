@@ -1,12 +1,13 @@
 import { Pressable, Text, View } from "react-native";
 import MenuScreen from "@/components/menu-screen";
-import MissionBanner from "@/components/mission-banner";
+import MissionBanner, { MissionContractStrip } from "@/components/mission-banner";
 import NeonBorder from "@/components/neon-border";
 import { NPCS } from "@/data/npcs";
 import {
   getAgentOsFactionByNpcFaction,
   getAgentOsFactionGate,
   getAgentOsGateProgress,
+  getFactionContractSignal,
   getFactionDefinition,
   getFactionStanding,
 } from "@/engine/factions";
@@ -76,7 +77,14 @@ export default function MissionsRoute() {
           const locked = progression.level < npc.unlockedAtRank;
           const factionId = getAgentOsFactionByNpcFaction(npc.faction);
           const faction = factionId ? getFactionDefinition(factionId) : null;
-          const standing = factionId ? getFactionStanding(factionId, npcReputation[npc.id] ?? 0) : null;
+          const reputation = npcReputation[npc.id] ?? 0;
+          const standing = factionId ? getFactionStanding(factionId, reputation) : null;
+          const contractSignal = factionId
+            ? getFactionContractSignal({
+                faction: factionId,
+                reputation,
+              })
+            : null;
           return (
             <View key={npc.id} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10 }}>
               <Text style={{ fontFamily: terminalFont, color: locked ? terminalColors.dim : terminalColors.text, fontSize: 12 }}>
@@ -91,8 +99,9 @@ export default function MissionsRoute() {
                 </Text>
               ) : null}
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
-                REP {npcReputation[npc.id] ?? 0}
+                REP {reputation}
               </Text>
+              <MissionContractStrip signal={contractSignal} locked={locked} />
               {faction && standing ? (
                 <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.green, fontSize: 10, lineHeight: 15 }}>
                   AGENTOS // {faction.name.toUpperCase()} {standing.tier.toUpperCase()} // {faction.heatPosture.toUpperCase()} HEAT POSTURE

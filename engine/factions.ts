@@ -2,6 +2,8 @@ import type {
   AgentOsFactionGate,
   Faction,
   FactionChoice,
+  FactionContractSignal,
+  FactionContractStage,
   FactionStanding,
   FactionSwitchRule,
   MissionType,
@@ -18,6 +20,7 @@ export interface FactionDefinition {
   missionBias: readonly MissionType[];
   rewardModifier: number;
   heatPosture: "low" | "medium" | "high";
+  contractChain: readonly FactionContractStage[];
 }
 
 export const AGENT_OS_UNLOCK_RANK = 5;
@@ -34,6 +37,40 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
     missionBias: ["delivery", "intel_drop"],
     rewardModifier: 1,
     heatPosture: "low",
+    contractChain: [
+      {
+        id: "initiation",
+        label: "Safehouse Handshake",
+        tier: "neutral",
+        heatPosture: "low",
+        routeConsequence: "Starter lanes stay shielded.",
+        reputationDelta: 2,
+      },
+      {
+        id: "trusted_route",
+        label: "Mutual Aid Route",
+        tier: "trusted",
+        heatPosture: "low",
+        routeConsequence: "Recovery contracts favor clean delivery.",
+        reputationDelta: 3,
+      },
+      {
+        id: "favored_cell",
+        label: "Local Cell Escort",
+        tier: "favored",
+        heatPosture: "low",
+        routeConsequence: "Courier pressure softens after safe runs.",
+        reputationDelta: 4,
+      },
+      {
+        id: "legend_signal",
+        label: "Free Shard Signal",
+        tier: "legend",
+        heatPosture: "medium",
+        routeConsequence: "PantheonOS influence starts listening.",
+        reputationDelta: 5,
+      },
+    ],
   },
   {
     id: "BLACKWAKE",
@@ -45,6 +82,40 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
     missionBias: ["delivery", "buy_request"],
     rewardModifier: 1.08,
     heatPosture: "medium",
+    contractChain: [
+      {
+        id: "initiation",
+        label: "Dockside Favor",
+        tier: "neutral",
+        heatPosture: "medium",
+        routeConsequence: "Short PGAS and FDST convoy work opens.",
+        reputationDelta: 2,
+      },
+      {
+        id: "trusted_route",
+        label: "Convoy Claim",
+        tier: "trusted",
+        heatPosture: "medium",
+        routeConsequence: "Timed cargo rewards climb.",
+        reputationDelta: 3,
+      },
+      {
+        id: "favored_cell",
+        label: "Blackwake Wake",
+        tier: "favored",
+        heatPosture: "high",
+        routeConsequence: "Smuggler missions add sharper Heat pressure.",
+        reputationDelta: 4,
+      },
+      {
+        id: "legend_signal",
+        label: "Captain's Ledger",
+        tier: "legend",
+        heatPosture: "high",
+        routeConsequence: "Priority cargo lanes surface.",
+        reputationDelta: 5,
+      },
+    ],
   },
   {
     id: "NULL_CROWN",
@@ -56,6 +127,40 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
     missionBias: ["hold", "intel_drop"],
     rewardModifier: 1.12,
     heatPosture: "high",
+    contractChain: [
+      {
+        id: "initiation",
+        label: "Blind-Spot Offer",
+        tier: "neutral",
+        heatPosture: "high",
+        routeConsequence: "Hold and intel contracts demand Heat discipline.",
+        reputationDelta: 2,
+      },
+      {
+        id: "trusted_route",
+        label: "Ghost Court Writ",
+        tier: "trusted",
+        heatPosture: "high",
+        routeConsequence: "Contraband timing windows get tighter.",
+        reputationDelta: 3,
+      },
+      {
+        id: "favored_cell",
+        label: "Null Warrant",
+        tier: "favored",
+        heatPosture: "high",
+        routeConsequence: "Blind-spot routes pay for clean nerve.",
+        reputationDelta: 4,
+      },
+      {
+        id: "legend_signal",
+        label: "Crownless Signal",
+        tier: "legend",
+        heatPosture: "high",
+        routeConsequence: "PantheonOS shadow leverage unlocks later.",
+        reputationDelta: 5,
+      },
+    ],
   },
   {
     id: "ARCHIVISTS",
@@ -67,6 +172,40 @@ export const FACTION_DEFINITIONS: readonly FactionDefinition[] = [
     missionBias: ["hold", "intel_drop"],
     rewardModifier: 1.05,
     heatPosture: "low",
+    contractChain: [
+      {
+        id: "initiation",
+        label: "Memory Footnote",
+        tier: "neutral",
+        heatPosture: "low",
+        routeConsequence: "Intel and hold routes favor patience.",
+        reputationDelta: 2,
+      },
+      {
+        id: "trusted_route",
+        label: "Archive Index",
+        tier: "trusted",
+        heatPosture: "low",
+        routeConsequence: "ORRS and SNPS clue chains surface.",
+        reputationDelta: 3,
+      },
+      {
+        id: "favored_cell",
+        label: "Vault Custody",
+        tier: "favored",
+        heatPosture: "low",
+        routeConsequence: "Long-hold contracts earn safer trust.",
+        reputationDelta: 4,
+      },
+      {
+        id: "legend_signal",
+        label: "Deep Catalog",
+        tier: "legend",
+        heatPosture: "medium",
+        routeConsequence: "Shard-memory lore branches later.",
+        reputationDelta: 5,
+      },
+    ],
   },
 ] as const;
 
@@ -102,6 +241,38 @@ export function getFactionStanding(faction: Faction, reputation: number): Factio
     reputation: safeReputation,
     tier,
     missionBias: definition.missionBias,
+    rewardModifier: definition.rewardModifier,
+  };
+}
+
+export function getFactionContractStage(input: {
+  faction: Faction;
+  reputation: number;
+}): FactionContractStage {
+  const definition = getFactionDefinition(input.faction);
+  const standing = getFactionStanding(input.faction, input.reputation);
+
+  return definition.contractChain.find((stage) => stage.tier === standing.tier)
+    ?? definition.contractChain[0]!;
+}
+
+export function getFactionContractSignal(input: {
+  faction: Faction;
+  reputation: number;
+}): FactionContractSignal {
+  const definition = getFactionDefinition(input.faction);
+  const standing = getFactionStanding(input.faction, input.reputation);
+  const stage = getFactionContractStage(input);
+
+  return {
+    faction: definition.id,
+    factionName: definition.name,
+    stageId: stage.id,
+    stageLabel: stage.label,
+    tier: standing.tier,
+    heatPosture: stage.heatPosture,
+    routeConsequence: stage.routeConsequence,
+    reputationDelta: stage.reputationDelta,
     rewardModifier: definition.rewardModifier,
   };
 }

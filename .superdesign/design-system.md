@@ -135,6 +135,15 @@ Release note: `docs/release/zoro-p0-002-store-media-approval.md`.
 - Do not introduce finance-dashboard styling, device-hand footage, store badges, install CTAs, real-money claims, wallet prompts, investment/yield language, prize claims, or unapproved external media.
 - Final preview video, native-device screenshot evidence, public privacy policy URL, age-rating declarations, and account-owner store submissions remain Gate C follow-ups.
 
+## Reel P1 Intro Transmission Polish
+
+Release note: `docs/release/reel-p1-002-intro-transmission-polish.md`.
+
+- `/video-intro` and `/intro` use packet metadata, signal status, thin progress rails, and 52 px skip/enter commands to make the first handoff feel like an intercepted cyberdeck transmission.
+- Skip and enter controls should remain bottom-right, bordered with existing cyan/green/amber tokens, and large enough for mobile touch.
+- Fallback copy must stay diegetic and safe: describe degraded cinematic links and packet stitching without exposing raw media errors or backend details.
+- Intro copy must keep wallet, payment, prize, cash-out, staking, and investment language out of the first-session surface.
+
 ## Nyx/Vex P1 Tuned Strategy Guidance
 
 Release note: `docs/release/nyx-p1-002-strategy-guidance.md`.
@@ -184,3 +193,29 @@ Release note: `docs/release/nyx-p1-003-agentos-faction-design.md`.
 - The AgentOS gate is rank 5, first profitable sell complete, and Heat at 70 or lower. Requirements should render as terse `[OK]` / `[--]` terminal checklist rows.
 - Faction previews use the existing `NeonBorder` panel, mono type, cyan names, muted gameplay stakes, and a green rail for the bound faction. `nyx-p1-004` adds the commit/reselection control directly inside `/menu/progression`.
 - Player-facing faction copy must avoid real-money, investment, prize, cash-out, staking, or external-wallet implications. Factions are gameplay allegiances for missions, reputation, and Heat posture.
+
+## Nyx P1 AgentOS Contract Chains
+
+Release note: `docs/release/nyx-p1-005-agentos-contract-chains.md`.
+
+- SuperDesign project: `CyberTrader v6 AgentOS contract chain`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/bd90dfac-fe63-4647-8c8f-a392be88f23d`.
+- Current-state draft: `8ed852ec-6fb9-4b42-9ff0-790a88fb8706`.
+- Contract-chain branch: `8132f3d8-d0a0-4323-a99e-d0643137658e`.
+- Preview URL: `https://p.superdesign.dev/draft/8132f3d8-d0a0-4323-a99e-d0643137658e`.
+- `/missions` now uses compact contract strips that show faction, stage, Heat posture, route consequence, and reputation delta in the existing terminal panel language.
+- Contract strips should stay subordinate to the mission title/description and must not add new colors, cards, gradients, icons, or tutorial prose.
+- Copy remains fictional and store-safe: faction contracts may affect missions, route risk, Heat pressure, and reputation, but must not imply real-money rewards, investment outcomes, prizes, wallet signing, staking, or external cash-out.
+
+## Reel P1 Intro Handoff Polish
+
+Release note: `docs/release/reel-p1-002-intro-handoff-polish.md`.
+
+- SuperDesign project: `CyberTrader v6 intro handoff polish`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/6b092f02-c0c5-4811-a82f-49790ce8a782`.
+- Current-state draft: `ca208657-5fea-45a4-8306-d805c2d9a3c6`.
+- Intro polish branch: `11e43d49-f646-4207-ab1b-37b5425d9463`.
+- Preview URL: `https://p.superdesign.dev/draft/11e43d49-f646-4207-ab1b-37b5425d9463`.
+- `/video-intro` and `/intro` use a shared terminal-packet language: `STREAM_04_PANTHEON`, packet labels, signal state, thin progress rails, and a 52 px bottom-right command.
+- The cinematic fallback should read as an intentional degraded-link boot handshake, not a broken media state.
+- Lore copy should remain short, store-safe, fictional, and operational: illegal Eidolon shard, Pantheon fracture, pirated cyberdeck, no wallet/real-money/investment/prize claims.
