@@ -155,6 +155,19 @@ Release note: `docs/release/nyx-p1-002-strategy-guidance.md`.
 - Metric chips use a subtle left signal rail and active panel fill while preserving the existing 116 px chip height, 48% two-column layout, progress bars, and small-phone scaling rules.
 - Strategy guidance must continue to reflect `oracle-p0-006` tuning: starter VBLM x15, safe-cycle VBLM/MTRX, upgrade PGAS/ORRS/SNPS, contraband FDST/AETH/BLCK only below the Heat stop line.
 
+## Nyx/Vex P1 Operator Brief Retention Patch
+
+Release note: `docs/release/nyx-p1-007-operator-brief-retention.md`.
+
+- SuperDesign project: `CyberTrader v6 Retention Brief`.
+- Current-state draft: `7b1f42ab-4fb2-4990-b57f-b013547d0d04`.
+- Retention branch: `b8a633d7-af72-4b28-9014-c79479458b4b`.
+- The Operator Brief is a compact session-state panel below the Oracle first-loop cue on `/home` and `/terminal`.
+- It targets Hydra's top retention triggers by showing one progress line, a five-step Heat ladder, and exactly one next action.
+- Keep labels terse and in-world: `OPERATOR_BRIEF // SESSION_STATE`, `PROGRESS // D1_STREAK`, `HEAT_LADDER`, and `NEXT_ACTION`.
+- The action row must remain at least 44 px tall, reuse the existing cyan/amber/green/red terminal tokens, and avoid card stacking or extra decorative palettes.
+- Copy must stay fictional and store-safe. It may reference `0BOL`, Heat, VBLM, S1LKROAD, LocalAuthority-safe deck behavior, and tuned lanes; it must not reference wallets, real-market trading, investment, yield, prizes, cash-out, or payment.
+
 ## Oracle P1 Strategy Guidance Pass
 
 SuperDesign project: `CyberTrader v6 Strategy Guidance Pass`

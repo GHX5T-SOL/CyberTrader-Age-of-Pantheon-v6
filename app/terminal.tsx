@@ -11,11 +11,19 @@ import DeckSectionHeader from "@/components/deck-section-header";
 import { FirstSessionCue } from "@/components/first-session-cue";
 import MarketTapeHeader from "@/components/market-tape-header";
 import NeonBorder from "@/components/neon-border";
+import { OperatorBrief, type OperatorBriefAction } from "@/components/operator-brief";
 import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import SystemStatePanel from "@/components/system-state-panel";
 import { getLocation } from "@/data/locations";
 import { getActiveDistrictState, isDistrictBuyRestricted, isDistrictSellRestricted } from "@/engine/district-state";
-import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
+import {
+  DEFAULT_TRADE_QUANTITY,
+  DEMO_COMMODITIES,
+  FIRST_TRADE_HINT_TICKER,
+  getTradeEnergyCost,
+  getValueBasedTradeHeatDelta,
+  roundCurrency,
+} from "@/engine/demo-market";
 import { isTradingBlockedByFlash } from "@/engine/flash-events";
 import { buildTerminalPressureCommand, type TerminalPressureCommand } from "@/engine/terminal-pressure";
 import type { LimitOrder, LimitOrderSide } from "@/engine/types";
@@ -358,6 +366,48 @@ export default function TerminalRoute() {
     setTimeout(() => setFlash(null), 700);
   };
 
+  const handleOperatorAction = async (action: OperatorBriefAction) => {
+    const targetPosition = action.ticker ? positions[action.ticker] : Object.values(positions)[0];
+
+    if (action.kind === "wait-tick" || action.kind === "cool-heat") {
+      await advanceMarket();
+      return;
+    }
+
+    if (action.kind === "select-starter") {
+      selectTicker(FIRST_TRADE_HINT_TICKER);
+      setSide("BUY");
+      setOrderMode("MARKET");
+      setOrderSize(DEFAULT_TRADE_QUANTITY);
+      return;
+    }
+
+    if (action.kind === "buy-starter") {
+      setSide("BUY");
+      setOrderMode("MARKET");
+      setOrderSize(DEFAULT_TRADE_QUANTITY);
+      setConfirmVisible(true);
+      return;
+    }
+
+    if ((action.kind === "sell-green" || action.kind === "close-thread") && targetPosition) {
+      selectTicker(targetPosition.ticker);
+      setSide("SELL");
+      setOrderMode("MARKET");
+      setOrderSize(targetPosition.quantity);
+      if (targetPosition.ticker === commodity.ticker) {
+        setConfirmVisible(true);
+      }
+      return;
+    }
+
+    if (action.kind === "upgrade-lane") {
+      selectTicker("PGAS");
+      setSide("BUY");
+      setOrderMode("MARKET");
+    }
+  };
+
   if (!routeReady) {
     return <RouteRecoveryScreen title="RECOVERING TERMINAL ROUTE" />;
   }
@@ -428,6 +478,17 @@ export default function TerminalRoute() {
           firstTradeComplete={firstTradeComplete}
           selectedTicker={commodity.ticker}
           heat={resources.heat}
+        />
+      </View>
+
+      <View style={{ marginBottom: 12 }}>
+        <OperatorBrief
+          surface="terminal"
+          positions={positions}
+          firstTradeComplete={firstTradeComplete}
+          selectedTicker={commodity.ticker}
+          heat={resources.heat}
+          onAction={(action) => void handleOperatorAction(action)}
         />
       </View>
 

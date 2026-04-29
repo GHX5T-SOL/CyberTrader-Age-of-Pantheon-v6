@@ -34,6 +34,14 @@ Generated: 2026-04-26
 - Extractable props: `surface`, `firstTradeComplete`, `selectedTicker`
 - Hardcoded: cue state copy, terminal colors, step number layout.
 
+## OperatorBrief
+
+- Source: `components/operator-brief.tsx`
+- Category: gameplay guidance
+- Description: Compact retention brief that reduces action fatigue and Heat anxiety with one progress line, a Heat ladder, and one next action.
+- Extractable props: `surface`, `firstTradeComplete`, `selectedTicker`, `heat`
+- Hardcoded: Hydra retention copy, terminal palette, five-step Heat ladder, action labels.
+
 ## SystemStatePanel
 
 - Source: `components/system-state-panel.tsx`

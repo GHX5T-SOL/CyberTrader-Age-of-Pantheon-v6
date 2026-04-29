@@ -42,6 +42,7 @@ Generated: 2026-04-26
 - `components/daily-challenges-panel.tsx`
 - `components/deck-section-header.tsx`
 - `components/first-session-cue.tsx`
+- `components/operator-brief.tsx`
 - `components/flash-event-banner.tsx`
 - `components/location-banner.tsx`
 - `components/market-tape-header.tsx`
@@ -76,6 +77,7 @@ Generated: 2026-04-26
 - `components/confirm-modal.tsx`
 - `components/deck-section-header.tsx`
 - `components/first-session-cue.tsx`
+- `components/operator-brief.tsx`
 - `components/market-tape-header.tsx`
 - `components/neon-border.tsx`
 - `components/route-recovery-screen.tsx`

@@ -14,6 +14,7 @@ import LocationBanner from "@/components/location-banner";
 import MarketTapeHeader from "@/components/market-tape-header";
 import MetricChip from "@/components/metric-chip";
 import MissionBanner from "@/components/mission-banner";
+import { OperatorBrief, type OperatorBriefAction } from "@/components/operator-brief";
 import PulsingDot from "@/components/pulsing-dot";
 import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import StreakDisplay from "@/components/streak-display";
@@ -105,6 +106,19 @@ export default function HomeRoute() {
   const nextXp = progression.nextXpRequired === null
     ? 0
     : Math.max(0, progression.nextXpRequired - progression.xp);
+
+  const handleOperatorAction = (action: OperatorBriefAction) => {
+    if (action.kind === "cool-heat" && currentLocation.special === "heat_reduction") {
+      void reduceHeatWithBribe();
+      return;
+    }
+
+    if (action.ticker) {
+      selectTicker(action.ticker);
+    }
+    openMarket();
+    router.push({ pathname: "/terminal", params: action.ticker ? { ticker: action.ticker } : undefined });
+  };
 
   if (!routeReady) {
     return <RouteRecoveryScreen title="RECOVERING HOME ROUTE" />;
@@ -226,6 +240,16 @@ export default function HomeRoute() {
           firstTradeComplete={firstTradeComplete}
           selectedTicker={selectedTicker}
           heat={resources.heat}
+        />
+      </View>
+      <View style={{ marginTop: 12, marginHorizontal: 12 }}>
+        <OperatorBrief
+          surface="home"
+          positions={positions}
+          firstTradeComplete={firstTradeComplete}
+          selectedTicker={selectedTicker}
+          heat={resources.heat}
+          onAction={handleOperatorAction}
         />
       </View>
 
