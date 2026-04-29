@@ -41,5 +41,13 @@ The `/menu/profile` route was still closer to a compact debug summary than a sto
 ## Validation
 
 - `npm run typecheck`
-- `npm run qa:responsive`
-- `npm run qa:axiom`
+- `npm run safety:autonomous`
+- `npm test -- --runInBand` (181/181 before the Hydra rebase; 188/188 after rebasing through `a6cb172`)
+- `npm run ship:check` (safety, typecheck, 188/188 Jest tests, Expo web export)
+- `npm run qa:axiom` (11/11, including profile dossier route assertions)
+- `npm run qa:responsive` (4/4, with `/menu/profile` captured on desktop, small phone, large phone, and tablet)
+- `npm run capture:screenshots` (refreshed the six store presets, including `screenshot-profile-overview.png`)
+- `npm run provenance:assets` and `npm run provenance:assets:check` (39 assets)
+- `npm audit --omit=dev --audit-level=high` (exit 0; moderate Expo-toolchain advisories remain and still propose a breaking forced Expo downgrade)
+- `npm run health:live` (Vercel HTTP 200, cache HIT)
+- `npm run build:web -- --clear` (clean-cache Expo web export)
