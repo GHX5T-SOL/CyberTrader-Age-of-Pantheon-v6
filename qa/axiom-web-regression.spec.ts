@@ -168,8 +168,8 @@ async function enterDemoSession(
   handle: string,
 ): Promise<void> {
   await resetBrowserSession(page, origin);
-  await page.goto(`${origin}/intro`, { waitUntil: "networkidle" });
-  await skipIntroAndEnterHandle(page, origin, handle);
+  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  await enterHandleAndCompleteTutorial(page, handle);
 }
 
 async function enterDemoSessionFromIntro(
@@ -191,8 +191,16 @@ async function skipIntroAndEnterHandle(
   await expect(visibleText(page, /\[SKIP/)).toBeVisible({ timeout: 6_000 });
   await visibleText(page, /\[SKIP/).click();
 
+  await enterHandleAndCompleteTutorial(page, handle, origin);
+}
+
+async function enterHandleAndCompleteTutorial(
+  page: Page,
+  handle: string,
+  origin?: string,
+): Promise<void> {
   const input = page.locator("input").first();
-  if (!(await input.isVisible({ timeout: 10_000 }).catch(() => false))) {
+  if (origin && !(await input.isVisible({ timeout: 10_000 }).catch(() => false))) {
     await page.goto(`${origin}/login`, { waitUntil: "domcontentloaded" });
   }
   await expect(input).toBeVisible({ timeout: 10_000 });

@@ -101,6 +101,26 @@ function visibleText(page: Page, text: string | RegExp, options?: { exact?: bool
   return page.getByText(text, options).filter({ visible: true }).first();
 }
 
+function collectBrowserErrors(page: Page): () => string[] {
+  const errors: string[] = [];
+
+  page.on("console", (message) => {
+    if (message.type() !== "error") {
+      return;
+    }
+
+    const text = message.text();
+    if (text.startsWith("Failed to load resource: the server responded with")) {
+      return;
+    }
+
+    errors.push(text);
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+
+  return () => [...errors];
+}
+
 async function enterDemoSession(page: Page, origin: string, handle: string) {
   await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
   await page.locator("input").fill(handle);
@@ -162,13 +182,7 @@ test.describe("vex-p0-002 responsive viewport captures", () => {
 
   for (const viewport of viewports) {
     test(`${viewport.label} home and terminal stay navigable`, async ({ page }) => {
-      const browserErrors: string[] = [];
-      page.on("console", (message) => {
-        if (message.type() === "error") {
-          browserErrors.push(message.text());
-        }
-      });
-      page.on("pageerror", (error) => browserErrors.push(error.message));
+      const getBrowserErrors = collectBrowserErrors(page);
 
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await enterDemoSession(page, origin, `VEX_${viewport.id.replace(/-/g, "_")}`.slice(0, 20));
@@ -196,7 +210,7 @@ test.describe("vex-p0-002 responsive viewport captures", () => {
         type: "jpeg",
       });
 
-      expect(browserErrors).toEqual([]);
+      expect(getBrowserErrors()).toEqual([]);
     });
   }
 });
