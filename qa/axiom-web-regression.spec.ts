@@ -169,7 +169,7 @@ async function enterDemoSession(
 ): Promise<void> {
   await resetBrowserSession(page, origin);
   await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
-  await enterHandleAndCompleteTutorial(page, handle);
+  await enterHandleAndCompleteTutorial(page, handle, origin);
 }
 
 async function enterDemoSessionFromIntro(
@@ -541,6 +541,12 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
         bodyText?.trim().length,
         `route ${route} must not render a blank screen`,
       ).toBeGreaterThan(0);
+
+      if (route === "/menu/profile") {
+        await expect(visibleText(page, "AGENT TELEMETRY", { exact: true })).toBeVisible();
+        await expect(visibleText(page, "AGENTOS DOSSIER", { exact: true })).toBeVisible();
+        await expect(visibleText(page, "SESSION ANCHOR", { exact: true })).toBeVisible();
+      }
     }
 
     await page.screenshot({

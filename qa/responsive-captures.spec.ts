@@ -181,7 +181,7 @@ test.describe("vex-p0-002 responsive viewport captures", () => {
   });
 
   for (const viewport of viewports) {
-    test(`${viewport.label} home and terminal stay navigable`, async ({ page }) => {
+    test(`${viewport.label} home, terminal, and profile stay navigable`, async ({ page }) => {
       const getBrowserErrors = collectBrowserErrors(page);
 
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
@@ -206,6 +206,20 @@ test.describe("vex-p0-002 responsive viewport captures", () => {
       await page.screenshot({
         fullPage: true,
         path: path.join(captureDir, `${viewport.id}-terminal.jpg`),
+        quality: 78,
+        type: "jpeg",
+      });
+
+      await page.goto(`${origin}/menu/profile`, { waitUntil: "networkidle" });
+      await expect(visibleText(page, "EIDOLON PROFILE", { exact: true })).toBeVisible({ timeout: 10000 });
+      await expect(visibleText(page, "AGENT TELEMETRY", { exact: true })).toBeVisible();
+      await expect(visibleText(page, "AGENTOS DOSSIER", { exact: true })).toBeVisible();
+      await expect(visibleText(page, "SESSION ANCHOR", { exact: true })).toBeVisible();
+      await expectNoHorizontalOverflow(page, `${viewport.label} profile`);
+      await expectTerminalPageBackground(page, `${viewport.label} profile`);
+      await page.screenshot({
+        fullPage: true,
+        path: path.join(captureDir, `${viewport.id}-profile.jpg`),
         quality: 78,
         type: "jpeg",
       });

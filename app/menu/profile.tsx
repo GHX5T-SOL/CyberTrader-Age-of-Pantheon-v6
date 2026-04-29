@@ -113,10 +113,16 @@ export default function ProfileMenuRoute() {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 8,
           }}
         >
           <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
             style={{
+              flex: 1,
+              minWidth: 0,
               fontFamily: terminalFont,
               color: terminalColors.cyan,
               fontSize: 12,
@@ -128,7 +134,9 @@ export default function ProfileMenuRoute() {
             RANK {progression.level} // {progression.title}
           </Text>
           <Text
+            numberOfLines={1}
             style={{
+              flexShrink: 0,
               fontFamily: terminalFont,
               color: terminalColors.amber,
               fontSize: 10,
@@ -140,6 +148,9 @@ export default function ProfileMenuRoute() {
         </View>
 
         <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
           style={{
             marginTop: 6,
             fontFamily: terminalFont,
@@ -150,6 +161,9 @@ export default function ProfileMenuRoute() {
           HANDLE: {handleLabel}
         </Text>
         <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
           style={{
             marginTop: 2,
             fontFamily: terminalFont,
@@ -178,6 +192,9 @@ export default function ProfileMenuRoute() {
           />
         </View>
         <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
           style={{
             marginTop: 6,
             fontFamily: terminalFont,
@@ -226,6 +243,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -238,7 +257,12 @@ export default function ProfileMenuRoute() {
                     LIQUID BALANCE
                   </Text>
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.72}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color: terminalColors.cyan,
                       fontSize: 11,
@@ -251,6 +275,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -263,7 +289,12 @@ export default function ProfileMenuRoute() {
                     TOTAL PNL
                   </Text>
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.72}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color:
                         totalPnl >= 0
@@ -280,6 +311,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -292,7 +325,10 @@ export default function ProfileMenuRoute() {
                     HEAT
                   </Text>
                   <Text
+                    numberOfLines={1}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color:
                         resources.heat >= 50
@@ -308,6 +344,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -320,7 +358,10 @@ export default function ProfileMenuRoute() {
                     ENERGY
                   </Text>
                   <Text
+                    numberOfLines={1}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color: terminalColors.text,
                       fontSize: 11,
@@ -333,6 +374,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -345,7 +388,10 @@ export default function ProfileMenuRoute() {
                     BAY
                   </Text>
                   <Text
+                    numberOfLines={1}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color: terminalColors.text,
                       fontSize: 11,
@@ -397,6 +443,9 @@ export default function ProfileMenuRoute() {
               AGENTOS DOSSIER
             </Text>
             <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
               style={{
                 fontFamily: terminalFont,
                 color: terminalColors.amber,
@@ -415,6 +464,8 @@ export default function ProfileMenuRoute() {
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <Text
@@ -427,7 +478,12 @@ export default function ProfileMenuRoute() {
                     STANDING
                   </Text>
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.72}
                     style={{
+                      flexShrink: 1,
+                      textAlign: "right",
                       fontFamily: terminalFont,
                       color: terminalColors.text,
                       fontSize: 11,
@@ -468,6 +524,7 @@ export default function ProfileMenuRoute() {
             )}
 
             <Pressable
+              accessibilityRole="button"
               onPress={definition ? onOpenMissions : onOpenProgression}
               hitSlop={6}
               style={({ pressed }) => ({
@@ -523,6 +580,8 @@ export default function ProfileMenuRoute() {
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
               marginTop: 6,
             }}
           >
@@ -537,11 +596,15 @@ export default function ProfileMenuRoute() {
             </Text>
             <Text
               style={{
+                flexShrink: 1,
+                textAlign: "right",
                 fontFamily: terminalFont,
                 color: terminalColors.text,
                 fontSize: 11,
               }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
             >
               {walletLabel}
             </Text>
@@ -550,6 +613,8 @@ export default function ProfileMenuRoute() {
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
               marginTop: 4,
             }}
           >
@@ -564,11 +629,15 @@ export default function ProfileMenuRoute() {
             </Text>
             <Text
               style={{
+                flexShrink: 1,
+                textAlign: "right",
                 fontFamily: terminalFont,
                 color: terminalColors.text,
                 fontSize: 11,
               }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
             >
               {createdLabel}
             </Text>

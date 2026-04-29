@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "taskId": "zara-p1-005",
-  "generatedAt": "2026-04-29T02:03:29+02:00",
+  "generatedAt": "2026-04-29T07:45:35+02:00",
   "inventoryRoots": [
     "assets/brand",
     "assets/commodities",
@@ -423,7 +423,7 @@
       "path": "assets/screenshots/screenshot-inventory-overview.png",
       "kind": "png",
       "bytes": 234394,
-      "sha256": "0fe5f43a38f30c67c87ad15e3ea46057e79d0cc972491ca6ab6a6dff4b638c68",
+      "sha256": "18769a5fe75b36ce94fe3477959a2923f6001df021f3f1c60b5f8bbc400eee68",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",
@@ -461,8 +461,8 @@
     {
       "path": "assets/screenshots/screenshot-profile-overview.png",
       "kind": "png",
-      "bytes": 161229,
-      "sha256": "e61315fe6c342e47920fe67e44ad449236c8ec9ae3daced33c1b2efd87a22a80",
+      "bytes": 268013,
+      "sha256": "a1186acfcd67eb8e7446cdd17dfa4246f85e292c9e9edea14a08b95866ce2a97",
       "owner": "Palette/Axiom",
       "origin": "Generated from the routed v6 app by scripts/capture-screenshot-presets.mjs",
       "licenseBasis": "first-party app UI capture",

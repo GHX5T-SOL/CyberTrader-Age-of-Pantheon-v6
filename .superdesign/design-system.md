@@ -178,6 +178,20 @@ SuperDesign project: `CyberTrader v6 AgentOS faction unlock`
 - `/menu/progression` keeps the compact terminal route structure, then adds a faction alignment matrix below the AgentOS gate instead of opening a separate onboarding flow.
 - Faction rows should stay dense and operational: faction name/handle, bound/queued state, gameplay stake, mission bias, reward modifier, and Heat posture.
 - The action model uses one full-width bracket command after selecting a queued faction row; disabled states must explicitly show whether AgentOS is locked, already current, or allegiance is locked.
+
+## Vex P1 Profile Dossier Store Capture
+
+Release note: `docs/release/vex-p1-006-profile-dossier-polish.md`.
+
+- SuperDesign project: `CyberTrader v6 profile dossier polish`.
+- Baseline reproduction draft: `d229fa8e-c817-4e91-9c5f-4ac7aab1fe07`.
+- Store-capture branch: `0df1bcb9-7996-4610-8642-2e1729ea71e4`; high-visibility branch: `bbc081ea-e0dd-43ef-9a8c-c477f8193ad9`.
+- Autonomous verification project: `CyberTrader v6 Profile Dossier Polish`.
+- Verification reproduction draft: `https://p.superdesign.dev/draft/c658c590-ddeb-45c3-bcdb-a6a2cb42ca7a`; optimized passport branch: `https://p.superdesign.dev/draft/38ae0fd0-48d6-42d4-b22e-54f36f39627c`; AgentOS dossier branch: `https://p.superdesign.dev/draft/eaa7e997-e8ea-4871-be3b-024f982ee0db`.
+- `/menu/profile` should read as an Eidolon dossier, not a debug summary: rank/title, XP rail, handle locator, location, telemetry, AgentOS/faction posture, and session anchor must be visible in one portrait capture.
+- Profile rows must explicitly cap or scale long text so wallet labels, ISO timestamps, faction standing, PnL, and rank titles cannot create horizontal overflow on small phones.
+- Store-safety copy must keep profile identity local and fictional: use `0BOL`, LocalAuthority/dev identity, and no wallet/payment/reward/investment claims.
+- Responsive QA now treats `/menu/profile` as a first-class store-capture route alongside `/home` and `/terminal`.
 - Copy must stay store-safe and local-mode: no token-gated claims, investment language, cash-out, real-money reward, seed phrase, private-key, staking, or wallet-signing language.
 
 ## Nyx P1 AgentOS Faction Design Pass
