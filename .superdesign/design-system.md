@@ -217,8 +217,22 @@ Release note: `docs/release/oracle-p1-011-terminal-pressure-flow.md`.
 - Preview URL: `https://p.superdesign.dev/draft/3973e1de-23d5-4242-9c8f-431409e153f1`.
 - The `/terminal` trade ticket may show one compact `PRESSURE WINDOW` strip above BUY/SELL controls when an AgentOS faction is bound. This strip must stay inside the existing `NeonBorder` ticket and use only cyan, green, amber, red, muted, and dim terminal tokens.
 - Pressure text should be operational and compact: faction, supported/suppressed ticker, basis-point intensity, reputation tier, remaining ticks, and Heat posture. It must not introduce tutorial prose, generic finance-dashboard framing, or new visual components.
-- Limit trigger UI is a preview row in the existing ticket summary, not a new executable off-authority order control. Keep the existing `[ EXECUTE ]` and `[ WAIT MARKET TICK ]` commands as the only trade buttons until LocalAuthority supports persisted limit orders.
+- Limit trigger preview rows should stay inside the existing ticket summary and feed the subordinate persisted limit-order module when LocalAuthority is available.
 - Branch iteration was blocked by SuperDesign account credits, so implementation must remain conservative and match the existing terminal/AgentOS patterns.
+
+## Oracle P1 Terminal Limit Orders
+
+Release note: `docs/release/oracle-p1-011-terminal-limit-orders.md`.
+
+- SuperDesign project: `CyberTrader v6 Limit Order Terminal`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/f25000ff-d109-4595-aea3-42f168d27235`.
+- Current-state draft: `1c601e82-5619-4a94-8b2b-e84fda0c8869`.
+- Implemented branch: `957d664e-0fa9-48c6-ba64-0295a14f98d6`.
+- Supplemental Codex project: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/d6bdee8a-9d86-4685-9130-3657395e17c2`; current-state draft `b310cfdb-95ac-4bf6-b6bc-1a77d69a770b`; implemented branch `0522b707-41bf-4bf3-82f0-1671758fca49`.
+- `/terminal` keeps the market `[ EXECUTE ]` and `[ WAIT MARKET TICK ]` path unchanged, then adds a subordinate `AGENTOS // LIMIT_ORD_MOD` panel for optional limit orders.
+- Limit-order controls must remain dense and operational: MARKET/LIMIT mode toggle, trigger price, expiry tick, one arm command, one cancel command, open/recent order rows, and a compact faction-pressure strip.
+- Deck section headers and market-tape headers should improve scanability without turning terminal surfaces into separate cards; use existing `terminalColors` only.
+- Copy must stay local-mode and store-safe: no investment, guaranteed-profit, cash-out, staking, wallet-signing, prize, or real-money language.
 
 ## Reel P1 Intro Handoff Polish
 
@@ -232,3 +246,15 @@ Release note: `docs/release/reel-p1-002-intro-handoff-polish.md`.
 - `/video-intro` and `/intro` use a shared terminal-packet language: `STREAM_04_PANTHEON`, packet labels, signal state, thin progress rails, and a 52 px bottom-right command.
 - The cinematic fallback should read as an intentional degraded-link boot handshake, not a broken media state.
 - Lore copy should remain short, store-safe, fictional, and operational: illegal Eidolon shard, Pantheon fracture, pirated cyberdeck, no wallet/real-money/investment/prize claims.
+
+## Vex P1 Cyberdeck Surface Polish
+
+Release note: `docs/release/vex-p1-004-cyberdeck-surface-polish.md`.
+
+- SuperDesign project: `CyberTrader v6 Vex cyberdeck surface polish`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/ff8f96b6-5cb5-48aa-9c8e-3d3594aa4ca7`.
+- Baseline reproduction draft: `0801c908-335b-4728-bdb7-b11d4f702319`.
+- Implemented direction follows the dense command-surface branch: `4f1d97b9-df69-46c8-9a0b-ed9a4332d31f`.
+- `/home` and `/terminal` now use packet-style section headers for route telemetry, Oracle runbook, live tape, command rack, order pipe, execution rack, cargo ledger, and signal feed.
+- Commodity lists should render as market tape tables by pairing `MarketTapeHeader` with `CommodityRow`; keep exact trade-button labels unchanged for QA and first-session continuity.
+- Continue to avoid new colors, gradients, cards, icons, tutorial prose, or marketing copy; cyberdeck polish should reuse terminal tokens, 1 px dividers, bracket labels, and compact operational copy.

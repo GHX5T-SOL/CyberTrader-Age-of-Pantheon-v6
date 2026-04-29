@@ -7,9 +7,11 @@ import AnimatedNumber from "@/components/animated-number";
 import AwayReportPanel from "@/components/away-report";
 import CommodityRow from "@/components/commodity-row";
 import DailyChallengesPanel from "@/components/daily-challenges-panel";
+import DeckSectionHeader from "@/components/deck-section-header";
 import FlashEventBanner from "@/components/flash-event-banner";
 import { FirstSessionCue } from "@/components/first-session-cue";
 import LocationBanner from "@/components/location-banner";
+import MarketTapeHeader from "@/components/market-tape-header";
 import MetricChip from "@/components/metric-chip";
 import MissionBanner from "@/components/mission-banner";
 import PulsingDot from "@/components/pulsing-dot";
@@ -120,6 +122,11 @@ export default function HomeRoute() {
         </Text>
       </View>
 
+      <DeckSectionHeader
+        label="ROUTE_TELEMETRY // ACTIVE_SECTOR"
+        detail={`${currentLocation.name.toUpperCase()} // ${district.state}`}
+        style={{ marginTop: 12 }}
+      />
       <LocationBanner
         currentLocationId={world.currentLocationId}
         travelDestinationId={world.travelDestinationId}
@@ -171,7 +178,17 @@ export default function HomeRoute() {
         />
       </View>
 
-      <View style={{ marginTop: 8, marginHorizontal: 12 }}>
+      <View
+        style={{
+          marginTop: 8,
+          marginHorizontal: 12,
+          borderLeftWidth: 2,
+          borderLeftColor: terminalColors.cyan,
+          backgroundColor: terminalColors.panelEven,
+          paddingHorizontal: 10,
+          paddingVertical: 8,
+        }}
+      >
         <Text style={{ fontFamily: terminalFont, color: terminalColors.amber, fontSize: 11 }}>
           RANK: {progression.title} {"->"} NEXT: {progression.nextXpRequired === null ? "MAX" : `${nextXp} XP`}
         </Text>
@@ -197,7 +214,12 @@ export default function HomeRoute() {
       <StreakDisplay streak={streak} nowMs={clock.nowMs} />
       <DailyChallengesPanel challenges={dailyChallenges} onClaim={(id) => void claimDailyChallenge(id)} />
 
-      <View style={{ marginTop: 14, marginHorizontal: 12 }}>
+      <DeckSectionHeader
+        label="ORACLE_RUNBOOK // FIRST_LOOP"
+        detail="LIVE_SCRIPT"
+        style={{ marginTop: 14, marginHorizontal: 12 }}
+      />
+      <View style={{ marginHorizontal: 12 }}>
         <FirstSessionCue
           surface="home"
           positions={positions}
@@ -223,34 +245,42 @@ export default function HomeRoute() {
         </View>
       ) : null}
 
-      <View style={{ marginTop: 20, paddingHorizontal: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ marginTop: 20 }}>
+        <DeckSectionHeader
+          label="S1LKROAD_4.0 // LIVE_TAPE"
+          detail={currentLocation.name.toUpperCase()}
+        />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingTop: 10 }}>
           <PulsingDot />
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ flex: 1, fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 14 }}>
             S1LKROAD 4.0 LIVE // {currentLocation.name.toUpperCase()}
           </Text>
         </View>
-        <View style={{ height: 1, backgroundColor: terminalColors.cyan, opacity: 0.3, marginTop: 8, marginBottom: 4 }} />
-        {DEMO_COMMODITIES.slice(0, 5).map((commodity, index) => {
-          const price = prices[commodity.ticker] ?? commodity.basePrice;
-          return (
-            <CommodityRow
-              key={commodity.ticker}
-              ticker={commodity.ticker}
-              name={commodity.name}
-              price={price}
-              changePercent={percentChange(changes[commodity.ticker] ?? 0, price)}
-              index={index}
-              onPress={() => {
-                selectTicker(commodity.ticker);
-                router.push({ pathname: "/terminal", params: { ticker: commodity.ticker } });
-              }}
-            />
-          );
-        })}
+        <View style={{ marginHorizontal: 12, marginTop: 8, borderWidth: 1, borderColor: terminalColors.borderDim }}>
+          <MarketTapeHeader />
+          {DEMO_COMMODITIES.slice(0, 5).map((commodity, index) => {
+            const price = prices[commodity.ticker] ?? commodity.basePrice;
+            return (
+              <CommodityRow
+                key={commodity.ticker}
+                ticker={commodity.ticker}
+                name={commodity.name}
+                price={price}
+                changePercent={percentChange(changes[commodity.ticker] ?? 0, price)}
+                index={index}
+                isSelected={commodity.ticker === selectedTicker}
+                onPress={() => {
+                  selectTicker(commodity.ticker);
+                  router.push({ pathname: "/terminal", params: { ticker: commodity.ticker } });
+                }}
+              />
+            );
+          })}
+        </View>
       </View>
 
-      <View style={{ marginTop: 24, paddingHorizontal: 16, gap: 12 }}>
+      <DeckSectionHeader label="COMMAND_RACK // PRIMARY_LOOP" detail="TAPE_READY" style={{ marginTop: 24 }} />
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 12 }}>
         <ActionButton
           variant="primary"
           glowing={!travelling}
@@ -309,7 +339,18 @@ export default function HomeRoute() {
             key={String(label)}
             onPress={action as () => void}
             hitSlop={4}
-            style={{ flex: 1, minHeight: 44, borderWidth: 1, borderColor: terminalColors.borderDim, paddingHorizontal: 8, alignItems: "center", justifyContent: "center" }}
+            style={{
+              flex: 1,
+              minHeight: 44,
+              borderWidth: 1,
+              borderLeftWidth: label === "[TRADE]" ? 2 : 1,
+              borderColor: terminalColors.borderDim,
+              borderLeftColor: label === "[TRADE]" ? terminalColors.cyan : terminalColors.borderDim,
+              backgroundColor: terminalColors.panel,
+              paddingHorizontal: 8,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>{String(label)}</Text>
           </Pressable>

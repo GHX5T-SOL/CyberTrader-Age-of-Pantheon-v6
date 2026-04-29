@@ -371,6 +371,12 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
     await expect(
       visibleText(page, "[ WAIT MARKET TICK ]", { exact: true }),
     ).toBeVisible();
+    await expect(visibleText(page, "AGENTOS // LIMIT_ORD_MOD")).toBeVisible();
+    await expect(visibleText(page, "FACTION PRESSURE WINDOW")).toBeVisible();
+    await page.mouse.wheel(0, 900);
+    await page.getByText("LIMIT", { exact: true }).filter({ visible: true }).last().click();
+    await visibleText(page, "[ ARM LIMIT ORDER ]", { exact: true }).click();
+    await expect(visibleText(page, /OPEN \/\/ BUY/)).toBeVisible();
 
     await page.screenshot({
       path: path.join(reportDir, "1-5-market-screen.jpg"),

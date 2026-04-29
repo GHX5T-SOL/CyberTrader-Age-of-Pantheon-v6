@@ -6,6 +6,7 @@ import type {
   DistrictStateRecord,
   FlashEvent,
   FactionChoice,
+  LimitOrder,
   MarketNews,
   Mission,
   PlayerProfile,
@@ -70,6 +71,7 @@ interface PersistedDemoSession {
   heatWarning?: { threshold: number; createdAt: number } | null;
   rankCelebration?: RankCelebration | null;
   factionChoice?: FactionChoice | null;
+  limitOrders?: LimitOrder[];
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;

@@ -40,9 +40,11 @@ Generated: 2026-04-26
 - `components/away-report.tsx`
 - `components/commodity-row.tsx`
 - `components/daily-challenges-panel.tsx`
+- `components/deck-section-header.tsx`
 - `components/first-session-cue.tsx`
 - `components/flash-event-banner.tsx`
 - `components/location-banner.tsx`
+- `components/market-tape-header.tsx`
 - `components/metric-chip.tsx`
 - `components/mission-banner.tsx`
 - `components/pulsing-dot.tsx`
@@ -72,7 +74,9 @@ Generated: 2026-04-26
 - `components/chart-sparkline.tsx`
 - `components/commodity-row.tsx`
 - `components/confirm-modal.tsx`
+- `components/deck-section-header.tsx`
 - `components/first-session-cue.tsx`
+- `components/market-tape-header.tsx`
 - `components/neon-border.tsx`
 - `components/route-recovery-screen.tsx`
 - `components/system-state-panel.tsx`

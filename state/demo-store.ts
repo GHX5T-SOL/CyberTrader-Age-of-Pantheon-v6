@@ -30,6 +30,7 @@ import {
   createInitialPrices,
   formatDelta,
   getCommodity,
+  getTradeEnergyCost,
   roundCurrency,
   type ChangeMap,
   type PriceMap,
@@ -75,6 +76,12 @@ import {
   getNextFactionChoice,
 } from "@/engine/factions";
 import {
+  cancelLimitOrder as cancelEngineLimitOrder,
+  createLimitOrder,
+  shouldExecuteLimitOrder,
+  updateLimitOrderForTick,
+} from "@/engine/limit-orders";
+import {
   createMission,
   getMissionProgress,
   getNextMissionDelay,
@@ -95,6 +102,9 @@ import type {
   Faction,
   FactionChoice,
   FlashEvent,
+  LimitOrder,
+  LimitOrderFill,
+  LimitOrderSide,
   MarketNews,
   Mission,
   PlayerProfile,
@@ -150,6 +160,8 @@ const BLACK_MARKET_BRIBE_COST = 50_000;
 const ENGAGEMENT_SEED = "v6-engagement";
 const BASE_COURIER_LIMIT = 3;
 const HEAT_WARNING_THRESHOLDS = [30, 50, 70, 90] as const;
+const LIMIT_ORDER_DEFAULT_DURATION_TICKS = 12;
+const LIMIT_ORDER_HISTORY_LIMIT = 12;
 
 interface DemoStoreState {
   phase: DemoPhase;
@@ -193,6 +205,8 @@ interface DemoStoreState {
   heatWarning: { threshold: number; createdAt: number } | null;
   rankCelebration: RankCelebration | null;
   factionChoice: FactionChoice | null;
+  limitOrders: LimitOrder[];
+  lastLimitOrderFill: LimitOrderFill | null;
   selectedTicker: string;
   orderSize: number;
   lastRealizedPnl: number | null;
@@ -218,6 +232,14 @@ interface DemoStoreActions {
   goHome: () => void;
   selectTicker: (ticker: string) => void;
   setOrderSize: (quantity: number) => void;
+  placeLimitOrder: (input: {
+    ticker: string;
+    side: LimitOrderSide;
+    quantity: number;
+    limitPrice: number;
+    durationTicks?: number;
+  }) => void;
+  cancelLimitOrder: (orderId: string) => void;
   advanceMarket: () => Promise<void>;
   runGameLoop: (nowMs: number) => Promise<void>;
   buySelected: () => Promise<void>;
@@ -301,6 +323,8 @@ function buildInitialState(): DemoStoreState {
     heatWarning: null,
     rankCelebration: null,
     factionChoice: null,
+    limitOrders: [],
+    lastLimitOrderFill: null,
     selectedTicker: FIRST_TRADE_HINT_TICKER,
     orderSize: DEFAULT_TRADE_QUANTITY,
     lastRealizedPnl: null,
@@ -577,6 +601,7 @@ function toPersistedSession(state: DemoStoreState): PersistedDemoSession {
     heatWarning: state.heatWarning,
     rankCelebration: state.rankCelebration,
     factionChoice: state.factionChoice,
+    limitOrders: state.limitOrders,
     selectedTicker: state.selectedTicker,
     orderSize: state.orderSize,
     lastRealizedPnl: state.lastRealizedPnl,
@@ -645,6 +670,215 @@ export const useDemoStore = create<DemoStore>((set, get) => {
     };
   };
 
+  const resolveLimitOrdersForTick = async (
+    baseState: DemoStoreState,
+    refresh: Partial<DemoStoreState>,
+    nextTick: number,
+    nowMs: number,
+  ): Promise<Partial<DemoStoreState>> => {
+    if (!baseState.playerId || baseState.limitOrders.length === 0) {
+      return {};
+    }
+
+    const authority = getAuthority();
+    const prices = refresh.prices ?? baseState.prices;
+    let resources = (refresh.resources ?? baseState.resources) as Resources;
+    let positions = (refresh.positions ?? baseState.positions) as Record<string, Position>;
+    let progression = (refresh.progression ?? baseState.progression) as RankSnapshot;
+    let balanceObol = baseState.balanceObol;
+    let notifications = baseState.notifications;
+    let dailyChallenges = baseState.dailyChallenges;
+    let streak = baseState.streak;
+    let bounty = baseState.bounty;
+    let heatWarning = baseState.heatWarning;
+    let rankCelebration = baseState.rankCelebration;
+    let profile = baseState.profile;
+    let firstTradeComplete = baseState.firstTradeComplete;
+    let lastRealizedPnl = baseState.lastRealizedPnl;
+    let tradeJuice = baseState.tradeJuice;
+    let lastLimitOrderFill = baseState.lastLimitOrderFill;
+    let didMutate = false;
+
+    const resolvedOrders: LimitOrder[] = [];
+
+    for (const originalOrder of baseState.limitOrders) {
+      const order = updateLimitOrderForTick(originalOrder, nextTick);
+      if (order.status !== originalOrder.status) {
+        notifications = addNotification(
+          notifications,
+          `Limit order expired: ${order.side} ${order.quantity} ${order.ticker}.`,
+          "warning",
+        );
+        didMutate = true;
+      }
+
+      if (order.status !== "open") {
+        resolvedOrders.push(order);
+        continue;
+      }
+
+      const marketPrice = prices[order.ticker];
+      if (marketPrice === undefined || !shouldExecuteLimitOrder(order, marketPrice)) {
+        resolvedOrders.push(order);
+        continue;
+      }
+
+      const blockReason = getTradeBlockReason(
+        {
+          ...baseState,
+          ...refresh,
+          prices,
+          resources,
+          positions,
+          tick: nextTick,
+          clock: {
+            ...baseState.clock,
+            nowMs,
+            displayTime: formatClock(nowMs),
+          },
+        },
+        order.side,
+      );
+      if (blockReason) {
+        resolvedOrders.push(order);
+        continue;
+      }
+
+      try {
+        const result = await authority.executeTrade({
+          playerId: baseState.playerId,
+          ticker: order.ticker,
+          side: order.side,
+          quantity: order.quantity,
+          locationId: baseState.world.currentLocationId,
+          priceOverride: marketPrice,
+        });
+        const filledOrder: LimitOrder = {
+          ...order,
+          status: "filled",
+          filledAtTick: nextTick,
+          executedAtTick: nextTick,
+        };
+        const fill: LimitOrderFill = {
+          id: `fill-${order.id}-${nextTick}`,
+          orderId: order.id,
+          playerId: baseState.playerId,
+          ticker: order.ticker,
+          side: order.side,
+          quantity: order.quantity,
+          limitPrice: order.limitPrice,
+          executionPrice: marketPrice,
+          tick: nextTick,
+          faction: order.faction,
+          heatDelta: result.trade.heatDelta,
+          energyCost: getTradeEnergyCost(order.side, order.quantity),
+          realizedPnl: result.realizedPnl,
+        };
+        const previousHeat = resources.heat;
+        const previousProgression = progression;
+        const heatUpdate = updateHeatWarning(previousHeat, result.resources, notifications);
+        const bountyUpdate = updateBountyFeedback(previousHeat, heatUpdate.resources, heatUpdate.notifications);
+
+        resources = heatUpdate.resources;
+        positions = toPositionMap(result.positions);
+        balanceObol = latestBalance(balanceObol, result.ledger);
+        progression = result.rank;
+        bounty = bountyUpdate.bounty;
+        notifications = addNotification(
+          bountyUpdate.notifications,
+          `LIMIT FILL: ${order.side} ${order.quantity} ${order.ticker} @ ${marketPrice.toFixed(2)}`,
+          order.side === "SELL" && result.realizedPnl < 0 ? "warning" : "success",
+        );
+        heatWarning = heatUpdate.heatWarning ?? heatWarning;
+        rankCelebration = maybeRankCelebration(previousProgression, result.rank) ?? rankCelebration;
+        profile = profile ? { ...profile, rank: result.rank.level } : null;
+        dailyChallenges = advanceDailyChallengeProgress(dailyChallenges, {
+          location_trades: baseState.world.currentLocationId === "neon_plaza" ? 1 : 0,
+          daily_profit: order.side === "SELL" ? Math.max(0, result.realizedPnl) : 0,
+        });
+
+        if (order.side === "SELL") {
+          const nextStreak = applySellToStreak({
+            streak,
+            realizedPnl: result.realizedPnl,
+            nowMs,
+          });
+          const streakBonusXp = result.realizedPnl > 0
+            ? Math.floor(result.xpGained * (nextStreak.multiplier - 1))
+            : 0;
+          if (streakBonusXp > 0) {
+            progression = await authority.updateXp(
+              baseState.playerId,
+              streakBonusXp,
+              `limit_streak_${nextStreak.count}`,
+            );
+            profile = profile ? { ...profile, rank: progression.level } : null;
+            notifications = addNotification(
+              notifications,
+              `XP +${result.xpGained + streakBonusXp}`,
+              "success",
+            );
+          } else if (result.xpGained > 0) {
+            notifications = addNotification(notifications, `XP +${result.xpGained}`, "success");
+          }
+          rankCelebration = maybeRankCelebration(baseState.progression, progression) ?? rankCelebration;
+          streak = nextStreak;
+          firstTradeComplete = firstTradeComplete || result.realizedPnl > 0;
+          lastRealizedPnl = result.realizedPnl;
+          tradeJuice = {
+            kind: result.realizedPnl > 0 ? "profit" : result.realizedPnl < 0 ? "loss" : "breakeven",
+            pnl: result.realizedPnl,
+            bigWin: result.realizedPnl > 50_000,
+            createdAt: Date.now(),
+          };
+        }
+
+        lastLimitOrderFill = fill;
+        resolvedOrders.push(filledOrder);
+        didMutate = true;
+      } catch {
+        resolvedOrders.push(cancelEngineLimitOrder(order, nextTick, "cancelled: execution rejected"));
+        notifications = addNotification(
+          notifications,
+          `Limit order rejected: ${order.side} ${order.quantity} ${order.ticker}.`,
+          "warning",
+        );
+        didMutate = true;
+      }
+    }
+
+    if (!didMutate) {
+      return {};
+    }
+
+    const orderedLimitOrders = [
+      ...resolvedOrders.filter((order) => order.status === "open"),
+      ...resolvedOrders.filter((order) => order.status !== "open"),
+    ].slice(0, LIMIT_ORDER_HISTORY_LIMIT);
+
+    return {
+      limitOrders: orderedLimitOrders,
+      lastLimitOrderFill,
+      resources,
+      positions,
+      progression,
+      balanceObol,
+      notifications,
+      dailyChallenges,
+      streak,
+      bounty,
+      heatWarning,
+      rankCelebration,
+      profile,
+      firstTradeComplete,
+      lastRealizedPnl,
+      tradeJuice,
+      systemMessage: lastLimitOrderFill
+        ? `[limit] fill ${lastLimitOrderFill.side.toLowerCase()} // ${lastLimitOrderFill.ticker} @ ${lastLimitOrderFill.executionPrice.toFixed(2)}`
+        : baseState.systemMessage,
+    };
+  };
+
   return {
     ...buildInitialState(),
     hydrateDemo: async () => {
@@ -705,6 +939,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         heatWarning: session.heatWarning ?? null,
         rankCelebration: session.rankCelebration ?? null,
         factionChoice: session.factionChoice ?? getLegacyFactionChoice(session.profile),
+        limitOrders: session.limitOrders ?? [],
+        lastLimitOrderFill: null,
         orderSize: session.orderSize ?? DEFAULT_TRADE_QUANTITY,
         lastRealizedPnl: session.lastRealizedPnl ?? null,
         introSeen: session.introSeen ?? false,
@@ -811,6 +1047,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           heatWarning: null,
           rankCelebration: null,
           factionChoice: null,
+          limitOrders: [],
+          lastLimitOrderFill: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -903,6 +1141,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           heatWarning: null,
           rankCelebration: null,
           factionChoice: null,
+          limitOrders: [],
+          lastLimitOrderFill: null,
           isBusy: false,
           isHydrated: true,
           systemMessage: "[sys] market open. start small. low heat.",
@@ -944,6 +1184,66 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         systemMessage: `[order] lot size set // x${safeQuantity}`,
       });
     },
+    placeLimitOrder: ({ ticker, side, quantity, limitPrice, durationTicks }) => {
+      const state = get();
+      if (!state.playerId) {
+        return;
+      }
+
+      const commodity = getCommodity(ticker);
+      if (!commodity) {
+        return;
+      }
+
+      const safeLimitPrice = roundCurrency(Math.max(0.01, limitPrice));
+      const safeQuantity = Math.max(1, Math.floor(quantity));
+      const order = createLimitOrder({
+        playerId: state.playerId,
+        ticker: commodity.ticker,
+        side,
+        quantity: safeQuantity,
+        limitPrice: safeLimitPrice,
+        createdAtTick: state.tick,
+        durationTicks: durationTicks ?? LIMIT_ORDER_DEFAULT_DURATION_TICKS,
+        faction: state.profile?.faction ?? null,
+      });
+      const replacedOrders = state.limitOrders.map((candidate) => (
+        candidate.status === "open" && candidate.ticker === order.ticker && candidate.side === order.side
+          ? cancelEngineLimitOrder(candidate, state.tick, "replaced")
+          : candidate
+      ));
+
+      commitState({
+        limitOrders: [order, ...replacedOrders].slice(0, LIMIT_ORDER_HISTORY_LIMIT),
+        notifications: addNotification(
+          state.notifications,
+          `Limit armed: ${side} ${safeQuantity} ${commodity.ticker} @ ${safeLimitPrice.toFixed(2)}.`,
+          "info",
+        ),
+        systemMessage: `[limit] ${side.toLowerCase()} armed // ${commodity.ticker} x${safeQuantity} @ ${safeLimitPrice.toFixed(2)}`,
+      });
+    },
+    cancelLimitOrder: (orderId) => {
+      const state = get();
+      const order = state.limitOrders.find((candidate) => candidate.id === orderId);
+      if (!order || order.status !== "open") {
+        return;
+      }
+
+      commitState({
+        limitOrders: state.limitOrders.map((candidate) => (
+          candidate.id === orderId
+            ? cancelEngineLimitOrder(candidate, state.tick, "player cancelled")
+            : candidate
+        )),
+        notifications: addNotification(
+          state.notifications,
+          `Limit cancelled: ${order.side} ${order.quantity} ${order.ticker}.`,
+          "info",
+        ),
+        systemMessage: `[limit] cancelled // ${order.ticker}`,
+      });
+    },
     advanceMarket: async () => {
       const state = get();
       if (!state.playerId || !state.isHydrated) {
@@ -958,7 +1258,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
         state.world.currentLocationId,
         nowMs,
       );
-      set(refresh);
+      const limitOrderPatch = await resolveLimitOrdersForTick(state, refresh, nextTick, nowMs);
+      set({ ...refresh, ...limitOrderPatch });
       await persistCurrentState();
     },
     runGameLoop: async (nowMs) => {
@@ -1280,6 +1581,51 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       const bountyUpdate = updateBountyFeedback(state.resources.heat, nextResources, nextNotifications);
       nextBounty = bountyUpdate.bounty;
       nextNotifications = bountyUpdate.notifications;
+
+      const limitOrderPatch = await resolveLimitOrdersForTick(
+        {
+          ...state,
+          ...refresh,
+          tick: nextTick,
+          world: nextWorld,
+          resources: nextResources,
+          positions: nextPositions,
+          progression: nextProgression,
+          balanceObol: nextBalanceObol,
+          notifications: nextNotifications,
+          dailyChallenges: nextDailyChallenges,
+          streak: nextStreak,
+          bounty: nextBounty,
+          heatWarning: nextHeatWarning,
+          rankCelebration: nextRankCelebration,
+          tradeJuice: nextTradeJuice,
+          awayReport: nextAwayReport,
+          clock: {
+            ...state.clock,
+            nowMs,
+            displayTime: formatClock(nowMs),
+          },
+        },
+        refresh,
+        nextTick,
+        nowMs,
+      );
+
+      if (Object.keys(limitOrderPatch).length > 0) {
+        refresh = { ...refresh, ...limitOrderPatch };
+        nextResources = (limitOrderPatch.resources ?? nextResources) as Resources;
+        nextPositions = (limitOrderPatch.positions ?? nextPositions) as Record<string, Position>;
+        nextProgression = (limitOrderPatch.progression ?? nextProgression) as RankSnapshot;
+        nextBalanceObol = limitOrderPatch.balanceObol ?? nextBalanceObol;
+        nextNotifications = limitOrderPatch.notifications ?? nextNotifications;
+        nextDailyChallenges = limitOrderPatch.dailyChallenges ?? nextDailyChallenges;
+        nextStreak = limitOrderPatch.streak ?? nextStreak;
+        nextBounty = limitOrderPatch.bounty ?? nextBounty;
+        nextHeatWarning = limitOrderPatch.heatWarning ?? nextHeatWarning;
+        nextRankCelebration = limitOrderPatch.rankCelebration ?? nextRankCelebration;
+        nextTradeJuice = limitOrderPatch.tradeJuice ?? nextTradeJuice;
+        didMutate = true;
+      }
 
       if (shouldReprice || didMutate || nextStreak !== state.streak || nextBounty.level !== state.bounty.level || nextAwayReport !== state.awayReport) {
         set({

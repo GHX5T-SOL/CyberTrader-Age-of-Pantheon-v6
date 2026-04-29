@@ -9,6 +9,8 @@ Generated: 2026-04-26
 - `components/neon-border.tsx`: basic panel primitive. 1 px border, terminal panel fill, optional cyan glow.
 - `components/metric-chip.tsx`: compact metric card. Used on `/home` for Energy, Heat, Market Signal, Rank, and 0BOL balance.
 - `components/commodity-row.tsx`: market list row with commodity icon, ticker, name, price, percent change, pressed state, and selected left border.
+- `components/deck-section-header.tsx`: compact terminal rail for section labels and right-side detail metadata; used on home and terminal to stage dense deck zones without card stacking.
+- `components/market-tape-header.tsx`: small fixed-label table header for commodity tape columns; paired with `CommodityRow`.
 - `components/burger-menu.tsx`: overlay navigation and hamburger trigger. Current menu includes profile, settings, inventory, missions, progression, rank, rewards, notifications, help, and legal.
 - `components/scanlines.tsx`: CRT line overlay used on intro/login and through `TerminalShell`.
 - `components/route-recovery-screen.tsx`: route recovery fallback for guarded player routes.
@@ -16,6 +18,8 @@ Generated: 2026-04-26
 - `components/animated-number.tsx`: animated numeric display used for 0BOL and price feedback.
 - `components/chart-sparkline.tsx`: terminal chart line for the selected commodity.
 - `components/confirm-modal.tsx`: confirmation overlay for trades.
+- `components/deck-section-header.tsx`: packet-style terminal section divider for route telemetry, live tape, command racks, order pipes, ledgers, and signal feeds.
+- `components/market-tape-header.tsx`: compact table header aligned to `CommodityRow` columns so commodity lists read as a S1LKROAD tape.
 - `components/first-session-cue.tsx`: live first-loop guidance panel for home and terminal.
 - `components/location-banner.tsx`, `flash-event-banner.tsx`, `mission-banner.tsx`, `daily-challenges-panel.tsx`, `streak-display.tsx`, `away-report.tsx`: home route live-world panels.
 

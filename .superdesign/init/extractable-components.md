@@ -58,6 +58,22 @@ Generated: 2026-04-26
 - Extractable props: `ticker`, `name`, `price`, `changePercent`, `isSelected`
 - Hardcoded: 48 px row height, local commodity icon map, alternating panel fills.
 
+## DeckSectionHeader
+
+- Source: `components/deck-section-header.tsx`
+- Category: basic
+- Description: Packet-style terminal section divider used to make route telemetry, live tape, command racks, order pipes, ledgers, and signal feeds read as cyberdeck subsystems.
+- Extractable props: `label`, `detail`, `accent`
+- Hardcoded: terminal palette, 1 px top/bottom borders, mono uppercase treatment.
+
+## MarketTapeHeader
+
+- Source: `components/market-tape-header.tsx`
+- Category: market
+- Description: Commodity-list column header aligned to `CommodityRow` for a live market tape treatment.
+- Extractable props: none
+- Hardcoded: ICON/ID/ASSET_NAME/PRICE/DELTA labels and commodity row column widths.
+
 ## BurgerMenu
 
 - Source: `components/burger-menu.tsx`
