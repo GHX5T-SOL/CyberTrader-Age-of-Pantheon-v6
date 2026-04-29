@@ -15,6 +15,7 @@ import { getLocation } from "@/data/locations";
 import { getActiveDistrictState, isDistrictBuyRestricted, isDistrictSellRestricted } from "@/engine/district-state";
 import { DEMO_COMMODITIES, getTradeEnergyCost, getValueBasedTradeHeatDelta, roundCurrency } from "@/engine/demo-market";
 import { isTradingBlockedByFlash } from "@/engine/flash-events";
+import { buildTerminalPressureCommand, type TerminalPressureCommand } from "@/engine/terminal-pressure";
 import { useDemoRouteGuard } from "@/hooks/use-demo-route-guard";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -91,11 +92,59 @@ function TicketSummaryRow({
   );
 }
 
+function TerminalPressureStrip({ command }: { command: TerminalPressureCommand | null }) {
+  if (!command) {
+    return (
+      <View style={{ marginBottom: 12, borderWidth: 1, borderColor: terminalColors.borderDim, backgroundColor: terminalColors.panelEven, padding: 10 }}>
+        <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 10, letterSpacing: 1 }}>AGENTOS PRESSURE // NOT BOUND</Text>
+        <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10, lineHeight: 15 }}>
+          Bind a rank-5 faction to unlock deterministic pressure windows and limit-trigger previews.
+        </Text>
+      </View>
+    );
+  }
+
+  const riskColor = command.riskTone === "hot" ? terminalColors.red : command.riskTone === "watch" ? terminalColors.amber : terminalColors.green;
+  const pressureColor = command.direction === "support" ? terminalColors.green : terminalColors.amber;
+
+  return (
+    <View
+      style={{
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: command.selectedTickerAffected ? terminalColors.cyan : terminalColors.borderDim,
+        backgroundColor: terminalColors.panelEven,
+        padding: 10,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ flex: 1, fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 10, letterSpacing: 1 }}>
+          PRESSURE WINDOW // {command.factionName.toUpperCase()}
+        </Text>
+        <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+          {command.ticksRemaining}T
+        </Text>
+      </View>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ marginTop: 6, fontFamily: terminalFont, color: pressureColor, fontSize: 11 }}>
+        {command.pressureLabel} // {command.standingTier.toUpperCase()} REP {command.reputation}
+      </Text>
+      <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10, lineHeight: 15 }}>
+        {command.pressureDetail}
+      </Text>
+      <Text style={{ marginTop: 5, fontFamily: terminalFont, color: riskColor, fontSize: 10 }}>
+        HEAT POSTURE +{command.heatDelta} // EXPIRES TICK {command.expiresAtTick}
+      </Text>
+    </View>
+  );
+}
+
 export default function TerminalRoute() {
   const routeReady = useDemoRouteGuard();
   const params = useLocalSearchParams<{ ticker?: string }>();
+  const profile = useDemoStore((state) => state.profile);
   const selectedTicker = useDemoStore((state) => state.selectedTicker);
   const selectTicker = useDemoStore((state) => state.selectTicker);
+  const tick = useDemoStore((state) => state.tick);
   const prices = useDemoStore((state) => state.prices);
   const changes = useDemoStore((state) => state.changes);
   const priceHistory = useDemoStore((state) => state.priceHistory);
@@ -107,6 +156,7 @@ export default function TerminalRoute() {
   const clock = useDemoStore((state) => state.clock);
   const activeFlashEvent = useDemoStore((state) => state.activeFlashEvent);
   const districtStates = useDemoStore((state) => state.districtStates);
+  const npcReputation = useDemoStore((state) => state.npcReputation);
   const tradeJuice = useDemoStore((state) => state.tradeJuice);
   const resources = useDemoStore((state) => state.resources);
   const heatWarning = useDemoStore((state) => state.heatWarning);
@@ -166,6 +216,16 @@ export default function TerminalRoute() {
   const energyTone = energyHours > 24 ? terminalColors.green : energyHours >= 6 ? terminalColors.amber : terminalColors.red;
   const heatTone = resources.heat < 30 ? terminalColors.green : resources.heat < 70 ? terminalColors.amber : terminalColors.red;
   const ownedQuantity = position?.quantity ?? 0;
+  const pressureCommand = buildTerminalPressureCommand({
+    faction: profile?.faction ?? null,
+    npcReputation,
+    selectedTicker: commodity.ticker,
+    side,
+    price,
+    orderSize,
+    tick,
+    heat: resources.heat,
+  });
 
   React.useEffect(() => {
     if (!tradeJuice || clock.nowMs - tradeJuice.createdAt > 2500) {
@@ -304,6 +364,7 @@ export default function TerminalRoute() {
             : undefined,
         }}
       >
+        <TerminalPressureStrip command={pressureCommand} />
         <View style={{ flexDirection: "row", gap: 8 }}>
           {(["BUY", "SELL"] as const).map((ticketSide) => (
             <Pressable
@@ -358,6 +419,16 @@ export default function TerminalRoute() {
           <TicketSummaryRow label="EST COST" value={`${cost.toFixed(2)} 0BOL`} />
           <TicketSummaryRow label="HEAT DELTA" value={`+${heatDelta}`} color={terminalColors.amber} />
           <TicketSummaryRow label="ENERGY COST" value={`${energyCost}s`} color={terminalColors.systemGreen} />
+          <TicketSummaryRow
+            label="LIMIT TRIGGER"
+            value={pressureCommand?.triggerLabel ?? "AGENTOS FACTION REQUIRED"}
+            color={pressureCommand ? terminalColors.cyan : terminalColors.dim}
+          />
+          <TicketSummaryRow
+            label="WINDOW"
+            value={pressureCommand?.triggerDetail ?? "PREVIEW LOCKED"}
+            color={pressureCommand ? terminalColors.muted : terminalColors.dim}
+          />
         </View>
         <View style={{ marginTop: 16 }}>
           <ActionButton

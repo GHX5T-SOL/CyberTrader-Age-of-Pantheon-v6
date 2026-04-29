@@ -207,6 +207,19 @@ Release note: `docs/release/nyx-p1-005-agentos-contract-chains.md`.
 - Contract strips should stay subordinate to the mission title/description and must not add new colors, cards, gradients, icons, or tutorial prose.
 - Copy remains fictional and store-safe: faction contracts may affect missions, route risk, Heat pressure, and reputation, but must not imply real-money rewards, investment outcomes, prizes, wallet signing, staking, or external cash-out.
 
+## Oracle P1 Terminal Pressure Flow
+
+Release note: `docs/release/oracle-p1-011-terminal-pressure-flow.md`.
+
+- SuperDesign project: `CyberTrader v6 terminal pressure command flow`.
+- Project URL: `https://app.superdesign.dev/teams/cbf9e40e-5180-4061-94e7-aa2571efe072/projects/5644c939-eaa3-4b19-91f1-e3819f1cab59`.
+- Current terminal reproduction draft: `3973e1de-23d5-4242-9c8f-431409e153f1`.
+- Preview URL: `https://p.superdesign.dev/draft/3973e1de-23d5-4242-9c8f-431409e153f1`.
+- The `/terminal` trade ticket may show one compact `PRESSURE WINDOW` strip above BUY/SELL controls when an AgentOS faction is bound. This strip must stay inside the existing `NeonBorder` ticket and use only cyan, green, amber, red, muted, and dim terminal tokens.
+- Pressure text should be operational and compact: faction, supported/suppressed ticker, basis-point intensity, reputation tier, remaining ticks, and Heat posture. It must not introduce tutorial prose, generic finance-dashboard framing, or new visual components.
+- Limit trigger UI is a preview row in the existing ticket summary, not a new executable off-authority order control. Keep the existing `[ EXECUTE ]` and `[ WAIT MARKET TICK ]` commands as the only trade buttons until LocalAuthority supports persisted limit orders.
+- Branch iteration was blocked by SuperDesign account credits, so implementation must remain conservative and match the existing terminal/AgentOS patterns.
+
 ## Reel P1 Intro Handoff Polish
 
 Release note: `docs/release/reel-p1-002-intro-handoff-polish.md`.

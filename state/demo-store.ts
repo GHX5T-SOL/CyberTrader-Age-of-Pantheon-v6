@@ -68,6 +68,7 @@ import {
   isTradingBlockedByFlash,
   updateFlashEvent,
 } from "@/engine/flash-events";
+import { applyTerminalFactionPressureToPrices } from "@/engine/terminal-pressure";
 import {
   getAgentOsFactionGate,
   getFactionDefinition,
@@ -390,6 +391,8 @@ function applyAllPriceModifiers(input: {
   activeFlashEvent: FlashEvent | null;
   nowMs: number;
   tick: number;
+  faction: Faction | null;
+  npcReputation: Record<string, number>;
 }): PriceMap {
   const district = getActiveDistrictState(
     input.districtStates,
@@ -401,13 +404,19 @@ function applyAllPriceModifiers(input: {
     input.locationId,
     district,
   );
-  return applyFlashEventPriceModifiers({
+  const flashPrices = applyFlashEventPriceModifiers({
     prices: locationPrices,
     event: input.activeFlashEvent,
     locationId: input.locationId,
     nowMs: input.nowMs,
     tick: input.tick,
   });
+  return applyTerminalFactionPressureToPrices({
+    prices: flashPrices,
+    faction: input.faction,
+    npcReputation: input.npcReputation,
+    tick: input.tick,
+  }).prices;
 }
 
 function getTradeBlockReason(state: DemoStoreState, side: "BUY" | "SELL"): string | null {
@@ -612,6 +621,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       activeFlashEvent,
       nowMs,
       tick: nextTick,
+      faction: current.profile?.faction ?? null,
+      npcReputation: current.npcReputation,
     });
     const [activeNews, resources, positions, progression] = await Promise.all([
       authority.getActiveNews(nextTick),
@@ -1251,6 +1262,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
           activeFlashEvent: nextActiveFlashEvent,
           nowMs,
           tick: nextTick,
+          faction: state.profile?.faction ?? null,
+          npcReputation: nextNpcReputation,
         });
         refresh = {
           ...refresh,
