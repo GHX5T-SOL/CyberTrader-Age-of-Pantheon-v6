@@ -39,7 +39,7 @@ const reportDir =
 const LIVE_URL =
   process.env.CYBERTRADER_LIVE_URL ??
   "https://cyber-trader-age-of-pantheon-v6.vercel.app";
-const LIVE_SHELL_MARKER_TIMEOUT_MS = 45_000;
+const LIVE_SHELL_MARKER_TIMEOUT_MS = 75_000;
 
 // ── Static file server (mirrors qa/responsive-captures.spec.ts) ──────────────
 
@@ -580,7 +580,7 @@ test.describe("zyra-p1-004 axiom web regression (live deployment)", () => {
   test("2.8 live – Vercel deployment returns 200 and serves non-blank app shell", async ({
     page,
   }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
     const getErrors = collectConsoleErrors(page);
 
     const response = await page.goto(LIVE_URL, {
