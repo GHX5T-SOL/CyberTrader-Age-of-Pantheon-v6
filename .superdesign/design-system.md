@@ -135,6 +135,20 @@ Release note: `docs/release/zoro-p0-002-store-media-approval.md`.
 - Do not introduce finance-dashboard styling, device-hand footage, store badges, install CTAs, real-money claims, wallet prompts, investment/yield language, prize claims, or unapproved external media.
 - Final preview video, native-device screenshot evidence, public privacy policy URL, age-rating declarations, and account-owner store submissions remain Gate C follow-ups.
 
+## Zoro P1 Commodity, Faction, and OS Art Direction
+
+Release note: `docs/release/zoro-p1-003-commodity-faction-os-art-direction.md`.
+
+- SuperDesign project: `CyberTrader v6 Zoro art direction`.
+- Current-state board: `https://p.superdesign.dev/draft/7a48e6d9-37d3-445c-ba85-e2c40081cd98`.
+- Asset-direction branch: `https://p.superdesign.dev/draft/a9ccd626-2899-4324-98b3-062300ecee9e`.
+- OS/faction hierarchy branch: `https://p.superdesign.dev/draft/218326c6-0622-4fcd-a294-c51baf6686e9`.
+- `data/presentation-direction.ts` is the typed source of truth for this pass.
+- Commodity presentation must stay in four lanes: `VBLM` starter/stabilizer, `MTRX/NGLS` safe-cycle, `PGAS/ORRS/SNPS/GLCH` upgrade-signal, and `FDST/HXMD/AETH/BLCK` contraband-anomaly.
+- AgentOS faction identity uses compact sigil rules and terminal accents only: Free Splinters green, Blackwake amber, Null Crown red on rails/warnings, Archivists cyan.
+- PirateOS is raw local market access, AgentOS adds faction/reputation/route-pressure presentation, and PantheonOS remains a locked late-game promise until territory and shard-memory systems are playable.
+- Follow-up asset requests are filed in `PRESENTATION_ASSET_REQUESTS`; do not add new color families, card nesting, real-money claims, wallet prompts, prize language, or unapproved external media.
+
 ## Reel P1 Intro Transmission Polish
 
 Release note: `docs/release/reel-p1-002-intro-transmission-polish.md`.
