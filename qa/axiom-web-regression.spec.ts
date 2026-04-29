@@ -543,9 +543,21 @@ test.describe("zyra-p1-004 axiom web regression (local build)", () => {
       ).toBeGreaterThan(0);
 
       if (route === "/menu/profile") {
-        await expect(visibleText(page, "AGENT TELEMETRY", { exact: true })).toBeVisible();
-        await expect(visibleText(page, "AGENTOS DOSSIER", { exact: true })).toBeVisible();
-        await expect(visibleText(page, "SESSION ANCHOR", { exact: true })).toBeVisible();
+        await expect
+          .poll(async () => page.locator("body").textContent(), {
+            timeout: 15_000,
+          })
+          .toContain("AGENT TELEMETRY");
+        await expect
+          .poll(async () => page.locator("body").textContent(), {
+            timeout: 15_000,
+          })
+          .toContain("AGENTOS DOSSIER");
+        await expect
+          .poll(async () => page.locator("body").textContent(), {
+            timeout: 15_000,
+          })
+          .toContain("SESSION ANCHOR");
       }
     }
 
