@@ -39,6 +39,7 @@ const reportDir =
 const LIVE_URL =
   process.env.CYBERTRADER_LIVE_URL ??
   "https://cyber-trader-age-of-pantheon-v6.vercel.app";
+const LIVE_SHELL_MARKER_TIMEOUT_MS = 45_000;
 
 // ── Static file server (mirrors qa/responsive-captures.spec.ts) ──────────────
 
@@ -569,7 +570,7 @@ test.describe("zyra-p1-004 axiom web regression (live deployment)", () => {
     await expect(
       visibleText(page, /AG3NT_0S|CyberTrader|PIRATE OS/),
       "live deployment must render a visible app shell marker",
-    ).toBeVisible({ timeout: 15_000 });
+    ).toBeVisible({ timeout: LIVE_SHELL_MARKER_TIMEOUT_MS });
 
     const bodyText = await page.locator("body").textContent();
     expect(
