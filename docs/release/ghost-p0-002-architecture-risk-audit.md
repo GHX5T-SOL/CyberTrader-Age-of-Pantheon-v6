@@ -75,7 +75,7 @@ Owner: Rune for persistence implementation; Axiom for native cold-launch validat
 
 ## Authority Boundary Review
 
-The authority boundary is acceptable for Gate A and can remain store-safe if LocalAuthority-only launch scope is explicitly accepted or SupabaseAuthority is validated before Gate B/C.
+The authority boundary is acceptable for Gate A and remains store-safe with the `ghost-p1-005` LocalAuthority-only launch decision. SupabaseAuthority still needs live project, RLS, privacy, and native evidence before any submitted build enables it.
 
 Positive findings:
 
@@ -102,7 +102,7 @@ Owner: Kite for Supabase implementation and RLS evidence; Ghost for launch-scope
 | 2 | Cold-launch native persistence is not device-validated. | Returning players could lose or corrupt local demo progress on native runtime. | Rune / Axiom | Cold launch, reset, and corrupt-storage recovery validated on native runtime. |
 | 3 | Expo transitive advisories and SDK/toolchain drift remain unresolved. | Store submission risk if dependency scrutiny escalates, Xcode/Android target requirements move ahead of the chosen EAS images, or Expo SDK 52 falls behind New Architecture fixes. | Ghost / Rune | SDK upgrade, targeted override review, resolved EAS build image/toolchain evidence, or explicit risk acceptance with passing checks. |
 | 4 | SupabaseAuthority live backend is not validated. | Flagged remote authority could fail account bootstrap, trades, ledgers, or RLS isolation. | Kite | Migrations, RLS, RPC/Edge Function validation, and authority write tests against a real project. |
-| 5 | Supabase launch scope is undecided. | Gate B/C planning can drift between LocalAuthority-only demo and remote authority expectations. | Ghost / Kite | Written scope decision before first store build approval. |
+| 5 | Supabase launch scope is deferred. | A future online-authority build could drift without live RLS, privacy, and native evidence. | Ghost / Kite | `ghost-p1-005` LocalAuthority-only scope decision is accepted; future SupabaseAuthority enablement requires live evidence. |
 | 6 | Production web smoke is shallow. | Gate A may miss login/trading/inventory/settings regressions. | Axiom | Repeatable smoke path from intro through first profitable sell and settings reset. |
 | 7 | Crash/log capture is not implemented. | TestFlight/Play Internal Testing bugs may be hard to diagnose safely. | Rune / Axiom | Secret-safe runtime exception and session-context capture path. |
 | 8 | Store policy copy is incomplete. | Simulated trading, token naming, wallet, privacy, and age-rating language could block review. | Cipher / Kite / Ghost | Policy matrix, privacy copy, age-rating notes, and legal escalation triggers. |
@@ -113,7 +113,7 @@ Owner: Kite for Supabase implementation and RLS evidence; Ghost for launch-scope
 
 `ghost-p0-002` is complete for the current architecture state. The architecture is acceptable for continued Gate A Reliable Demo work, but not yet approved for Gate B Native Internal Testing until native smoke, cold-launch persistence validation, and the first build-plan approval are complete.
 
-Ghost should treat the current launch default as LocalAuthority-only unless `ghost-p1-005` explicitly expands scope after Kite provides live Supabase evidence.
+Ghost now accepts the current launch default as LocalAuthority-only in `ghost-p1-005`; SupabaseAuthority remains deferred until Kite provides live Supabase, RLS, privacy, and native-runtime evidence.
 
 ## Validation
 
@@ -131,5 +131,5 @@ This pass is a scoped build-configuration and release-documentation change.
 - `ghost-p0-003`: approve the first TestFlight and Play Internal Testing build plan after Axiom web/native QA evidence exists.
 - `rune-p0-003`: finish native cold-launch persistence validation.
 - `axiom-p0-001`: run Web/iOS/Android QA and production export smoke.
-- `ghost-p1-005`: decide LocalAuthority-only launch scope versus live SupabaseAuthority scope.
+- `ghost-p1-005`: completed LocalAuthority-only launch scope; future SupabaseAuthority enablement needs live RLS, privacy, and native evidence.
 - `talon-p0-002` / `talon-p1-003`: harden direct-push safety rails and rollback protocol.

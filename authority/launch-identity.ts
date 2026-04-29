@@ -27,11 +27,11 @@ export const LAUNCH_ACCOUNT_RECOVERY_COPY = {
   settingsDetail:
     "CLEAR LOCAL DATA REMOVES HANDLE, PROGRESS, LEDGER, POSITIONS, AND SETTINGS",
   legalDisclosure:
-    "LocalAuthority stores your handle, progress, ledger, positions, and settings on this device. Clear Local Data removes local demo state. Cross-device recovery is unavailable unless a future approved online authority is enabled.",
+    "LocalAuthority stores your handle, progress, ledger, positions, and settings on this device. Clear Local Data removes local demo state. Cross-device recovery is unavailable unless a future reviewed online authority is enabled.",
   reviewerNote:
     "No demo account, wallet, payment method, or Supabase credentials are required for first playable launch.",
   privacyNote:
-    "LocalAuthority launch builds store gameplay state on device only; SupabaseAuthority changes data handling and needs separate Ghost/Kite approval before store submission.",
+    "LocalAuthority launch builds store gameplay state on device only; SupabaseAuthority changes data handling and needs a separate reviewed scope decision before store submission.",
 } as const;
 
 export function normalizeEidolonHandle(rawHandle: string): string {

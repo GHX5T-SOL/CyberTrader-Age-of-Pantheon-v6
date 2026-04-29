@@ -26,7 +26,7 @@ LocalAuthority recovery is intentionally limited:
 - Handle, progress, ledger, positions, settings, and LocalAuthority snapshots are stored on the current device.
 - `CLEAR LOCAL DATA` removes local demo state from that device.
 - Cross-device recovery is unavailable in LocalAuthority launch builds.
-- SupabaseAuthority recovery, deletion, retention, and RLS evidence require a separate Ghost/Kite approval before any store build enables it.
+- SupabaseAuthority recovery, deletion, retention, and RLS evidence require a separate reviewed scope decision before any store build enables it.
 
 This limitation is now represented in player-facing copy on login, Settings, and Legal Disclosures through shared constants from `authority/launch-identity.ts`.
 

@@ -30,7 +30,7 @@ These issues block store submission until resolved or explicitly deferred by Gho
 | Web demo | Production web smoke must cover intro, login, terminal, buy, sell, inventory, profile, and settings. | Axiom QA note or automated smoke output. |
 | Native runtime | iOS simulator and Android emulator smoke runs are pending. | Simulator/emulator logs plus screenshots or a QA report. |
 | Persistence | Cold-launch native hydration still needs simulator/device validation. | Rune/Axiom validation note referencing storage reset and corrupt-data recovery. |
-| SupabaseAuthority | Launch scope is undecided; LocalAuthority is the only proven path. | Kite implementation behind a feature flag, or Ghost-approved deferral to LocalAuthority-only launch. |
+| SupabaseAuthority | LocalAuthority-only launch scope is accepted; online authority remains deferred. | `ghost-p1-005` scope decision plus future live RLS/privacy/native evidence before enabling SupabaseAuthority in a submitted build. |
 | Store policy | Privacy, simulated trading, token naming, age rating, and support URL copy are not ready. | Cipher/Kite policy matrix and final store copy. |
 | Assets | Screenshots, preview video, icon/splash, and ownership notes are incomplete. | Zoro/Palette/Reel approval notes and asset manifest. |
 | Dependency audit | Expo toolchain transitive advisories remain open. | Planned Expo SDK/override decision with passing checks after remediation or explicit risk acceptance. |
@@ -84,7 +84,7 @@ Ghost may approve Gate B after:
 - iOS simulator and Android emulator smoke runs pass.
 - Cold-launch persistence, reset clearing, and corrupt storage recovery are validated on native runtime.
 - Crash/log capture is available without printing secrets.
-- SupabaseAuthority is feature-flagged and proven, or LocalAuthority-only launch scope is explicitly accepted.
+- SupabaseAuthority stays feature-flagged off for launch builds unless a later reviewed online-authority pass proves live RLS, privacy, and native runtime evidence.
 
 ### Gate C - Store Candidate
 
@@ -107,6 +107,6 @@ This is a documentation-only release authority update. Required validation for t
 
 - Axiom: create the store-submission regression checklist and automated smoke path.
 - Rune/Axiom: run iOS simulator and Android emulator validation.
-- Kite/Ghost: decide SupabaseAuthority launch scope.
+- Ghost/Kite: keep SupabaseAuthority deferred until live RLS, privacy, and native evidence are ready.
 - Cipher/Kite: finish store policy and legal/security review.
 - Talon: expand the rollback and incident protocol for autonomous commits.
