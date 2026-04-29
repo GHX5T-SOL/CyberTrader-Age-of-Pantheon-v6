@@ -32,3 +32,6 @@ During validation, TypeScript surfaced a latest-head limit-order store gap: queu
 - `npm run typecheck`
 - `npm run ship:check` (safety scan, typecheck, 178/178 Jest tests in 36 suites, Expo web export)
 - `npm run qa:smoke`
+- `npm run build:web -- --clear`
+- `npm run qa:axiom` (11/11 Playwright checks)
+- `npm run qa:responsive` (4/4 responsive captures)

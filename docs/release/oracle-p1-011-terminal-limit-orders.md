@@ -37,3 +37,6 @@ Players can keep using immediate market BUY/SELL commands, or switch the termina
 - `npm run limit-orders:check`
 - `npm run ship:check` (safety scan, typecheck, 178/178 Jest tests in 36 suites, Expo web export)
 - `npm run qa:smoke`
+- `npm run build:web -- --clear`
+- `npm run qa:axiom` (11/11 Playwright checks)
+- `npm run qa:responsive` (4/4 responsive captures)
