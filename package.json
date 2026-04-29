@@ -31,6 +31,7 @@
     "limit-orders:check": "jest engine/__tests__/limit-orders.test.ts --runInBand",
     "swarm:market": "HYDRA_SWARM_LOG=1 jest engine/__tests__/market-swarm.test.ts --runInBand",
     "retention:beta": "HYDRA_RETENTION_LOG=1 jest engine/__tests__/retention-scenarios.test.ts --runInBand",
+    "retention:tuning": "HYDRA_RETENTION_TUNING_LOG=1 jest engine/__tests__/retention-tuning.test.ts --runInBand",
     "generate:brand": "python3 scripts/generate-brand-assets.py",
     "provenance:assets": "node scripts/generate-asset-provenance.mjs",
     "provenance:assets:check": "node scripts/generate-asset-provenance.mjs --check",
