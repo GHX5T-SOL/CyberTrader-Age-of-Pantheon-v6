@@ -15,10 +15,10 @@ import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function MissionsRoute() {
-  const missionCount = (pendingMission ? 1 : 0) + (activeMission ? 1 : 0);
   const clock = useDemoStore((state) => state.clock);
   const pendingMission = useDemoStore((state) => state.pendingMission);
   const activeMission = useDemoStore((state) => state.activeMission);
+  const missionCount = (pendingMission ? 1 : 0) + (activeMission ? 1 : 0);
   const missionHistory = useDemoStore((state) => state.missionHistory);
   const npcReputation = useDemoStore((state) => state.npcReputation);
   const progression = useDemoStore((state) => state.progression);
