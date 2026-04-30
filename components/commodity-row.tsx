@@ -65,6 +65,7 @@ export default function CommodityRow({
         borderBottomWidth: 1,
         borderBottomColor: terminalColors.borderDim,
         borderLeftWidth: isSelected ? 1 : 0,
+        backgroundColor: isSelected ? terminalColors.cyanPress : (pressed ? terminalColors.cyanPress : index % 2 === 0 ? terminalColors.panelEven : terminalColors.panelAlt),
         borderLeftColor: terminalColors.cyan,
         paddingHorizontal: 8,
       }}
