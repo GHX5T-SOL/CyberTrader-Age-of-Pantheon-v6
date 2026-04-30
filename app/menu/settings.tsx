@@ -36,6 +36,9 @@ export default function SettingsMenuRoute() {
         <Pressable onPress={() => setConfirm(true)} style={{ borderWidth: 1, borderColor: terminalColors.red, padding: 12 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.red, fontSize: 12 }}>CLEAR LOCAL DATA</Text>
         </Pressable>
+        <Pressable onPress={() => router.push('/privacy')} style={{ borderWidth: 1, borderColor: terminalColors.muted, padding: 12 }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 12 }}>PRIVACY POLICY</Text>
+        </Pressable>
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>FEATURE FLAGS</Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11 }}>SUPABASE AUTHORITY: OFF</Text>
