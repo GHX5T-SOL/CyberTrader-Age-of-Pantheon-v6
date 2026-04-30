@@ -81,7 +81,7 @@ export default function CommodityRow({
       <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 86, textAlign: "right", fontFamily: terminalFont, fontSize: 15, color: terminalColors.text }}>
         {price.toFixed(2)}
       </Text>
-      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 62, textAlign: "right", fontFamily: terminalFont, fontSize: 12, color }}>
+      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 62, textAlign: "right", fontFamily: terminalFont, fontSize: 12, color: isPositive ? terminalColors.green : isNegative ? terminalColors.red : terminalColors.muted }}>
         {prefix} {Math.abs(changePercent).toFixed(1)}%
       </Text>
     </Pressable>
