@@ -15,6 +15,7 @@ import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function MissionsRoute() {
+  const missionCount = (pendingMission ? 1 : 0) + (activeMission ? 1 : 0);
   const clock = useDemoStore((state) => state.clock);
   const pendingMission = useDemoStore((state) => state.pendingMission);
   const activeMission = useDemoStore((state) => state.activeMission);
@@ -35,7 +36,7 @@ export default function MissionsRoute() {
   const agentOsProgress = getAgentOsGateProgress(agentOsGate);
 
   return (
-    <MenuScreen title="MISSION CONTACTS">
+    <MenuScreen title={`MISSION CONTACTS (${missionCount})`}>
       {pendingMission || activeMission ? (
         <MissionBanner
           mission={(activeMission ?? pendingMission)!}
