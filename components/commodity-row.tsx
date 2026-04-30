@@ -25,6 +25,7 @@ interface CommodityRowProps {
   onPress: () => void;
   isSelected?: boolean;
   index?: number;
+  loading?: boolean;
 }
 
 export default function CommodityRow({
@@ -36,7 +37,8 @@ export default function CommodityRow({
   onPress,
   isSelected = false,
   index = 0,
-}: CommodityRowProps) {
+  loading = false,
+}: CommodityRowProps & { loading?: boolean }) {
   const [pressed, setPressed] = React.useState(false);
   const isPositive = changePercent > 0;
   const isNegative = changePercent < 0;
@@ -67,11 +69,16 @@ export default function CommodityRow({
         paddingHorizontal: 8,
       }}
     >
-      <Image
-        source={iconSource ?? COMMODITY_ICON_MAP[ticker]}
-        resizeMode="contain"
-        style={{ width: 28, height: 28, marginRight: 8 }}
-      />
+      {loading ? (
+        // Placeholder skeleton when loading
+        <View style={{ width: 28, height: 28, marginRight: 8, backgroundColor: terminalColors.panelAlt, borderRadius: 4 }} />
+      ) : (
+        <Image
+          source={iconSource ?? COMMODITY_ICON_MAP[ticker]}
+          resizeMode="contain"
+          style={{ width: 28, height: 28, marginRight: 8 }}
+        />
+      )}
       <Text numberOfLines={1} style={{ width: 52, fontFamily: terminalFont, fontSize: 13, fontWeight: "700", color: terminalColors.cyan }}>
         {ticker}
       </Text>
