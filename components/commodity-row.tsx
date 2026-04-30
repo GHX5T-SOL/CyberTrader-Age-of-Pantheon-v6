@@ -57,11 +57,7 @@ export default function CommodityRow({
         minHeight: 52,
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: pressed
-          ? terminalColors.cyanPress
-          : index % 2 === 0
-            ? terminalColors.panelEven
-            : terminalColors.panelAlt,
+        backgroundColor: isSelected ? terminalColors.cyanPress : (pressed ? terminalColors.cyanPress : index % 2 === 0 ? terminalColors.panelEven : terminalColors.panelAlt),
         borderBottomWidth: 1,
         borderBottomColor: terminalColors.borderDim,
         borderLeftWidth: isSelected ? 1 : 0,
