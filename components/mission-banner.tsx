@@ -105,7 +105,7 @@ export default function MissionBanner({
         marginTop: 14,
         marginHorizontal: 12,
         borderWidth: 1,
-        borderColor: urgent ? terminalColors.amber : terminalColors.borderDim,
+        borderColor: urgent ? terminalColors.red : terminalColors.borderDim,
         backgroundColor: terminalColors.panel,
         padding: 12,
       }}
