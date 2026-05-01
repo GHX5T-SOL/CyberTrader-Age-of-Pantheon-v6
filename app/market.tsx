@@ -21,10 +21,24 @@ export default function MarketScreen() {
     router.push({ pathname: "/terminal", params: { commodity: ticker } });
   };
 
+  // Show placeholder rows while loading to maintain layout continuity
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#0a0a0a", justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#00ff99" />
+      <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
+        <ScrollView>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <CommodityRow
+              key={`placeholder-${i}`}
+              ticker="---"
+              name="Loading..."
+              price={0}
+              changePercent={0}
+              loading={true}
+              isSelected={false}
+              onPress={() => {}}
+            />
+          ))}
+        </ScrollView>
       </View>
     );
   }
