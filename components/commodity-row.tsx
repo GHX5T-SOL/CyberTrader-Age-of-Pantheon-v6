@@ -62,6 +62,7 @@ export default function CommodityRow({
       onPressIn={() => setPressed(true)}
       onPressOut={() => setTimeout(() => setPressed(false), 100)}
       hitSlop={4}
+      accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
       style={Animated.createAnimatedComponent(View).default?.props?.style || {
         minHeight: 52,
         flexDirection: "row",
