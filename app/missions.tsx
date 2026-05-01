@@ -26,6 +26,7 @@ export default function MissionsRoute() {
   const npcReputation = useDemoStore((state) => state.npcReputation);
   const progression = useDemoStore((state) => state.progression);
   const [showUnlockedOnly, setShowUnlockedOnly] = useState(false);
+  const [sortAsc, setSortAsc] = useState(true);
   const profile = useDemoStore((state) => state.profile);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const heat = useDemoStore((state) => state.resources.heat);
@@ -80,6 +81,16 @@ export default function MissionsRoute() {
         <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>CONTACTS</Text>
         {/* Toggle to show only unlocked contacts */}
         <Pressable onPress={() => setShowUnlockedOnly(!showUnlockedOnly)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            {showUnlockedOnly ? 'SHOW ALL' : 'SHOW UNLOCKED ONLY'}
+          </Text>
+        </Pressable>
+        {/* Sort toggle */}
+        <Pressable onPress={() => setSortAsc(prev => !prev)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            SORT REPUTATION {sortAsc ? '↓' : '↑'}
+          </Text>
+        </Pressable>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
             {showUnlockedOnly ? 'SHOW ALL' : 'SHOW UNLOCKED ONLY'}
           </Text>
