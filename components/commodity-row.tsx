@@ -57,7 +57,8 @@ export default function CommodityRow({
         minHeight: 52,
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: pressed ? terminalColors.cyanPress : bgAnim.interpolate({
+        opacity: pressed ? 0.7 : 1,
+        backgroundColor: bgAnim.interpolate({
           inputRange: [0, 1],
           outputRange: [terminalColors.panelAlt, terminalColors.cyanPress]
         }),
