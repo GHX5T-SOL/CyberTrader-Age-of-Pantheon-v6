@@ -33,7 +33,5 @@ export default function MarketScreen() {
   );
 }
 
+// Removed duplicate default export that caused a naming conflict.
 
-export default function MarketRoute() {
-  return <Redirect href="/terminal" />;
-}
