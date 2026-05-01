@@ -47,27 +47,35 @@ export default function CommodityRow({
       : terminalColors.muted;
 
   return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={() => setPressed(true)}
-      onPressOut={() => setTimeout(() => setPressed(false), 100)}
-      hitSlop={4}
-      accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
+    <Animated.View
       style={{
+        opacity: pressed ? 0.7 : 1,
+        backgroundColor: bgAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [terminalColors.panelAlt, terminalColors.cyan]
+        }),
         minHeight: 52,
         flexDirection: "row",
         alignItems: "center",
-        opacity: pressed ? 0.7 : 1,
-        backgroundColor: terminalColors.panelAlt,
         borderBottomWidth: 1,
         borderBottomColor: terminalColors.borderDim,
-        borderLeftWidth: isSelected ? 2 : 0,
-        borderLeftColor: terminalColors.cyan,
-        borderWidth: isSelected ? 2 : 0,
-        borderColor: isSelected ? terminalColors.cyan : 'transparent',
         paddingHorizontal: 8,
       }}
     >
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setTimeout(() => setPressed(false), 100)}
+        hitSlop={4}
+        accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
+        style={{
+          flex: 1,
+          borderLeftWidth: isSelected ? 2 : 0,
+          borderLeftColor: terminalColors.cyan,
+          borderWidth: isSelected ? 2 : 0,
+          borderColor: isSelected ? terminalColors.cyan : 'transparent',
+        }}
+      >
       {loading ? (
         // Placeholder skeleton when loading
         <View style={{ width: 28, height: 28, marginRight: 8, backgroundColor: terminalColors.panelAlt, borderRadius: 4 }} />
