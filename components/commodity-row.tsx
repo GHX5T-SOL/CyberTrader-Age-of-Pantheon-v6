@@ -3,19 +3,9 @@ import { Animated } from "react-native";
 import { Image, Pressable, Text, View } from "react-native";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
-export const COMMODITY_ICON_MAP: Record<string, any> = {
-  FDST: require("../assets/optimized/commodities/fractal_dust.png"),
-  PGAS: require("../assets/optimized/commodities/plutonion_gas.png"),
-  NGLS: require("../assets/optimized/commodities/neon_glass.png"),
-  HXMD: require("../assets/optimized/commodities/helix_mud.png"),
-  VBLM: require("../assets/optimized/commodities/void_bloom.png"),
-  ORRS: require("../assets/optimized/commodities/oracle_resin.png"),
-  SNPS: require("../assets/optimized/commodities/synapse_silk.png"),
-  MTRX: require("../assets/optimized/commodities/matrix_salt.png"),
-  AETH: require("../assets/optimized/commodities/aether_tabs.png"),
-  BLCK: require("../assets/optimized/commodities/blacklight_serum.png"),
-  GLCH: require("../assets/optimized/commodities/glitch_echo.png"),
-};
+import { commodityArt } from "@/assets/commodity-art";
+
+export const COMMODITY_ICON_MAP: Record<string, any> = commodityArt;
 
 interface CommodityRowProps {
   ticker: string;
