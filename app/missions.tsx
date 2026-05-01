@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import MenuScreen from "@/components/menu-screen";
 import MissionBanner, { MissionContractStrip } from "@/components/mission-banner";
@@ -16,6 +17,7 @@ import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function MissionsRoute() {
+  const router = useRouter();
   const clock = useDemoStore((state) => state.clock);
   const pendingMission = useDemoStore((state) => state.pendingMission);
   const activeMission = useDemoStore((state) => state.activeMission);
