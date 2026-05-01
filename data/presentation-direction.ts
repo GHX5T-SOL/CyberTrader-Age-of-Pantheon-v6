@@ -55,6 +55,12 @@ export const ZORO_P1_003_SUPERDESIGN = {
 } as const;
 
 export const COMMODITY_PRESENTATION: Record<string, CommodityPresentation> = {
+  // ... existing commodity entries ...
+};
+
+// Export an ordered list of commodity presentations for UI consumption.
+export const PRESENTATION_DIRECTION: CommodityPresentation[] = Object.values(COMMODITY_PRESENTATION);
+
   VBLM: {
     ticker: "VBLM",
     name: "Void Bloom",

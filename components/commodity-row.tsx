@@ -53,23 +53,20 @@ export default function CommodityRow({
       onPressOut={() => setTimeout(() => setPressed(false), 100)}
       hitSlop={4}
       accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
-      style={Animated.createAnimatedComponent(View).default?.props?.style || {
+      style={{
         minHeight: 52,
         flexDirection: "row",
         alignItems: "center",
         opacity: pressed ? 0.7 : 1,
-        backgroundColor: bgAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [terminalColors.panelAlt, terminalColors.cyanPress]
-        }),
+        backgroundColor: terminalColors.panelAlt,
         borderBottomWidth: 1,
         borderBottomColor: terminalColors.borderDim,
-        borderLeftWidth: isSelected ? 1 : 0,
+        borderLeftWidth: isSelected ? 2 : 0,
         borderLeftColor: terminalColors.cyan,
         borderWidth: isSelected ? 2 : 0,
         borderColor: isSelected ? terminalColors.cyan : 'transparent',
         paddingHorizontal: 8,
-      })
+      }}
     >
       {loading ? (
         // Placeholder skeleton when loading
