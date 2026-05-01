@@ -74,7 +74,11 @@ export default function MissionsRoute() {
 
       <NeonBorder style={{ marginTop: 14 }}>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>CONTACTS</Text>
-        {NPCS.map((npc) => {
+        {[...NPCS].sort((a, b) => {
+          const repA = npcReputation[a.id] ?? 0;
+          const repB = npcReputation[b.id] ?? 0;
+          return repB - repA;
+        }).map((npc) => {
           const locked = progression.level < npc.unlockedAtRank;
           const factionId = getAgentOsFactionByNpcFaction(npc.faction);
           const faction = factionId ? getFactionDefinition(factionId) : null;
