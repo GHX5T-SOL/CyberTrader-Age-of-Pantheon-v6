@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
 import MenuScreen from "@/components/menu-screen";
 import MissionBanner, { MissionContractStrip } from "@/components/mission-banner";
 import NeonBorder from "@/components/neon-border";
@@ -22,6 +23,7 @@ export default function MissionsRoute() {
   const missionHistory = useDemoStore((state) => state.missionHistory);
   const npcReputation = useDemoStore((state) => state.npcReputation);
   const progression = useDemoStore((state) => state.progression);
+  const [showUnlockedOnly, setShowUnlockedOnly] = useState(false);
   const profile = useDemoStore((state) => state.profile);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const heat = useDemoStore((state) => state.resources.heat);
@@ -74,7 +76,15 @@ export default function MissionsRoute() {
 
       <NeonBorder style={{ marginTop: 14 }}>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>CONTACTS</Text>
-        {[...NPCS].sort((a, b) => {
+        {/* Toggle to show only unlocked contacts */}
+        <Pressable onPress={() => setShowUnlockedOnly(!showUnlockedOnly)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            {showUnlockedOnly ? 'SHOW ALL' : 'SHOW UNLOCKED ONLY'}
+          </Text>
+        </Pressable>
+        {[...NPCS]
+          .filter(npc => !showUnlockedOnly || progression.level >= npc.unlockedAtRank)
+          .sort((a, b) => {
           const repA = npcReputation[a.id] ?? 0;
           const repB = npcReputation[b.id] ?? 0;
           return repB - repA;
