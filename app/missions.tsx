@@ -108,9 +108,15 @@ export default function MissionsRoute() {
               </Text>
               <MissionContractStrip signal={contractSignal} locked={locked} />
               {faction && standing ? (
-                <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.green, fontSize: 10, lineHeight: 15 }}>
-                  AGENTOS // {faction.name.toUpperCase()} {standing.tier.toUpperCase()} // {faction.heatPosture.toUpperCase()} HEAT POSTURE
-                </Text>
+                <>
+                  <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.green, fontSize: 10, lineHeight: 15 }}>
+                    AGENTOS // {faction.name.toUpperCase()} {standing.tier.toUpperCase()} // {faction.heatPosture.toUpperCase()} HEAT POSTURE
+                  </Text>
+                  {/* Show faction description for richer lore */}
+                  <Text style={{ marginTop: 2, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9 }}>
+                    {faction.description}
+                  </Text>
+                </>
               ) : (
                 <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.dim, fontSize: 10, lineHeight: 15 }}>
                   AGENTOS // OBSERVER SIGNAL - FACTION CHOICE NOT BOUND HERE
