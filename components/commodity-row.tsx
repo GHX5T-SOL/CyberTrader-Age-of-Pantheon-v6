@@ -37,6 +37,7 @@ export default function CommodityRow({
   }, [isSelected]);
 
   const [pressed, setPressed] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
   const isPositive = changePercent > 0;
   const isNegative = changePercent < 0;
   const prefix = isPositive ? "▲" : isNegative ? "▼" : "─";
@@ -74,6 +75,7 @@ export default function CommodityRow({
           borderLeftColor: terminalColors.cyan,
           borderWidth: isSelected ? 2 : 0,
           borderColor: isSelected ? terminalColors.cyan : 'transparent',
+          backgroundColor: hovered ? terminalColors.panel : undefined,
         }}
       >
       {loading ? (
