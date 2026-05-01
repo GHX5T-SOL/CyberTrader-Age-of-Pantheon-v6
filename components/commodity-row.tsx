@@ -67,6 +67,8 @@ export default function CommodityRow({
         onPress={onPress}
         onPressIn={() => setPressed(true)}
         onPressOut={() => setTimeout(() => setPressed(false), 100)}
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
         hitSlop={4}
         accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
         style={{
@@ -101,6 +103,7 @@ export default function CommodityRow({
         {prefix} {Math.abs(changePercent).toFixed(1)}%
       </Text>
     </Pressable>
+    </Animated.View>
   );
 }
 
