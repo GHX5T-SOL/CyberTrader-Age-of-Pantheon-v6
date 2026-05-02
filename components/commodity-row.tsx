@@ -73,6 +73,7 @@ export default function CommodityRow({
         borderBottomColor: terminalColors.borderDim,
         paddingHorizontal: 8,
         position: 'relative',
+        borderRadius: 4,
       }}
     >
       {isSelected && (
