@@ -28,7 +28,16 @@ export default function RewardsMenuRoute() {
               </Text>
               {eligible && !claimed ? (
                 <View style={{ marginTop: 10 }}>
-                  <ActionButton variant="amber" label="[ CLAIM ]" onPress={() => {}} />
+                  <ActionButton variant="amber" label="[ CLAIM ]" onPress={async () => {
+                  const store = useDemoStore.getState();
+                  const playerId = store.playerId;
+                  if (!playerId) return;
+                  const authority = await import("@/authority/local-authority");
+                  // Grant dummy reward of 50000 BOL for rank 1 reward
+                  await authority.LocalAuthority.getInstance().grantReward(playerId, 50000, `reward_rank_${level}`);
+                  // Refresh store (simplified)
+                  store.refreshDemo?.();
+                }} />
                 </View>
               ) : null}
             </NeonBorder>
