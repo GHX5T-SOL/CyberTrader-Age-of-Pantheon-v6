@@ -27,6 +27,7 @@ export default function MissionsRoute() {
   const progression = useDemoStore((state) => state.progression);
   const [showUnlockedOnly, setShowUnlockedOnly] = useState(false);
   const [sortAsc, setSortAsc] = useState(true);
+  const [filterFaction, setFilterFaction] = useState<string | null>(null);
   const profile = useDemoStore((state) => state.profile);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const heat = useDemoStore((state) => state.resources.heat);
@@ -89,6 +90,12 @@ export default function MissionsRoute() {
         <Pressable onPress={() => setShowUnlockedOnly(!showUnlockedOnly)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
             {showUnlockedOnly ? 'SHOW ALL' : 'SHOW UNLOCKED ONLY'}
+          </Text>
+        </Pressable>
+        {/* Faction filter */}
+        <Pressable onPress={() => setFilterFaction(filterFaction === null ? 'ALL' : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            {filterFaction === null ? 'FILTER BY FACTION' : 'SHOW ALL FACTIONS'}
           </Text>
         </Pressable>
         {/* Sort toggle */}
