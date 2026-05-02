@@ -110,7 +110,7 @@ export default function MissionsRoute() {
               })
             : null;
           return (
-            <View key={npc.id} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10 }}>
+            <View key={npc.id} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10, backgroundColor: locked ? 'transparent' : terminalColors.black }}>
               <Text style={{ fontFamily: terminalFont, color: locked ? terminalColors.dim : terminalColors.text, fontSize: 12 }}>
                 {npc.name.toUpperCase()} // {npc.faction.toUpperCase()}
               </Text>
