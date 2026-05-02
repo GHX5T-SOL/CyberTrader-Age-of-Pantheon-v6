@@ -97,6 +97,12 @@ export default function MissionsRoute() {
             SORT REPUTATION {sortAsc ? '↓' : '↑'}
           </Text>
         </Pressable>
+        {/* Reset filters */}
+        <Pressable onPress={() => {setShowUnlockedOnly(false); setSortAsc(true);}} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+            RESET FILTERS
+          </Text>
+        </Pressable>
         {[...NPCS]
           .filter(npc => !showUnlockedOnly || progression.level >= npc.unlockedAtRank)
           .sort((a, b) => {
