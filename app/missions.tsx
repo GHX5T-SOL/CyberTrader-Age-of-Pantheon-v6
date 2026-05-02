@@ -42,6 +42,12 @@ export default function MissionsRoute() {
 
   return (
     <MenuScreen title={`MISSION CONTACTS (${missionCount})`}>
+      {/* Total Reputation Summary */}
+      <NeonBorder style={{ marginBottom: 10 }} active>
+        <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>
+          TOTAL REPUTATION: {Object.values(npcReputation).reduce((a,b)=>a+b,0)}
+        </Text>
+      </NeonBorder>
       {pendingMission || activeMission ? (
         <MissionBanner
           mission={(activeMission ?? pendingMission)!}
