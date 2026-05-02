@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Animated } from "react-native";
+import { Animated, StyleSheet } from "react-native";
 import { Image, Pressable, Text, View } from "react-native";
 import { terminalColors, terminalFont } from "@/theme/terminal";
 
@@ -32,8 +32,19 @@ export default function CommodityRow({
 }: CommodityRowProps & { loading?: boolean }) {
   // Animate background color when selection changes
   const bgAnim = React.useRef(new Animated.Value(0)).current;
+  const pulseAnim = React.useRef(new Animated.Value(0)).current;
   React.useEffect(() => {
     Animated.timing(bgAnim, { toValue: isSelected ? 1 : 0, duration: 300, useNativeDriver: false }).start();
+    if (isSelected) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: false }),
+          Animated.timing(pulseAnim, { toValue: 0, duration: 800, useNativeDriver: false }),
+        ]),
+      ).start();
+    } else {
+      pulseAnim.setValue(0);
+    }
   }, [isSelected]);
 
   const [pressed, setPressed] = React.useState(false);
@@ -61,8 +72,18 @@ export default function CommodityRow({
         borderBottomWidth: 1,
         borderBottomColor: terminalColors.borderDim,
         paddingHorizontal: 8,
+        position: 'relative',
       }}
     >
+      {isSelected && (
+        <Animated.View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: terminalColors.cyan,
+            opacity: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.3] }),
+          }}
+        />
+      )}
       <Pressable
         onPress={onPress}
         onPressIn={() => setPressed(true)}
