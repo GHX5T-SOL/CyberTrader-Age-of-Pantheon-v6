@@ -107,6 +107,14 @@ export default function MissionsRoute() {
             {filterFaction === null ? 'FILTER BY FACTION' : `FACTION: ${filterFaction.toUpperCase()}`}
           </Text>
         </Pressable>
+        {/* Clear faction filter */}
+        {filterFaction !== null && (
+          <Pressable onPress={() => setFilterFaction(null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+            <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
+              CLEAR FACTION FILTER
+            </Text>
+          </Pressable>
+        )}
         {/* Sort toggle */}
         <Pressable onPress={() => setSortAsc(prev => !prev)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
