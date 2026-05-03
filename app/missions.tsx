@@ -129,9 +129,15 @@ export default function MissionsRoute() {
               })
             : null;
           return (
-            <View key={npc.id} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: terminalColors.borderDim, paddingTop: 10, backgroundColor: locked ? 'transparent' : terminalColors.black,
+            <View key={npc.id} style={{
+                marginTop: 12,
+                borderTopWidth: 1,
+                borderTopColor: terminalColors.borderDim,
+                paddingTop: 10,
+                backgroundColor: locked ? 'transparent' : (activeMission && activeMission.id === npc.id ? terminalColors.green : terminalColors.black),
                 borderLeftWidth: locked ? 0 : 4,
-                borderLeftColor: locked ? 'transparent' : terminalColors.cyan }}>
+                borderLeftColor: locked ? 'transparent' : terminalColors.cyan,
+              }}>
               <Text style={{ fontFamily: terminalFont, color: locked ? terminalColors.dim : terminalColors.text, fontSize: 12 }}>
                 {npc.name.toUpperCase()} // {npc.faction.toUpperCase()}
               </Text>
