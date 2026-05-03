@@ -169,3 +169,143 @@ export const COMMODITY_PRESENTATION: Record<string, CommodityPresentation> = {
 
 // Export an ordered list of commodity presentations for UI consumption.
 export const PRESENTATION_DIRECTION: CommodityPresentation[] = Object.values(COMMODITY_PRESENTATION);
+
+// Helper functions for commodity presentation access
+export function getCommodityPresentation(ticker: string): CommodityPresentation {
+  const presentation = COMMODITY_PRESENTATION[ticker];
+  if (!presentation) {
+    throw new Error(`No presentation found for commodity ticker: ${ticker}`);
+  }
+  return presentation;
+}
+
+export function getCommodityLaneCounts(): Record<string, number> {
+  const counts: Record<string, number> = {
+    "starter-stabilizer": 0,
+    "safe-cycle": 0,
+    "upgrade-signal": 0,
+    "contraband-anomaly": 0,
+  };
+
+  Object.values(COMMODITY_PRESENTATION).forEach((presentation) => {
+    counts[presentation.lane]++;
+  });
+
+  return counts;
+}
+
+// Faction presentation data
+export const FACTION_PRESENTATION: Record<string, FactionPresentation> = {
+  FREE_SPLINTERS: {
+    faction: FACTION_DEFINITIONS[0],
+    accent: "green",
+    sigilRule: "Free splinter shard with green energy lines, pirate mutual identifier.",
+    hierarchyLabel: "Free Splinters Collective",
+    routeTexture: "Shard energy with green recovery patterns",
+    assetRequest: "Free splinter sigil for safe-cycle faction missions",
+  },
+  BLACKWAKE: {
+    faction: FACTION_DEFINITIONS[1],
+    accent: "amber",
+    sigilRule: "Blackwake crest with amber contraband symbol, smuggler captain identifier.",
+    hierarchyLabel: "Blackwake Syndicate",
+    routeTexture: "Dark amber energy with cargo patterns",
+    assetRequest: "Blackwake sigil for upgrade-signal faction routes",
+  },
+  NULL_CROWN: {
+    faction: FACTION_DEFINITIONS[2],
+    accent: "red",
+    sigilRule: "Null crown with red fracture lines, ghost court identifier.",
+    hierarchyLabel: "Null Crown Court",
+    routeTexture: "Dark crystalline with red warning energy",
+    assetRequest: "Null crown sigil for contraband-anomaly faction missions",
+  },
+  ARCHIVISTS: {
+    faction: FACTION_DEFINITIONS[3],
+    accent: "cyan",
+    sigilRule: "Archivist memory shard with cyan data streams, memory broker identifier.",
+    hierarchyLabel: "Archivist Network",
+    routeTexture: "Data streams with cyan memory patterns",
+    assetRequest: "Archivist sigil for intel-focused faction missions",
+  },
+};
+
+export function getFactionPresentationList(): FactionPresentation[] {
+  return Object.values(FACTION_PRESENTATION);
+}
+
+// OS tier presentation data
+export const OS_TIER_PRESENTATION: Record<string, OsTierPresentation> = {
+  PIRATE: {
+    tier: "PIRATE",
+    accent: "green",
+    rankBand: "RANK 1-4",
+    hierarchyLabel: "Starter Deck",
+    surfaceRule: "Basic terminal interface with minimal faction access",
+    captureRule: "Early-game teaching tool, no advanced features",
+  },
+  AGENT: {
+    tier: "AGENT",
+    accent: "amber",
+    rankBand: "RANK 5-7",
+    hierarchyLabel: "FACTION Integration",
+    surfaceRule: "Enhanced terminal with faction-specific tools and reputation",
+    captureRule: "Mid-game faction progression and advanced trading",
+  },
+  PANTHEON: {
+    tier: "PANTHEON",
+    accent: "red",
+    rankBand: "RANK 8-10",
+    hierarchyLabel: "Master Network",
+    surfaceRule: "Full-featured terminal with all systems and advanced controls",
+    captureRule: "locked late-game promise, maximum capability",
+  },
+};
+
+// Presentation asset requests for follow-up work
+export const PRESENTATION_ASSET_REQUESTS: PresentationAssetRequest[] = [
+  {
+    id: "palette-p1-006-commodity-lane-silhouettes",
+    owner: "palette",
+    priority: "P1",
+    title: "Commodity Lane Silhouettes",
+    acceptance: [
+      "Visual distinction between starter, safe, upgrade, and contraband lanes",
+      "Consistent with presentation direction risk labels and color coding",
+      "Supports both market tape and detailed commodity screens",
+    ],
+  },
+  {
+    id: "palette-p1-007-agentos-faction-sigils",
+    owner: "palette",
+    priority: "P1",
+    title: "AgentOS Faction Sigils",
+    acceptance: [
+      "Compact faction identifiers that work in UI surfaces",
+      "Distinct visual language for each of the four factions",
+      "Scale appropriately from small market tape to large mission screens",
+    ],
+  },
+  {
+    id: "vex-p1-008-os-tier-hierarchy-rails",
+    owner: "vex",
+    priority: "P1",
+    title: "OS Tier Hierarchy Rails",
+    acceptance: [
+      "Visual progression from PirateOS to AgentOS to PantheonOS",
+      "Interface evolution that reflects rank progression",
+      "Consistent with terminal surface rule definitions",
+    ],
+  },
+  {
+    id: "reel-p1-004-preview-asset-beat-list",
+    owner: "reel",
+    priority: "P1",
+    title: "Preview Asset Beat List",
+    acceptance: [
+      "Commodity, faction, and OS tier presentation beats for preview video",
+      "Consistent with capture role definitions in presentation direction",
+      "Supports 30-second App Store preview storyboard",
+    ],
+  },
+];
