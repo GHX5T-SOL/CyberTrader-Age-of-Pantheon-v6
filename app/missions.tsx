@@ -111,7 +111,7 @@ export default function MissionsRoute() {
           </Text>
         </Pressable>
         {[...NPCS]
-          .filter(npc => !showUnlockedOnly || progression.level >= npc.unlockedAtRank)
+          .filter(npc => (!showUnlockedOnly || progression.level >= npc.unlockedAtRank) && (!filterFaction || npc.faction === filterFaction))
           .sort((a, b) => {
           const repA = npcReputation[a.id] ?? 0;
           const repB = npcReputation[b.id] ?? 0;
