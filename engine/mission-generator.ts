@@ -10,7 +10,7 @@ import {
 import { seededStream } from "@/engine/prng";
 import type { Faction, FactionContractSignal, Mission, MissionType, Position } from "@/engine/types";
 
-const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop", "sabotage"];
+const MISSION_TYPES: MissionType[] = ["delivery", "buy_request", "hold", "intel_drop"];
 const MIN_PRESSURED_MISSION_MINUTES = 4;
 const MAX_PRESSURED_MISSION_MINUTES = 22;
 

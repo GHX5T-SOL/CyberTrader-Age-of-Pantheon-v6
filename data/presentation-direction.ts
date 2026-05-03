@@ -1,5 +1,3 @@
-import { DEMO_COMMODITIES } from "@/engine/demo-market";
-import { FACTION_DEFINITIONS } from "@/engine/factions";
 import type { Faction, OsTier } from "@/engine/types";
 
 export type PresentationAccent = "cyan" | "green" | "amber" | "red";
@@ -179,8 +177,8 @@ export function getCommodityPresentation(ticker: string): CommodityPresentation 
   return presentation;
 }
 
-export function getCommodityLaneCounts(): Record<string, number> {
-  const counts: Record<string, number> = {
+export function getCommodityLaneCounts(): Record<CommodityVisualLane, number> {
+  const counts: Record<CommodityVisualLane, number> = {
     "starter-stabilizer": 0,
     "safe-cycle": 0,
     "upgrade-signal": 0,
@@ -195,9 +193,9 @@ export function getCommodityLaneCounts(): Record<string, number> {
 }
 
 // Faction presentation data
-export const FACTION_PRESENTATION: Record<string, FactionPresentation> = {
+export const FACTION_PRESENTATION: Record<Faction, FactionPresentation> = {
   FREE_SPLINTERS: {
-    faction: FACTION_DEFINITIONS[0],
+    faction: "FREE_SPLINTERS",
     accent: "green",
     sigilRule: "Free splinter shard with green energy lines, pirate mutual identifier.",
     hierarchyLabel: "Free Splinters Collective",
@@ -205,7 +203,7 @@ export const FACTION_PRESENTATION: Record<string, FactionPresentation> = {
     assetRequest: "Free splinter sigil for safe-cycle faction missions",
   },
   BLACKWAKE: {
-    faction: FACTION_DEFINITIONS[1],
+    faction: "BLACKWAKE",
     accent: "amber",
     sigilRule: "Blackwake crest with amber contraband symbol, smuggler captain identifier.",
     hierarchyLabel: "Blackwake Syndicate",
@@ -213,7 +211,7 @@ export const FACTION_PRESENTATION: Record<string, FactionPresentation> = {
     assetRequest: "Blackwake sigil for upgrade-signal faction routes",
   },
   NULL_CROWN: {
-    faction: FACTION_DEFINITIONS[2],
+    faction: "NULL_CROWN",
     accent: "red",
     sigilRule: "Null crown with red fracture lines, ghost court identifier.",
     hierarchyLabel: "Null Crown Court",
@@ -221,7 +219,7 @@ export const FACTION_PRESENTATION: Record<string, FactionPresentation> = {
     assetRequest: "Null crown sigil for contraband-anomaly faction missions",
   },
   ARCHIVISTS: {
-    faction: FACTION_DEFINITIONS[3],
+    faction: "ARCHIVISTS",
     accent: "cyan",
     sigilRule: "Archivist memory shard with cyan data streams, memory broker identifier.",
     hierarchyLabel: "Archivist Network",
@@ -235,7 +233,7 @@ export function getFactionPresentationList(): FactionPresentation[] {
 }
 
 // OS tier presentation data
-export const OS_TIER_PRESENTATION: Record<string, OsTierPresentation> = {
+export const OS_TIER_PRESENTATION: Record<OsTier, OsTierPresentation> = {
   PIRATE: {
     tier: "PIRATE",
     accent: "green",

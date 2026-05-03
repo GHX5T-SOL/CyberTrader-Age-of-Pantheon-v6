@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import ActionButton from "@/components/action-button";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import OsStatusMatrix from "@/components/os-status-matrix";
 import {
   FACTION_DEFINITIONS,
   getAgentOsFactionGate,
@@ -10,6 +11,7 @@ import {
   getFactionDefinition,
   getFactionSwitchRule,
 } from "@/engine/factions";
+import { getOsProgressionState } from "@/engine/os-progression";
 import type { Faction } from "@/engine/types";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -20,6 +22,7 @@ export default function ProgressionMenuRoute() {
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
   const heat = useDemoStore((state) => state.resources.heat);
   const factionChoice = useDemoStore((state) => state.factionChoice);
+  const npcReputation = useDemoStore((state) => state.npcReputation);
   const chooseFaction = useDemoStore((state) => state.chooseFaction);
   const rank = progression.level;
   const selectedFaction = profile?.faction ?? null;
@@ -48,6 +51,14 @@ export default function ProgressionMenuRoute() {
   const xpNeeded = progression.nextXpRequired === null
     ? 0
     : Math.max(0, progression.nextXpRequired - progression.xp);
+  const osState = getOsProgressionState({
+    rank,
+    firstTradeComplete,
+    heat,
+    faction: selectedFaction,
+    npcReputation,
+  });
+  const pantheonTier = osState.tiers.find((tier) => tier.id === "PANTHEON");
 
   React.useEffect(() => {
     if (selectedFaction) {
@@ -58,6 +69,8 @@ export default function ProgressionMenuRoute() {
   return (
     <MenuScreen title="OS UPGRADE PATH">
       <View style={{ gap: 12 }}>
+        <OsStatusMatrix state={osState} />
+
         <NeonBorder active={agentOsGate.osTier === "PIRATE"}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 13 }}>
             AG3NT_0S//pIRAT3 - {agentOsGate.osTier === "PIRATE" ? "CURRENT" : "COMPLETE"}
@@ -105,12 +118,15 @@ export default function ProgressionMenuRoute() {
           </Text>
         </NeonBorder>
 
-        <NeonBorder active={agentOsGate.osTier === "PANTHEON"}>
-          <Text style={{ fontFamily: terminalFont, color: agentOsGate.osTier === "PANTHEON" ? terminalColors.cyan : terminalColors.dim, fontSize: 13 }}>
-            PantheonOS - LOCKED (rank 20)
+        <NeonBorder active={osState.pantheonReadiness.ready}>
+          <Text style={{ fontFamily: terminalFont, color: osState.pantheonReadiness.ready ? terminalColors.cyan : terminalColors.dim, fontSize: 13 }}>
+            PantheonOS - {osState.pantheonReadiness.ready ? "READY" : `LOCKED (${osState.pantheonReadiness.progressPercent}%)`}
           </Text>
           <Text style={{ marginTop: 8, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11, lineHeight: 17 }}>
-            Shard reconstruction, guild control, endgame authority.
+            {pantheonTier?.narrativeLine ?? "Shard reconstruction, guild control, endgame authority."}
+          </Text>
+          <Text style={{ marginTop: 8, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10, lineHeight: 15 }}>
+            SHARD SIGNAL {osState.pantheonReadiness.shardSignal}/100 // {osState.nextTier === "PANTHEON" ? osState.nextAction : "NEON VOID MAP READY"}
           </Text>
         </NeonBorder>
 

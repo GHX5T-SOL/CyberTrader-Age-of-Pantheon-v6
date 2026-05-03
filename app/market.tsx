@@ -1,8 +1,9 @@
 import * as React from "react";
-import { View, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
+import { View, ScrollView } from "react-native";
 import CommodityRow from "@/components/commodity-row";
-import { PRESENTATION_DIRECTION } from "@/data/presentation-direction";
+import { DEMO_COMMODITIES } from "@/engine/demo-market";
 import { useRouter } from "expo-router";
+import { terminalColors } from "@/theme/terminal";
 
 export default function MarketScreen() {
   const router = useRouter();
@@ -17,14 +18,13 @@ export default function MarketScreen() {
 
   const handlePress = (ticker: string) => {
     setSelected(ticker);
-    // navigate to terminal for trading this commodity
-    router.push({ pathname: "/terminal", params: { commodity: ticker } });
+    router.push({ pathname: "/terminal", params: { ticker } });
   };
 
   // Show placeholder rows while loading to maintain layout continuity
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
+      <View style={{ flex: 1, backgroundColor: terminalColors.background }}>
         <ScrollView>
           {Array.from({ length: 5 }).map((_, i) => (
             <CommodityRow
@@ -44,15 +44,15 @@ export default function MarketScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
+    <View style={{ flex: 1, backgroundColor: terminalColors.background }}>
       <ScrollView>
-        {PRESENTATION_DIRECTION.map((c) => (
+        {DEMO_COMMODITIES.map((c) => (
           <CommodityRow
             key={c.ticker}
             ticker={c.ticker}
             name={c.name}
-            price={c.price}
-            changePercent={c.changePercent}
+            price={c.basePrice}
+            changePercent={0}
             isSelected={selected === c.ticker}
             onPress={() => handlePress(c.ticker)}
           />

@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Text, View } from "react-native";
 import ActionButton from "@/components/action-button";
 import MenuScreen from "@/components/menu-screen";
@@ -7,6 +8,7 @@ import { terminalColors, terminalFont } from "@/theme/terminal";
 
 export default function RewardsMenuRoute() {
   const rank = useDemoStore((state) => state.profile?.rank ?? 1);
+  const [claimedLevels, setClaimedLevels] = React.useState<readonly number[]>([1, 3]);
   const rewards = [
     [1, "+50,000 0BOL"],
     [3, "Free energy pack 24h"],
@@ -20,7 +22,7 @@ export default function RewardsMenuRoute() {
       <View style={{ gap: 10 }}>
         {rewards.map(([level, label]) => {
           const eligible = rank >= level;
-          const claimed = eligible && level <= 3;
+          const claimed = eligible && claimedLevels.includes(level);
           return (
             <NeonBorder key={level} active={eligible && !claimed}>
               <Text style={{ fontFamily: terminalFont, color: claimed ? terminalColors.green : eligible ? terminalColors.amber : terminalColors.dim, fontSize: 12 }}>
@@ -28,16 +30,13 @@ export default function RewardsMenuRoute() {
               </Text>
               {eligible && !claimed ? (
                 <View style={{ marginTop: 10 }}>
-                  <ActionButton variant="amber" label="[ CLAIM ]" onPress={async () => {
-                  const store = useDemoStore.getState();
-                  const playerId = store.playerId;
-                  if (!playerId) return;
-                  const authority = await import("@/authority/local-authority");
-                  // Grant dummy reward of 50000 BOL for rank 1 reward
-                  await authority.LocalAuthority.getInstance().grantReward(playerId, 50000, `reward_rank_${level}`);
-                  // Refresh store (simplified)
-                  store.refreshDemo?.();
-                }} />
+                  <ActionButton
+                    variant="amber"
+                    label="[ CLAIM ]"
+                    onPress={() => {
+                      setClaimedLevels((current) => [...current, level]);
+                    }}
+                  />
                 </View>
               ) : null}
             </NeonBorder>

@@ -15,6 +15,7 @@ import MarketTapeHeader from "@/components/market-tape-header";
 import MetricChip from "@/components/metric-chip";
 import MissionBanner from "@/components/mission-banner";
 import { OperatorBrief, type OperatorBriefAction } from "@/components/operator-brief";
+import OsStatusMatrix from "@/components/os-status-matrix";
 import PulsingDot from "@/components/pulsing-dot";
 import RouteRecoveryScreen from "@/components/route-recovery-screen";
 import StreakDisplay from "@/components/streak-display";
@@ -23,6 +24,7 @@ import { useMenu } from "@/context/menu-context";
 import { getLocation, getUnlockedLocations } from "@/data/locations";
 import { getActiveDistrictState } from "@/engine/district-state";
 import { DEMO_COMMODITIES, formatObol } from "@/engine/demo-market";
+import { getOsProgressionState } from "@/engine/os-progression";
 import { useDemoRouteGuard } from "@/hooks/use-demo-route-guard";
 import { useDemoStore } from "@/state/demo-store";
 import { terminalColors, terminalFont } from "@/theme/terminal";
@@ -42,6 +44,7 @@ export default function HomeRoute() {
   const routeReady = useDemoRouteGuard();
   const menu = useMenu();
   const handle = useDemoStore((state) => state.handle);
+  const profile = useDemoStore((state) => state.profile);
   const resources = useDemoStore((state) => state.resources);
   const prices = useDemoStore((state) => state.prices);
   const changes = useDemoStore((state) => state.changes);
@@ -59,6 +62,7 @@ export default function HomeRoute() {
   const activeMission = useDemoStore((state) => state.activeMission);
   const streak = useDemoStore((state) => state.streak);
   const dailyChallenges = useDemoStore((state) => state.dailyChallenges);
+  const npcReputation = useDemoStore((state) => state.npcReputation);
   const districtStates = useDemoStore((state) => state.districtStates);
   const bounty = useDemoStore((state) => state.bounty);
   const awayReport = useDemoStore((state) => state.awayReport);
@@ -106,6 +110,13 @@ export default function HomeRoute() {
   const nextXp = progression.nextXpRequired === null
     ? 0
     : Math.max(0, progression.nextXpRequired - progression.xp);
+  const osState = getOsProgressionState({
+    rank: progression.level,
+    firstTradeComplete,
+    heat: resources.heat,
+    faction: profile?.faction ?? null,
+    npcReputation,
+  });
 
   const handleOperatorAction = (action: OperatorBriefAction) => {
     if (action.kind === "cool-heat" && currentLocation.special === "heat_reduction") {
@@ -149,6 +160,8 @@ export default function HomeRoute() {
         districtState={district.state}
         onTravelPress={() => setTravelModal(true)}
       />
+
+      <OsStatusMatrix state={osState} compact style={{ marginTop: 12, marginHorizontal: 12 }} />
 
       <View style={{ marginTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>
         <MetricChip

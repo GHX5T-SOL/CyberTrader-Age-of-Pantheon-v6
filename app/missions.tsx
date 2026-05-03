@@ -93,7 +93,7 @@ export default function MissionsRoute() {
           </Text>
         </Pressable>
         {/* Faction filter */}
-        <Pressable onPress={() => setFilterFaction(filterFaction === null ? NPCS[0].faction : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+        <Pressable onPress={() => setFilterFaction(filterFaction === null ? NPCS[0]?.faction ?? null : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
             {filterFaction === null ? 'FILTER BY FACTION' : 'SHOW ALL FACTIONS'}
           </Text>
@@ -134,7 +134,7 @@ export default function MissionsRoute() {
                 borderTopWidth: 1,
                 borderTopColor: terminalColors.borderDim,
                 paddingTop: 10,
-                backgroundColor: locked ? 'transparent' : (activeMission && activeMission.id === npc.id ? terminalColors.green : terminalColors.black),
+                backgroundColor: locked ? 'transparent' : (activeMission && activeMission.npcId === npc.id ? terminalColors.cyanFill : terminalColors.panelEven),
                 borderLeftWidth: locked ? 0 : 4,
                 borderLeftColor: locked ? 'transparent' : terminalColors.cyan,
               }}>
@@ -160,7 +160,7 @@ export default function MissionsRoute() {
                   </Text>
                   {/* Show faction description for richer lore */}
                   <Text style={{ marginTop: 2, fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9 }}>
-                    {faction.description}
+                    {faction.ethos}
                   </Text>
                 </>
               ) : (

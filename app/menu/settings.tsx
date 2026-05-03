@@ -5,6 +5,7 @@ import ActionButton from "@/components/action-button";
 import ConfirmModal from "@/components/confirm-modal";
 import MenuScreen from "@/components/menu-screen";
 import NeonBorder from "@/components/neon-border";
+import SolanaReadinessPanel from "@/components/solana-readiness-panel";
 import SystemStatePanel from "@/components/system-state-panel";
 import { LAUNCH_ACCOUNT_RECOVERY_COPY } from "@/authority/launch-identity";
 import { STORE_SAFE_BOUNDARY_POLICY } from "@/authority/store-safety";
@@ -15,6 +16,7 @@ export default function SettingsMenuRoute() {
   const resetDemo = useDemoStore((state) => state.resetDemo);
   const resetTutorial = useDemoStore((state) => state.resetTutorial);
   const resetIntro = useDemoStore((state) => state.resetIntro);
+  const profile = useDemoStore((state) => state.profile);
   const [confirm, setConfirm] = React.useState(false);
 
   return (
@@ -42,10 +44,10 @@ export default function SettingsMenuRoute() {
         <View style={{ gap: 4 }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 11 }}>FEATURE FLAGS</Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11 }}>SUPABASE AUTHORITY: OFF</Text>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.text, fontSize: 11 }}>SOLANA TOKEN MODE: DISABLED FOR LAUNCH</Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 11 }}>{STORE_SAFE_BOUNDARY_POLICY.walletScope}</Text>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.dim, fontSize: 11 }}>APP VERSION: v0.1.3</Text>
         </View>
+        <SolanaReadinessPanel walletAddress={profile?.walletAddress ?? null} />
         <SystemStatePanel
           kind="offline"
           framed={false}

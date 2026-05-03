@@ -13,7 +13,7 @@ const ITEMS = [
   ["SETTINGS", "/menu/settings"],
   ["INVENTORY", "/menu/inventory"],
   ["MISSIONS", "/missions"],
-  ["PROGRESSION", "/menu/progression"],
+  ["OS / PROGRESSION", "/menu/progression"],
   ["RANK / LEADERBOARD", "/menu/rank"],
   ["REWARDS", "/menu/rewards"],
   ["NOTIFICATIONS", "/menu/notifications"],
