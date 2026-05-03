@@ -93,9 +93,18 @@ export default function MissionsRoute() {
           </Text>
         </Pressable>
         {/* Faction filter */}
-        <Pressable onPress={() => setFilterFaction(filterFaction === null ? NPCS[0].faction : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+        <Pressable onPress={() => {
+          const factions = Array.from(new Set(NPCS.map(n => n.faction)));
+          if (filterFaction === null) {
+            setFilterFaction(factions[0] ?? null);
+          } else {
+            const currentIndex = factions.indexOf(filterFaction);
+            const nextIndex = (currentIndex + 1) % factions.length;
+            setFilterFaction(factions[nextIndex] ?? null);
+          }
+        }} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
-            {filterFaction === null ? 'FILTER BY FACTION' : 'SHOW ALL FACTIONS'}
+            {filterFaction === null ? 'FILTER BY FACTION' : `FACTION: ${filterFaction.toUpperCase()}`}
           </Text>
         </Pressable>
         {/* Sort toggle */}
