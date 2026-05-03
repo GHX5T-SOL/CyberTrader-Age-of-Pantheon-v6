@@ -42,7 +42,7 @@ export default function MissionsRoute() {
   const agentOsProgress = getAgentOsGateProgress(agentOsGate);
 
   return (
-    <MenuScreen title={`MISSION CONTACTS (${missionCount})`}>
+    <MenuScreen title={`MISSION CONTACTS (${missionCount}) - CONTACTS (${NPCS.filter(npc => (!showUnlockedOnly || progression.level >= npc.unlockedAtRank) && (!filterFaction || npc.faction === filterFaction)).length})`}>
       {/* Total Reputation Summary */}
       <NeonBorder style={{ marginBottom: 10 }} active>
         <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 12 }}>
