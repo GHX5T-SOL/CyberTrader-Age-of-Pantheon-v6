@@ -93,6 +93,7 @@ export default function CommodityRow({
         onHoverOut={() => setHovered(false)}
         hitSlop={4}
         accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
+        accessibilityLiveRegion="polite"
         style={{
           flex: 1,
           borderLeftWidth: isSelected ? 2 : 0,
