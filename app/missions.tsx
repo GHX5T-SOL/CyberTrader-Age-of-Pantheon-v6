@@ -93,7 +93,7 @@ export default function MissionsRoute() {
           </Text>
         </Pressable>
         {/* Faction filter */}
-        <Pressable onPress={() => setFilterFaction(filterFaction === null ? 'ALL' : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+        <Pressable onPress={() => setFilterFaction(filterFaction === null ? NPCS[0].faction : null)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
           <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>
             {filterFaction === null ? 'FILTER BY FACTION' : 'SHOW ALL FACTIONS'}
           </Text>
