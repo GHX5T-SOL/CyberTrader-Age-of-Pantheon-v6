@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, ScrollView, ActivityIndicator } from "react-native";
+import { View, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
 import CommodityRow from "@/components/commodity-row";
 import { PRESENTATION_DIRECTION } from "@/data/presentation-direction";
 import { useRouter } from "expo-router";
