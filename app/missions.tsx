@@ -128,7 +128,15 @@ export default function MissionsRoute() {
           ) : (
             missionHistory
               .slice()
-              .sort((a, b) => sortMode === 'name' ? (sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt) : (sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt))
+              .sort((a, b) => {
+                if (sortMode === 'name') {
+                  return sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt;
+                } else { // sort by reputation
+                  const repA = getFactionStanding(a.faction, npcReputation);
+                  const repB = getFactionStanding(b.faction, npcReputation);
+                  return sortAsc ? repA - repB : repB - repA;
+                }
+              })
               .map((m) => (
                 <MissionBanner key={m.id} mission={m} nowMs={clock.nowMs} />
               ))
@@ -137,7 +145,15 @@ export default function MissionsRoute() {
         {/* Contacts list */}
         <View style={{ marginTop: 8 }}>
           {NPCS.filter(npc => (!showUnlockedOnly || progression.level >= npc.unlockedAtRank) && (!filterFaction || npc.faction === filterFaction))
-            .sort((a, b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name))
+            .sort((a, b) => {
+                if (sortMode === 'name') {
+                  return sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+                } else {
+                  const repA = getFactionStanding(a.faction, npcReputation);
+                  const repB = getFactionStanding(b.faction, npcReputation);
+                  return sortAsc ? repA - repB : repB - repA;
+                }
+              })
             .map((npc) => (
               <Pressable key={npc.id} onPress={() => {
                 router.push({ pathname: '/mission-detail', params: { id: npc.id } });
