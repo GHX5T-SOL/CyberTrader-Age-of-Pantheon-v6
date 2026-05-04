@@ -92,7 +92,7 @@ export default function CommodityRow({
         onHoverIn={() => setHovered(true)}
         onHoverOut={() => setHovered(false)}
         hitSlop={4}
-        accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toFixed(2)}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
+        accessibilityLabel={`Commodity ${name} (${ticker}), price ${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}, change ${Math.abs(changePercent).toFixed(1)}% ${isPositive ? 'up' : isNegative ? 'down' : 'no change'}`}
         accessibilityLiveRegion="polite"
         style={{
           flex: 1,
@@ -120,7 +120,7 @@ export default function CommodityRow({
         {name}
       </Text>
       <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 86, textAlign: "right", fontFamily: terminalFont, fontSize: 15, color: terminalColors.text }}>
-        {price.toFixed(2)}
+        {price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
       </Text>
       <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} style={{ width: 62, textAlign: "right", fontFamily: terminalFont, fontSize: 12, color: isPositive ? terminalColors.green : isNegative ? terminalColors.red : terminalColors.muted }}>
         {prefix} {Math.abs(changePercent).toFixed(1)}%
