@@ -28,6 +28,7 @@ export default function MissionsRoute() {
   const [showUnlockedOnly, setShowUnlockedOnly] = useState(false);
   const [sortAsc, setSortAsc] = useState(true);
   const [sortMode, setSortMode] = useState<'name' | 'reputation'>('name');
+  const toggleSortMode = () => setSortMode(prev => prev === 'name' ? 'reputation' : 'name');
   const [filterFaction, setFilterFaction] = useState<string | null>(null);
   const profile = useDemoStore((state) => state.profile);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
@@ -118,7 +119,10 @@ export default function MissionsRoute() {
         )}
         {/* Sort toggle */}
         <Pressable onPress={() => setSortAsc(prev => !prev)} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
-          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>SORT: {sortAsc ? 'ASC' : 'DESC'}</Text>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>SORT ASC/DESC: {sortAsc ? 'ASC' : 'DESC'}</Text>
+        </Pressable>
+        <Pressable onPress={toggleSortMode} style={{ marginTop: 4, padding: 4, borderWidth: 1, borderColor: terminalColors.dim }}>
+          <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 10 }}>SORT: {sortMode.toUpperCase()}</Text>
         </Pressable>
         {/* Mission History */}
         <NeonBorder style={{ marginTop: 8 }} active>
