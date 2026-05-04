@@ -139,7 +139,7 @@ export default function MissionsRoute() {
             .sort((a, b) => sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name))
             .map((npc) => (
               <Pressable key={npc.id} onPress={() => {
-                // placeholder for future contact detail
+                router.push({ pathname: '/mission-detail', params: { id: npc.id } });
               }} style={{ paddingVertical: 4 }}>
                 <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 11 }}>{npc.name} - {getFactionDefinition(npc.faction).name}</Text>
                 <Text style={{ fontFamily: terminalFont, color: getFactionStanding(npc.faction, npcReputation) < 0 ? terminalColors.red : terminalColors.muted, fontSize: 9 }}>Reputation: {getFactionStanding(npc.faction, npcReputation)}</Text>
