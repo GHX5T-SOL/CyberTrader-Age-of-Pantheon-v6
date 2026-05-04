@@ -1089,3 +1089,30 @@
     }
   ]
 }
+{
+  "ok": false,
+  "runId": "2026-05-04T08:11:58.712Z",
+  "skipped": false,
+  "forceMode": false,
+  "previousCommit": "d21af5feff1b418dcd9b153c440202da565a179b",
+  "checkedCommit": "47c830f6d06b4a8977c6aebe23fae92d68cf9180",
+  "startedAt": "2026-05-04T08:11:58.712Z",
+  "finishedAt": "2026-05-04T08:14:59.258Z",
+  "steps": [
+    {
+      "step": "typecheck",
+      "ok": false,
+      "stderr": ""
+    },
+    {
+      "step": "jest",
+      "ok": true,
+      "stdout": "> cybertrader-mobile@0.1.0-phase0 test\n> jest --runInBand --forceExit"
+    },
+    {
+      "step": "health:live",
+      "ok": true,
+      "stdout": "> cybertrader-mobile@0.1.0-phase0 health:live\n> node scripts/check-live-deployment.mjs\n\n{\n  \"ok\": true,\n  \"url\": \"https://cyber-trader-age-of-pantheon-v6.vercel.app\",\n  \"status\": 200,\n  \"durationMs\": 126,\n  \"contentType\": \"text/html; charset=utf-8\",\n  \"vercelCache\": \"HIT\"\n}"
+    }
+  ]
+}
