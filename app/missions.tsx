@@ -142,7 +142,7 @@ export default function MissionsRoute() {
                 // placeholder for future contact detail
               }} style={{ paddingVertical: 4 }}>
                 <Text style={{ fontFamily: terminalFont, color: terminalColors.cyan, fontSize: 11 }}>{npc.name} - {getFactionDefinition(npc.faction).name}</Text>
-                <Text style={{ fontFamily: terminalFont, color: terminalColors.muted, fontSize: 9 }}>Reputation: {getFactionStanding(npc.faction, npcReputation)}</Text>
+                <Text style={{ fontFamily: terminalFont, color: getFactionStanding(npc.faction, npcReputation) < 0 ? terminalColors.red : terminalColors.muted, fontSize: 9 }}>Reputation: {getFactionStanding(npc.faction, npcReputation)}</Text>
               </Pressable>
             ))}
         </View>
