@@ -696,6 +696,11 @@ export default function MissionsRoute() {
               <Text style={{ marginTop: 4, fontFamily: terminalFont, color: terminalColors.amber, fontSize: 10 }}>
                 REP {reputation}
               </Text>
+              {contractSignal && (
+                <Text style={{ marginTop: 2, fontFamily: terminalFont, color: terminalColors.yellow, fontSize: 9 }}>
+                  SIGNAL: {contractSignal}
+                </Text>
+              )}
               <MissionContractStrip signal={contractSignal} locked={locked} />
               {faction && standing ? (
                 <>
