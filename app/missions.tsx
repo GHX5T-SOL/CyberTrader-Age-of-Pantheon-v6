@@ -27,6 +27,7 @@ export default function MissionsRoute() {
   const progression = useDemoStore((state) => state.progression);
   const [showUnlockedOnly, setShowUnlockedOnly] = useState(false);
   const [sortAsc, setSortAsc] = useState(true);
+  const [sortMode, setSortMode] = useState<'name' | 'reputation'>('name');
   const [filterFaction, setFilterFaction] = useState<string | null>(null);
   const profile = useDemoStore((state) => state.profile);
   const firstTradeComplete = useDemoStore((state) => state.firstTradeComplete);
@@ -127,7 +128,7 @@ export default function MissionsRoute() {
           ) : (
             missionHistory
               .slice()
-              .sort((a, b) => sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt)
+              .sort((a, b) => sortMode === 'name' ? (sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt) : (sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt))
               .map((m) => (
                 <MissionBanner key={m.id} mission={m} nowMs={clock.nowMs} />
               ))
