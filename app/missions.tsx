@@ -134,7 +134,7 @@ export default function MissionsRoute() {
               .slice()
               .sort((a, b) => {
                 if (sortMode === 'name') {
-                  return sortAsc ? a.completedAt - b.completedAt : b.completedAt - a.completedAt;
+                  return sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
                 } else { // sort by reputation
                   const repA = getFactionStanding(a.faction, npcReputation);
                   const repB = getFactionStanding(b.faction, npcReputation);
